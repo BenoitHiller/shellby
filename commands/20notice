@@ -1,0 +1,7 @@
+#!/bin/bash
+
+source $botDir/commandLoader.sh
+
+commandWatcher "$botDir/commands/notice/" "$bufferDir/noticeInput" "$bufferDir/rawOutput" &
+
+grep -E '^:?\S+ NOTICE' > "$bufferDir/noticeInput"

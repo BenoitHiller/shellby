@@ -1,0 +1,6 @@
+#!/usr/bin/awk -f
+
+/^:?\S+ NOTICE \* :\*\*\* Looking up your hostname\.\.\./{
+  print "NICK shellby"
+  print "USER shellby 0 * :Shellby"
+}

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+###############
+# user config #
+###############
+
+NICK=Shellby
+USER=Shellby
+REALNAME="Shellby Capek"
+HOSTNAME="0"
+SERVERNAME="*"
+
+#####################
+# connection config #
+#####################
+
+TARGETSERVER="chat.freenode.org"
+PORT=6667
+CHANNELS=( "#shellbytest" )
+
+############
+# internal #
+############
+
+TMPDIR="/tmp"

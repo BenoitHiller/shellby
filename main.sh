@@ -1,51 +1,58 @@
 #!/bin/bash
 
-declare -r bufferDir=$(mktemp --tmpdir -d streambot.XXXXXX)
-declare -A pids
-declare -A md5s
+###############
+# load config #
+###############
 
-function updateMd5 {
-  md5s["$1"]="$(md5sum $1)"
-}
+declare -r botDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" 
+source $botDir/config
 
-function checkMd5 {
-  md5sum $md5s["$1"] 2>&1 >/dev/null
-  return $?
-}
+declare -r bufferDir=$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)
 
-# load/reload a command by filename
-#
-# 1.file the file to reload
-function reloadCommand {
-  declare -r file="$1"
-  declare pid="$pids["$file"]"
+################
+# toggle debug #
+################
 
-  if [ ! -z "$pid" ]; then
-    kill $pid # maybe choose a better signal. Probably shoud be -$pid 
+[ ! -z "$DEBUG" ] && set -x
 
-  # TODO: add else case to detect failures
-  fi
+#########################
+# set up signal handler #
+#########################
 
-  # this should execute as a specific user. Or I could set up a chroot jail for a user.
-  tail -F $bufferDir/rawInput 2>/dev/null | env -i PATH=$PATH BUFFERDIR="$bufferDir" BOTDIR="$PWD" $file
-  pid=$!
-  pids["$file"]=$pid
-}
+trap "rm -rf $bufferDir; exit 1" SIGINT SIGTERM EXIT
 
-# Iterates over the top level command files and loads or reloads them as needed
-function commandWatcher {
-  # find should filter for executable with maxdepth of 1
-  find ./commands/ | while read commandFile; do
-    if ! checkMd5 "$commandFile"; then
-      updateMd5 "$commandFile"
-      reloadCommand "$commandFile"
-    elif [ -z "$pids["$commandFile"]" ]
-      reloadCommand "$commandFile"
-    fi
-  done
-}
+#####################
+# load dependencies #
+#####################
 
-commandWatcher
-netcat $1 $2 > $bufferDir/rawInput &
+source $botDir/commandLoader.sh
 
+######################
+# initialize buffers #
+######################
+
+declare -i MB=$((2 * 1024 * 1024))
+
+makeBuffer "$bufferDir/rawInput" $MB
+makeBuffer "$bufferDir/rawOutput" $MB
+makeBuffer "$bufferDir/noticeInput" $MB
+makeBuffer "$bufferDir/events" $MB
+
+watchFiles &
+
+#################
+# start the bot #
+#################
+
+# initialize the handlers
+commandWatcher "$botDir/commands/" "$bufferDir/rawInput" "$bufferDir/rawOutput" &
+commandWatcher "$botDir/events/" "$bufferDir/events" "$bufferDir/rawOutput" &
+
+# start the connection and connect the handler input and output
+(tail -n 0 -F $bufferDir/rawOutput 2>/dev/null | netcat $TARGETSERVER $PORT > $bufferDir/rawInput) &
+
+# add the handler output to the rawlog
+(tail -n 0 -F $bufferDir/rawOutput 2>/dev/null | stdbuf -oL sed 's/^/<< /' >> $PWD/rawlog) &
+
+# just sit there until killed
 wait

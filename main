@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#########################
+# set up signal handler #
+#########################
+
+declare -r thisPid=$$
+# when the parent is killed, clean up all of the subprocesses(maybe not -9...)
+trap "kill -TERM -$thisPid;" SIGINT EXIT
+
+###################
+# launch with env #
+###################
+
+declare -r botDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" 
+env -i  DEBUG=$DEBUG $botDir/main.sh "$@"

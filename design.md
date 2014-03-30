@@ -7,3 +7,9 @@ To distribute the IO to the various readers I will use a temporary file and have
 # Top level parsers
 
 Will be spawned by the top level bot. Which will run in a loop and check for new or changed scripts.
+
+# Sub parsers
+
+For the parsers that delegate downward I am going to need to make the process of running all the handlers in a folder portable.
+
+So the subhandler will have to be able to source the lib file then specify a target folder and buffer file. It is up to the handler to process the input and redirect only the matches.

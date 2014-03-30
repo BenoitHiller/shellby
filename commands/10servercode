@@ -1,0 +1,6 @@
+#!/bin/bash
+
+awk ' 
+/^:?\S+\s+001\s+/ {
+  printf("connect %s\n",$1)
+}' >> $bufferDir/events

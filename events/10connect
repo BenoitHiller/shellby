@@ -1,0 +1,14 @@
+#!/bin/bash
+
+source $botDir/config
+
+if grep -qE '^connect' - ; then
+  echo wat >&2
+  echo "${CHANNELS[@]}" >&2
+  sleep 2
+  if [ ! -z "$CHANNELS" ] && [ "${#CHANNELS[@]}" -gt 0 ]; then 
+    for channel in "${CHANNELS[@]}"; do
+      echo JOIN "$channel"
+    done
+  fi
+fi

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+awk -v private="$bufferDir/privateInput" -v channel="$bufferDir/channelInput" '
+/:?\S+ PRIVMSG #/ {
+  print $0 > channel
+  fflush(channel)
+}
+
+/:?\S+ PRIVMSG [^#]/ {
+  print $0 > private
+  fflush(private)
+}'
