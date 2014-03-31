@@ -3,5 +3,8 @@
 source $botDir/commandLoader.sh
 
 commandWatcher "$botDir/commands/notice/" "$bufferDir/noticeInput" "$bufferDir/rawOutput" &
+watcherPid=$!
+
+trap "kill -TERM $watcherPid; exit 1" SIGTERM
 
 grep -E '^:?\S+ NOTICE' > "$bufferDir/noticeInput"

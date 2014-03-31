@@ -40,6 +40,25 @@ function checkMd5 {
   return $?
 }
 
+# kill a command
+function doubleTap {
+  local -r file="$1"
+  
+  local pid="${pids[$file]}"
+  children=$(ps -ho pid --ppid $pid | xargs 2>/dev/null)
+  grandchildren=$(ps -ho pid --ppid "$children" | xargs 2>/dev/null)
+  kill -TERM $pid $children $grandchildren # maybe choose a better signal. Probably shoud be -$pid 
+
+  echo stopping handler: $file 1>&2
+  echo handler stop :"${file#$botDir/}" >> "$bufferDir/events"
+  wait $pid
+  local -i count=0
+  while [ "$count" -lt 20 ] && ps --pid "$children $grandchildren" >/dev/null 2>&1; do
+    sleep 1
+    count=$count+1 
+  done
+}
+
 # load/reload a command by filename
 #
 # 1.file the file to reload
@@ -52,17 +71,25 @@ function reloadCommand {
   local pid="${pids[$file]}"
 
   if [ ! -z "$pid" ]; then
-    kill -TERM $pid # maybe choose a better signal. Probably shoud be -$pid 
-
-  # TODO: add else case to detect failures
+    doubleTap "$file"
   fi
 
   export bufferDir
   export botDir 
   # this should execute as a specific user. Or I could set up a chroot jail for a user.
-  (tail -n 0 -F "$input" 2>/dev/null | stdbuf -oL $file >> "$output") &
+  (
+    tail -n 0 -F "$input" 2>/dev/null | stdbuf -oL $file >> "$output" 
+  ) &
   pid=$!
+  echo starting handler: $file pid: $pid 1>&2
+  echo handler start :"${file#$botDir/}" >> "$bufferDir/events"
   pids["$file"]=$pid
+}
+
+function killAll {
+  for file in "${!pids[@]}"; do
+    doubleTap "$file"
+  done
 }
 
 # Iterates over the top level command files and loads or reloads them as needed
@@ -74,6 +101,7 @@ function commandWatcher {
   local -r targetPath="$1"
   local -r input="$2"
   local -r output="$3"
+  trap "killAll;exit 1" SIGTERM
 
   while true; do
      while read commandFile; do

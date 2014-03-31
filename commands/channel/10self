@@ -1,0 +1,12 @@
+#!/bin/bash
+
+source $botDir/commandLoader.sh
+source $botDir/config
+
+
+commandWatcher "$botDir/commands/channel/self/" "$bufferDir/self" "$bufferDir/rawOutput" &
+watcherPid=$!
+
+trap "kill -TERM $watcherPid; exit 1" SIGTERM
+
+stdbuf -oL grep -E "^:?\\S+\\s+\\S+\\s+\\S+\\s+:$NICK\\b" >> "$bufferDir/self"

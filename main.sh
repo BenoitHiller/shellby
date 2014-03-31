@@ -37,6 +37,9 @@ makeBuffer "$bufferDir/rawInput" $MB
 makeBuffer "$bufferDir/rawOutput" $MB
 makeBuffer "$bufferDir/noticeInput" $MB
 makeBuffer "$bufferDir/events" $MB
+makeBuffer "$bufferDir/channel" $MB
+makeBuffer "$bufferDir/self" $MB
+makeBuffer "$bufferDir/private" $MB
 
 watchFiles &
 

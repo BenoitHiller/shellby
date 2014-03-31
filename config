@@ -4,7 +4,7 @@
 # user config #
 ###############
 
-NICK=Shellby
+NICK=shellby
 USER=Shellby
 REALNAME="Shellby Capek"
 HOSTNAME="0"

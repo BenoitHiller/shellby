@@ -1,0 +1,21 @@
+#!/usr/bin/awk -f
+
+BEGIN {
+  FS=":"
+}
+
+/^handler start / {
+  handlers[$2]=1
+}
+
+/^handler stop / {
+  delete handlers[$2]
+}
+
+/^handler list / {
+  outputString = ""
+  for (handler in handlers) {
+    outputString = outputString " " handler
+  }
+  printf("PRIVMSG %s :%s\n",$2,outputString)
+}
