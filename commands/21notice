@@ -1,0 +1,12 @@
+#!/bin/bash
+
+source $botDir/config
+
+
+awk '
+
+/^:?\S+ NOTICE \* :\*\*\* Looking up your hostname\.\.\./{
+
+  print "NICK " nick
+  printf("USER %s %s %s :%s\n", user, hostname, servername, realname)
+}' user=$USER nick=$NICK realname="$REALNAME" hostname=$HOSTNAME servername=$SERVERNAME

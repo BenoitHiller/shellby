@@ -1,8 +1,8 @@
 #!/bin/bash
 
-awk -v events="$bufferDir/events" '
+awk -v events="$bufferDir/events.p" '
 $5 ~ "ls" { 
-  printf("handler list :%s\n",$3) >> events
+  printf("handler list :%s\n",$3) > events
   fflush(events)
 }
 '

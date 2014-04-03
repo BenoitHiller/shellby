@@ -1,6 +1,12 @@
-#!/usr/bin/awk -f
+#!/bin/bash
 
+source $botDir/config
+
+echo from notice >&2
+
+awk '
 /^:?\S+ NOTICE \* :\*\*\* Looking up your hostname\.\.\./{
-  print "NICK shellby"
-  print "USER shellby 0 * :Shellby"
-}
+
+  print "NICK " nick
+  printf("USER %s %s :%s\n", user, hostname, servername, realname)
+}' user=$USER nick=$NICK realname=$REALNAME hostname=$HOSTNAME servername=$SERVERNAME

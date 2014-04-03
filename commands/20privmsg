@@ -2,20 +2,23 @@
 
 source $botDir/commandLoader.sh
 
-commandWatcher "$botDir/commands/channel/" "$bufferDir/channel" "$bufferDir/rawOutput" &
+commandWatcher "$botDir/commands/channel/" "$bufferDir/channel" "$bufferDir/rawOutput.p" &
 watcherPid=$!
 
 trap "kill -TERM $watcherPid; exit 1" SIGTERM
 
-awk -v private="$bufferDir/private" -v channel="$bufferDir/channel" '
+awk -v private="$bufferDir/private.p" -v channel="$bufferDir/channel.p" '
+BEGIN {
+  FPAT=".*"
+}
 
 /:?\S+ PRIVMSG #/ {
-  print $0 >> channel
+  print $0 > channel
   fflush(channel)
 }
 
 /:?\S+ PRIVMSG [^#]/ {
-  print $0 >> private
+  print $0 > private
   fflush(private)
 }'
 

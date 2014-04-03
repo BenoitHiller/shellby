@@ -1,29 +1,7 @@
 #!/bin/bash
 
 declare -A pids
-declare -A sizes
 declare -A md5s
-
-# Creates a buffer file and monitors it for a max size
-function makeBuffer {
-  local -r file="$1"
-  local -r size="$2"
-
-  touch "$file"
-  sizes["$file"]=$size
-}
-
-function watchFiles {
-  while true; do
-    for file in "${!sizes[@]}"; do
-      if [ "$(stat -c %s "$file")" -gt "${sizes[$file]}" ]; then
-        rm "$file"
-      fi
-    done
-
-    sleep 10
-  done
-}
 
 # get the md5 for a command and put it in the hash
 #
@@ -78,11 +56,14 @@ function reloadCommand {
   export botDir 
   # this should execute as a specific user. Or I could set up a chroot jail for a user.
   (
-    tail -n 0 -F "$input" 2>/dev/null | stdbuf -oL $file >> "$output" 
+    tail -n 0 -F "$input" --pid $$ 2>/dev/null | stdbuf -oL $file >> "$output" 
   ) &
   pid=$!
   echo starting handler: $file pid: $pid 1>&2
-  echo handler start :"${file#$botDir/}" >> "$bufferDir/events"
+  while [ ! -e "$bufferDir/private.p" ]; do
+    sleep 1
+  done
+  echo handler start :"${file#$botDir/}" >> "$bufferDir/events.p" 
   pids["$file"]=$pid
 }
 
@@ -112,8 +93,40 @@ function commandWatcher {
         updateMd5 "$commandFile"
         reloadCommand "$commandFile" "$input" "$output"
       fi
-    done < <(find "$targetPath" -mindepth 1 -maxdepth 1 -type f -executable)
+    done < <(find "$targetPath" -mindepth 1 -maxdepth 1 -type f -executable | sort)
+
+    for file in "${!pids[@]}"; do
+      if [ ! -e "$file" ]; then
+        doubleTap "$file"
+        md5s["$file"]=
+      fi
+    done
 
     sleep 10
   done
+}
+
+# start a folder of processes with pipes
+function managePipes {
+  local -r dir="$1"
+  local -r output="$2"
+  local -r input="$3"
+
+  local -A pipes
+  local -A pid
+
+  while read coreFile; do
+    local pName="$( md5sum "$coreFile" | cut -d " " -f 1 )"
+    pipes["$coreFile"]="$pName"
+    mkfifo "$bufferDir/$pName."{i,o}
+    stdbuf -oL "$coreFile" < "$bufferDir/$pName.i" | stdbuf -oL tee "$output" | sed "s/^/<</" >&2 &
+    echo starting $coreFile >&2
+    pid["$coreFile"]=$!
+  done < <(find "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
+
+  pipePaths=( ${pipes[@]/#/$bufferDir/} )
+  stdbuf -oL cat "$input" | tee "${pipePaths[@]/%/.i}"  &
+  teePid=$!
+
+  #trap "kill -TERM $teePid $catPid ${pid[@]}; exit 1" SIGTERM
 }
