@@ -1,0 +1,9 @@
+#!/bin/bash
+
+source $botDir/config
+
+if [ ! -z "$CHANNELS" ] && [ "${#CHANNELS[@]}" -gt 0 ]; then 
+  for channel in "${CHANNELS[@]}"; do
+    echo "JOIN $channel"
+  done
+fi
