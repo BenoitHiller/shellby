@@ -37,7 +37,7 @@ source "$botDir/commandLoader.sh"
 
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 managePipes "$botDir/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
-stdbuf -oL netcat $TARGETSERVER $PORT > "$bufferDir/fromNetcat" < "$bufferDir/toNetcat" & 
+stdbuf -oL netcat $TARGETSERVER $PORT < "$bufferDir/toNetcat" | stdbuf -oL tee "$bufferDir/fromNetcat" & 
 echo started
 # just sit there until killed
 wait

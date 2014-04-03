@@ -119,13 +119,13 @@ function managePipes {
     local pName="$( md5sum "$coreFile" | cut -d " " -f 1 )"
     pipes["$coreFile"]="$pName"
     mkfifo "$bufferDir/$pName."{i,o}
-    stdbuf -oL "$coreFile" < "$bufferDir/$pName.i" | stdbuf -oL tee "$output" | sed "s/^/<</" >&2 &
+    stdbuf -oL "$coreFile" < "$bufferDir/$pName.i" | stdbuf -oL tee "$output" | stdbuf -oL sed "s/^/<</" &
     echo starting $coreFile >&2
     pid["$coreFile"]=$!
   done < <(find "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
 
   pipePaths=( ${pipes[@]/#/$bufferDir/} )
-  stdbuf -oL cat "$input" | tee "${pipePaths[@]/%/.i}"  &
+  stdbuf -oL cat "$input" | stdbuf -oL tee "${pipePaths[@]/%/.i}" > /dev/null &
   teePid=$!
 
   #trap "kill -TERM $teePid $catPid ${pid[@]}; exit 1" SIGTERM
