@@ -2,25 +2,19 @@
 
 declare -A pid
 declare -A pipes
+declare -A md5s
 declare this=$$
+declare capPid
+declare capPipe
 
-# kill a command
-function doubleTap {
-  local -r file="$1"
-  
-  local pid="${pids[$file]}"
-  children=$(ps -ho pid --ppid $pid | xargs 2>/dev/null)
-  grandchildren=$(ps -ho pid --ppid "$children" | xargs 2>/dev/null)
-  kill -TERM $pid $children $grandchildren # maybe choose a better signal. Probably shoud be -$pid 
+function killtree {
+  local joinedPids=$(sed -E 's/\s+/,/g' <<< $@)
 
-  echo stopping handler: $file 1>&2
-  echo handler stop :"${file#$botDir/}" >> "$bufferDir/events"
-  wait $pid
-  local -i count=0
-  while [ "$count" -lt 20 ] && ps --pid "$children $grandchildren" >/dev/null 2>&1; do
-    sleep 1
-    count=$count+1 
-  done
+  local -ra children=( $(pgrep -P "$joinedPids") )
+  if [ ${#children[@]} -ne 0 ]; then
+    killtree ${children[@]}
+  fi
+  kill -TERM $@
 }
 
 # reload a command file
@@ -32,13 +26,28 @@ function replacePipe {
   local -r output="$2"
 
   local -r pName="${pipes[$file]}"
-  local -r pPid="${pid[$file]}"
   local -r commandName="$(basename "$file")"
+  local checksum="$( md5sum "$coreFile")"
+  md5s["$coreFile"]="$checksum"
 
   exec {IN}<"$bufferDir/$pName.i"
-  kill -TERM $(pgrep -P $this -x "$commandName")
+  killtree $(pgrep -P $this -x "$commandName")
   stdbuf -oL "$file" <&$IN | tee "$output" | sed -u "s/^/<</" &
   echo reloading $file >&2
+}
+
+function startCommand {
+  local -r coreFile="$1"
+  local -r output="$2"
+
+  local pName="$( md5sum <<< "$coreFile" | cut -d " " -f 1 )"
+  local checksum="$( md5sum "$coreFile")"
+  local commandName="$(basename "$coreFile")"
+  pipes["$coreFile"]="$pName"
+  md5s["$coreFile"]="$checksum"
+  mkfifo "$bufferDir/$pName.i"
+  stdbuf -oL "$coreFile" < "$bufferDir/$pName.i" | tee "$output" | sed -u "s/^/<</" &
+  echo starting $coreFile >&2
 }
 
 # start a folder of processes with pipes
@@ -52,17 +61,56 @@ function managePipes {
   local -r input="$3"
 
   while read coreFile; do
-    local pName="$( md5sum "$coreFile" | cut -d " " -f 1 )"
-    local commandName="$(basename "$coreFile")"
-    pipes["$coreFile"]="$pName"
-    mkfifo "$bufferDir/$pName.i"
-    stdbuf -oL "$coreFile" < "$bufferDir/$pName.i" | tee "$output" | sed -u "s/^/<</" &
-    echo starting $coreFile >&2
+    startCommand "$coreFile" "$output"
   done < <(find "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
 
   pipePaths=( ${pipes[@]/#/$bufferDir/} )
-  grep --line-buffered "^" "$input" | tee "${pipePaths[@]/%/.i}" > /dev/null &
-  teePid=$!
+  capPipe=$(mktemp -u -p "$TMPDIR" -d cap.XXXXXXXX)
+  mkfifo "$capPipe"
+  grep --line-buffered "^" "$input" | tee "${pipePaths[@]/%/.i}" "$capPipe" > /dev/null &
+  "$botDir/cap.sh" < "$capPipe" &
+  capPid=$(pgrep -P $this -x cap.sh)
 
-  #trap "kill -TERM $teePid $catPid ${pid[@]}; exit 1" SIGTERM
+}
+
+# put a process that throws out input on the end of the pipeline above and replace it
+# to tack on new commands
+function watchFiles {
+  local -r dir="$1"
+  local -r output="$2"
+  local -r input="$3"
+
+  while true; do
+    local -a newInputs=()
+    sleep 10
+
+    while read coreFile; do
+      local savedChecksum="${md5s[$coreFile]}"
+
+      # no checksum. Start a new command
+      if [ -z "$savedChecksum" ]; then
+        startCommand "$coreFile" "$output"
+        newInputs+=("$bufferDir/${pipes[$coreFile]}.i")
+
+      # check to see if we want to reload
+      elif ! md5sum -c <<< "$savedChecksum"; then
+        replacePipe "$coreFile" "$output"
+      fi
+    done < <(find "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
+
+    if [ ${#newInputs[@]} -ne 0 ]; then
+      set -x
+      local oldPipe="$capPipe"
+      exec {CAP}< "$oldPipe"
+      killtree $capPid
+      capPipe=$(mktemp -u -p "$TMPDIR" -d cap.XXXXXXXX)
+      mkfifo "$capPipe"
+      grep --line-buffered "^" "$oldPipe" | tee "${newInputs[@]}" "$capPipe" > /dev/null &
+      "$botDir/cap.sh" < "$capPipe" &
+      capPid=$(pgrep -P $this -x cap.sh)
+      exec {CAP}>&-
+      set +x
+    fi
+
+  done
 }
