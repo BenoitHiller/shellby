@@ -1,12 +1,25 @@
 #!/bin/bash
 
-declare -A pid
+# root names for the command input files
 declare -A pipes
+# md5s of the command files (stored as: md5 <TAB> filename)
 declare -A md5s
+# uneccessary copy of $$
 declare this=$$
+
+# the pid and pipefile for the most recent pipeline cap
 declare capPid
 declare capPipe
 
+###########
+# Utility #
+###########
+
+# kill the specified process and all of its children
+#
+# The leaf processes are killed first, then it works up to the input
+#
+# @. a list of pid numbers. quoting does not matter
 function killtree {
   local joinedPids=$(sed -E 's/\s+/,/g' <<< $@)
 
@@ -16,6 +29,10 @@ function killtree {
   fi
   kill -TERM $@
 }
+
+######################
+# loading and piping #
+######################
 
 # reload a command file
 #
@@ -36,6 +53,12 @@ function replacePipe {
   echo reloading $file >&2
 }
 
+# Start a single command for the first time
+#
+# This does not attach the input pipe for you, just creates it.
+#
+# 1.coreFile the file to start
+# 2.output the output pipe for the command
 function startCommand {
   local -r coreFile="$1"
   local -r output="$2"
@@ -49,6 +72,27 @@ function startCommand {
   stdbuf -oL "$coreFile" < "$bufferDir/$pName.i" | tee "$output" | sed -u "s/^/<</" &
   echo starting $coreFile >&2
 }
+
+# pipes the input into the outputs and caps the pipeline
+#
+# the cap file pid is saved in a global variable
+#
+# 1.input the input pipe
+# @:2.outputs the output pipes
+function pipeInput {
+  local -r input="$1"
+  local -ra outputs=( "${@:2}" )
+
+  capPipe=$(mktemp -u -p "$buffDir" -d cap.XXXXXXXX)
+  mkfifo "$capPipe"
+  grep --line-buffered "^" "$input" | tee "${outputs[@]}" "$capPipe" > /dev/null &
+  "$botDir/cap.sh" < "$capPipe" &
+  capPid=$(pgrep -P $this -x cap.sh)
+}
+
+######################
+# command management #
+######################
 
 # start a folder of processes with pipes
 #
@@ -65,16 +109,16 @@ function managePipes {
   done < <(find "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
 
   pipePaths=( ${pipes[@]/#/$bufferDir/} )
-  capPipe=$(mktemp -u -p "$TMPDIR" -d cap.XXXXXXXX)
-  mkfifo "$capPipe"
-  grep --line-buffered "^" "$input" | tee "${pipePaths[@]/%/.i}" "$capPipe" > /dev/null &
-  "$botDir/cap.sh" < "$capPipe" &
-  capPid=$(pgrep -P $this -x cap.sh)
+  pipeInput "$input" "${pipePaths[@]/%/.i}"
 
 }
 
 # put a process that throws out input on the end of the pipeline above and replace it
 # to tack on new commands
+#
+# 1.dir the directory to watch
+# 2.output the output pipe
+# 3.input the input pipe
 function watchFiles {
   local -r dir="$1"
   local -r output="$2"
@@ -90,27 +134,24 @@ function watchFiles {
       # no checksum. Start a new command
       if [ -z "$savedChecksum" ]; then
         startCommand "$coreFile" "$output"
+        # add the new input pipe to an array to be plumbed at the end of the loop
         newInputs+=("$bufferDir/${pipes[$coreFile]}.i")
 
       # check to see if we want to reload
-      elif ! md5sum -c <<< "$savedChecksum"; then
+      elif ! md5sum -c <<< "$savedChecksum" >/dev/null 2>&1; then
         replacePipe "$coreFile" "$output"
       fi
     done < <(find "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
 
+    # plumb the array of new input pipes if it isn't empty
     if [ ${#newInputs[@]} -ne 0 ]; then
-      set -x
       local oldPipe="$capPipe"
       exec {CAP}< "$oldPipe"
-      killtree $capPid
-      capPipe=$(mktemp -u -p "$TMPDIR" -d cap.XXXXXXXX)
-      mkfifo "$capPipe"
-      grep --line-buffered "^" "$oldPipe" | tee "${newInputs[@]}" "$capPipe" > /dev/null &
-      "$botDir/cap.sh" < "$capPipe" &
-      capPid=$(pgrep -P $this -x cap.sh)
-      exec {CAP}>&-
-      set +x
-    fi
 
+      killtree $capPid
+      pipeInput "$oldPipe" "${newInputs[@]}"
+
+      exec {CAP}>&-
+    fi
   done
 }
