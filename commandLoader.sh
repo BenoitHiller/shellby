@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source "$botDir/lib/utility.sh"
+
 # root names for the command input files
 declare -A pipes
 # md5s of the command files (stored as: md5 <TAB> filename)
@@ -10,25 +12,6 @@ declare this=$$
 # the pid and pipefile for the most recent pipeline cap
 declare capPid
 declare capPipe
-
-###########
-# Utility #
-###########
-
-# kill the specified process and all of its children
-#
-# The leaf processes are killed first, then it works up to the input
-#
-# @. a list of pid numbers. quoting does not matter
-function killtree {
-  local joinedPids=$(sed -E 's/\s+/,/g' <<< $@)
-
-  local -ra children=( $(pgrep -P "$joinedPids") )
-  if [ ${#children[@]} -ne 0 ]; then
-    killtree ${children[@]}
-  fi
-  kill -TERM $@
-}
 
 ######################
 # loading and piping #
@@ -66,8 +49,10 @@ function startCommand {
   local pName="$( md5sum <<< "$coreFile" | cut -d " " -f 1 )"
   local checksum="$( md5sum "$coreFile")"
   local commandName="$(basename "$coreFile")"
+
   pipes["$coreFile"]="$pName"
   md5s["$coreFile"]="$checksum"
+
   mkfifo "$bufferDir/$pName.i"
   stdbuf -oL "$coreFile" < "$bufferDir/$pName.i" | tee "$output" | sed -u "s/^/<</" &
   echo starting $coreFile >&2
@@ -94,6 +79,17 @@ function pipeInput {
 # command management #
 ######################
 
+# function to send SIGHUP to each running command
+function reloadAllConfig {
+  for file in "${!md5s[@]}"; do
+    local commandName="$(basename "$file")"
+    local pid=$(pgrep -P $this -x "$commandName")
+    if [ -n "$pid" ]; then
+      kill -HUP $pid
+    fi
+  done
+}
+
 # start a folder of processes with pipes
 #
 # 1.dir the directory containing the commands
@@ -108,7 +104,7 @@ function managePipes {
     startCommand "$coreFile" "$output"
   done < <(find "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
 
-  pipePaths=( ${pipes[@]/#/$bufferDir/} )
+  local pipePaths=( ${pipes[@]/#/$bufferDir/} )
   pipeInput "$input" "${pipePaths[@]/%/.i}"
 
 }

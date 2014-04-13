@@ -33,12 +33,13 @@ source "$botDir/commandLoader.sh"
 # start the bot #
 #################
 
-#commandWatcher "$botDir/core/" "/dev/null" "/dev/null" &
-
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 managePipes "$botDir/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
-stdbuf -oL netcat $TARGETSERVER $PORT < "$bufferDir/toNetcat" | tee "$bufferDir/fromNetcat" | grep --line-buffered "^"  & 
+stdbuf -oL netcat -i 1 $TARGETSERVER $PORT < "$bufferDir/toNetcat" | tee "$bufferDir/fromNetcat" | grep --line-buffered "^"  & 
+
 echo started
+
+trap reloadAllConfig SIGHUP
 
 watchFiles "$botDir/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 wait

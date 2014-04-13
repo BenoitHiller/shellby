@@ -2,6 +2,7 @@
 
 source $botDir/config
 
+trap '' SIGHUP
 
 awk '
 

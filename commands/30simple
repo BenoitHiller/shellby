@@ -1,0 +1,38 @@
+#!/bin/bash
+
+source "$botDir/lib/utility.sh"
+
+declare grepPid
+
+function parseCommands {
+  declare botName=Shellby #$(redis-cli get config:botname) 
+  grep --line-buffered -iE "^\S+\s+privmsg\s+#\S+\s+:$botName\>" | \
+    while read line; do
+      local -a data=( $(getIRCInfo "$line") ) 
+      local message="$(getMessageNoNick "$line")"
+
+      local command="${message%%[[:space:]]*}"
+      if [[ ! $command =~ [^a-zA-Z0-9] ]]; then
+        if [ -e "$botDir/commands/simple/$command" ]; then
+          # run command with the following params
+          # FROMNICK TONICK/CHANNEL CMD USERNAME HOSTNAME MESSAGE
+          "$botDir/commands/simple/$command" "${data[@]}" "$message" 
+        fi
+      fi
+    done
+}
+
+function reload {
+  killtree $grepPid
+  parseCommands &
+  grepPid=$!
+}
+
+trap reload SIGHUP
+
+parseCommands <&0 &
+grepPid=$!
+
+while true; do
+  wait $grepPid
+done

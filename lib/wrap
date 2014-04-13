@@ -1,0 +1,12 @@
+#!/bin/bash
+
+declare -r meta="$1"
+declare -i length
+
+if [ -z "$meta" ]; then
+  exit 1;
+fi
+
+length=500-"$(wc -c <<< "$meta")"
+
+fold -s -w $length | xargs -d "\n" printf "$meta%s\n"

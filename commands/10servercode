@@ -1,5 +1,7 @@
 #!/bin/bash
 
+trap '' SIGHUP
+
 awk -v botDir="$botDir" ' 
 /^:?\S+\s+001\s+/ {
   printf("connect %s\n",$1) | botDir "/commands/events/connected" 

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+declare -r channel="$1"
+declare meta
+
+if [ -z "$channel" ]; then
+  exit 1;
+fi
+
+"$botDir/lib/wrap" "PRIVMSG $channel :"
+exit $?
