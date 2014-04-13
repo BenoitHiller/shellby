@@ -1,8 +1,7 @@
 #!/bin/bash
 
 source $botDir/config
-source $botDir/password
-
+password=$(redis-cli get config:password)
 trap '' SIGHUP
 
 awk '
