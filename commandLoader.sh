@@ -102,7 +102,7 @@ function managePipes {
 
   while read coreFile; do
     startCommand "$coreFile" "$output"
-  done < <(find "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
+  done < <(find -L "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
 
   local pipePaths=( ${pipes[@]/#/$bufferDir/} )
   pipeInput "$input" "${pipePaths[@]/%/.i}"
@@ -137,7 +137,7 @@ function watchFiles {
       elif ! md5sum -c <<< "$savedChecksum" >/dev/null 2>&1; then
         replacePipe "$coreFile" "$output"
       fi
-    done < <(find "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
+    done < <(find -L "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
 
     # plumb the array of new input pipes if it isn't empty
     if [ ${#newInputs[@]} -ne 0 ]; then

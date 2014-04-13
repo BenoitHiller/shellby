@@ -5,7 +5,7 @@ source "$botDir/lib/utility.sh"
 declare grepPid
 
 function parseCommands {
-  declare botName=shellby #$(redis-cli get config:botname) 
+  declare botName="$(redis-cli --raw get config:botname)" 
   grep --line-buffered -iE "^\S+\s+privmsg\s+((#\S+\s+:(($botName\>)|(\./)))|([^#[:space:]]+\s+:))" | \
     while read line; do
       local -a data=( $(getIRCInfo "$line") ) 
@@ -21,6 +21,7 @@ function parseCommands {
         fi
       fi
     done
+
 }
 
 function reload {

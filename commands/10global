@@ -1,5 +1,0 @@
-#!/bin/bash
-
-echo from global >&2
-
-stdbuf -oL cat - >> $botDir/rawlog

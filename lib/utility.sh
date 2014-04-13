@@ -36,7 +36,6 @@ function getIRCInfo {
     return 1
   fi
 
-  echo "${infoArray[@]}" >&2
   if [[ ! ${infoArray[1]} =~ ^# ]] ; then
     infoArray[1]="${infoArray[0]}"
   fi
@@ -57,7 +56,7 @@ function getMessageNoNick {
 
   local nickPattern
   if [ -n "$nick" ]; then
-    nickPattern="$nick\W+"
+    nickPattern="$nick\W?\s*"
   fi
 
   sed -E "s/^(\S+\s+){3}:(.*)/\2/I;s/^$nickPattern//" <<< "$inputString"

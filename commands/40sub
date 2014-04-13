@@ -1,0 +1,15 @@
+#!/bin/bash
+
+source "$botDir/lib/utility.sh"
+
+grep --line-buffered -iE '^\S+\s+privmsg\s+#\S+\s+::s/([^/]|(\\(\\\\)*/))+/([^/]|(\\(\\\\)*/))*/g??$' |\
+  while read line; do
+    set -x
+    echo ding >&2
+    declare -a data=( $(getIRCInfo "$line") ) 
+    search="$(sed -E 's%^\S+\s+privmsg\s+#\S+\s+::s/(([^/]|(\\(\\\\)*/))+)/(([^/]|(\\(\\\\)*/))*)/g??$%\1%i' <<< "$line")"
+    replace="$(sed -E 's%^\S+\s+privmsg\s+#\S+\s+::s/(([^/]|(\\(\\\\)*/))+)/(([^/]|(\\(\\\\)*/))*)/g?$%\5%i' <<< "$line")"
+
+    "$botDir/lib/sub" "${data[0]}!${data[3]}@${data[4]}" "$botDir/logs/${data[1]}" "$search" "$replace" | cut -c-480 | "$botDir/lib/privmsg" "${data[1]}" 
+ 
+  done
