@@ -1,0 +1,5 @@
+#!/bin/bash
+
+declare -r channel="$2"
+
+shuf -n 1 "$botDir/share/hugs.irc.final" | sed -E 's/^[0-9]+	//' | tr "" "\n" | "$botDir/lib/privmsg" "$channel"

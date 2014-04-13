@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source $botDir/config
+source $botDir/password
 
 trap '' SIGHUP
 
@@ -10,4 +11,8 @@ awk '
 
   print "NICK " nick
   printf("USER %s %s %s :%s\n", user, hostname, servername, realname)
-}' user=$USER nick=$NICK realname="$REALNAME" hostname=$HOSTNAME servername=$SERVERNAME
+}
+
+/^:?NickServ!NickServ@services\.\s+NOTICE\s+\S+\s+:This nickname is registered./{
+  print "NS identify " password
+}' user=$USER nick=$NICK realname="$REALNAME" hostname=$HOSTNAME servername=$SERVERNAME password="$password"

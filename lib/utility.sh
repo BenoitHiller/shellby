@@ -25,7 +25,7 @@ function killtree {
 #
 # 1.inputString the whole irc command as one string
 #
-# stdout. FROMNICK TONICK/CHANNEL CMD USERNAME HOSTNAME
+# stdout. FROMNICK FROMNICK/CHANNEL CMD USERNAME HOSTNAME
 # returns. 1 if the input was not parsed and 0 otherwise
 function getIRCInfo {
   local -r inputString="$1"
@@ -36,6 +36,11 @@ function getIRCInfo {
     return 1
   fi
 
+  echo "${infoArray[@]}" >&2
+  if [[ ! ${infoArray[1]} =~ ^# ]] ; then
+    infoArray[1]="${infoArray[0]}"
+  fi
+
   echo "${infoArray[@]}"
   return 0
 }
@@ -43,10 +48,17 @@ function getIRCInfo {
 # get the message after the initial mention
 #
 # 1.inputString the whole irc command as one string
+# 2.nick optional nick to parse
 #
 # stdout. the string message text
 function getMessageNoNick {
   local -r inputString="$1"
+  local -r nick="$2"
 
-  sed -E 's/^(\S+\s+){3}:\w+\W+\s*(.*)/\2/' <<< "$inputString"
+  local nickPattern
+  if [ -n "$nick" ]; then
+    nickPattern="$nick\W+"
+  fi
+
+  sed -E "s/^(\S+\s+){3}:(.*)/\2/I;s/^$nickPattern//" <<< "$inputString"
 }

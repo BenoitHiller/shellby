@@ -16,7 +16,7 @@ SERVERNAME="*"
 
 TARGETSERVER="chat.freenode.org"
 PORT=6667
-CHANNELS=( "#shellbytest" )
+CHANNELS=( "#shellbytest" "#mcgill" )
 
 ############
 # internal #

@@ -5,17 +5,18 @@ source "$botDir/lib/utility.sh"
 declare grepPid
 
 function parseCommands {
-  declare botName=Shellby #$(redis-cli get config:botname) 
-  grep --line-buffered -iE "^\S+\s+privmsg\s+#\S+\s+:$botName\>" | \
+  declare botName=shellby #$(redis-cli get config:botname) 
+  grep --line-buffered -iE "^\S+\s+privmsg\s+((#\S+\s+:(($botName\>)|(\./)))|([^#[:space:]]+\s+:))" | \
     while read line; do
       local -a data=( $(getIRCInfo "$line") ) 
-      local message="$(getMessageNoNick "$line")"
+      local message="$(getMessageNoNick "$line" "$botName" )"
 
       local command="${message%%[[:space:]]*}"
+      local command="${command##./}"
       if [[ ! $command =~ [^a-zA-Z0-9] ]]; then
         if [ -e "$botDir/commands/simple/$command" ]; then
           # run command with the following params
-          # FROMNICK TONICK/CHANNEL CMD USERNAME HOSTNAME MESSAGE
+          # FROMNICK FROMNICK/CHANNEL CMD USERNAME HOSTNAME MESSAGE
           "$botDir/commands/simple/$command" "${data[@]}" "$message" 
         fi
       fi
@@ -24,7 +25,7 @@ function parseCommands {
 
 function reload {
   killtree $grepPid
-  parseCommands &
+  parseCommands <&0 &
   grepPid=$!
 }
 
