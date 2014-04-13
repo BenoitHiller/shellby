@@ -4,7 +4,7 @@
 # user config #
 ###############
 
-NICK=shellby2
+NICK=shellby
 USER=Shellby
 REALNAME="Shellby Capek"
 HOSTNAME="0"
@@ -16,7 +16,7 @@ SERVERNAME="*"
 
 TARGETSERVER="chat.freenode.org"
 PORT=6667
-CHANNELS=( "#shellbytest" )
+CHANNELS=( "#mcgill" "#shellbytest" )
 
 ############
 # internal #

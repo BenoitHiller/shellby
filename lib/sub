@@ -5,6 +5,7 @@ declare -r logDir="$2"
 
 declare -r search="$3"
 declare -r replace="$4"
+declare match="$5"
 
 declare -a logFiles=($(find $logDir -type f | sort -r | head -n 2))
 
@@ -13,9 +14,9 @@ tac "${logFiles[@]}" |awk '$2 == userString  {
   {
     s=$0
     sub(/^\S+\s+\S+\s+: ?/,"",s)
-    sub(searchString,replaceString,s)
+    s=gensub(searchString, replaceString, matchCount, s)
     print s
     exit 0
   }
 }
-' searchString="$search" replaceString="$replace" userString="$user"   
+' searchString="$search" replaceString="$replace" userString="$user" matchCount="$match"

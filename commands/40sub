@@ -4,12 +4,15 @@ source "$botDir/lib/utility.sh"
 
 grep --line-buffered -iE '^\S+\s+privmsg\s+#\S+\s+::s/([^/]|(\\(\\\\)*/))+/([^/]|(\\(\\\\)*/))*/g??$' |\
   while read line; do
-    set -x
-    echo ding >&2
     declare -a data=( $(getIRCInfo "$line") ) 
-    search="$(sed -E 's%^\S+\s+privmsg\s+#\S+\s+::s/(([^/]|(\\(\\\\)*/))+)/(([^/]|(\\(\\\\)*/))*)/g??$%\1%i' <<< "$line")"
-    replace="$(sed -E 's%^\S+\s+privmsg\s+#\S+\s+::s/(([^/]|(\\(\\\\)*/))+)/(([^/]|(\\(\\\\)*/))*)/g?$%\5%i' <<< "$line")"
+    search="$(sed -E 's%^\S+\s+privmsg\s+#\S+\s+::s/(([^/]|(\\(\\\\)*/))+)/(([^/]|(\\(\\\\)*/))*)/g??$%\1%i' <<< "$line" | sed 's/\\/\\\\/g')"
+    replace="$(sed -E 's%^\S+\s+privmsg\s+#\S+\s+::s/(([^/]|(\\(\\\\)*/))+)/(([^/]|(\\(\\\\)*/))*)/g?$%\5%i' <<< "$line" | sed 's/\\/\\\\/g' )"
+    if grep -qiE '^\S+\s+privmsg\s+#\S+\s+::s/([^/]|(\\(\\\\)*/))+/([^/]|(\\(\\\\)*/))*/g?$' <<< "$line"; then
+      match="g"
+    else
+      match=1
+    fi
 
-    "$botDir/lib/sub" "${data[0]}!${data[3]}@${data[4]}" "$botDir/logs/${data[1]}" "$search" "$replace" | cut -c-480 | tr "\n" "" | "$botDir/lib/privmsg" "${data[1]}" 
+    "$botDir/lib/sub" "${data[0]}!${data[3]}@${data[4]}" "$botDir/logs/${data[1]}" "$search" "$replace" "$match" | cut -c-480 | tr -d "\a\r\v\n" | "$botDir/lib/privmsg" "${data[1]}" 
  
   done
