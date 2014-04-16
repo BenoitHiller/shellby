@@ -2,17 +2,14 @@
 
 source "$botDir/lib/utility.sh"
 
-grep --line-buffered -iE '^\S+\s+privmsg\s+#\S+\s+::s/([^/]|(\\(\\\\)*/))+/([^/]|(\\(\\\\)*/))*/g??$' |\
-  while read line; do
-    declare -a data=( $(getIRCInfo "$line") ) 
-    search="$(sed -E 's%^\S+\s+privmsg\s+#\S+\s+::s/(([^/]|(\\(\\\\)*/))+)/(([^/]|(\\(\\\\)*/))*)/g??$%\1%i' <<< "$line" | sed 's/\\/\\\\/g')"
-    replace="$(sed -E 's%^\S+\s+privmsg\s+#\S+\s+::s/(([^/]|(\\(\\\\)*/))+)/(([^/]|(\\(\\\\)*/))*)/g?$%\5%i' <<< "$line" | sed 's/\\/\\\\/g' )"
-    if grep -qiE '^\S+\s+privmsg\s+#\S+\s+::s/([^/]|(\\(\\\\)*/))+/([^/]|(\\(\\\\)*/))*/g?$' <<< "$line"; then
-      match="g"
-    else
-      match=1
-    fi
+grep --line-buffered -iE '^\S+\s+privmsg\s+#\S+\s+::.*$' |\
+  while read -r line; do
+    expression="$(cut -d : -f 3- <<< "$line" | "$botDir/lib/regex.awk")"
+    echo "$expression" >&2
+    if [ -n "$expression" ]; then
+      declare -a data=( $(getIRCInfo "$line") ) 
 
-    "$botDir/lib/sub" "${data[0]}!${data[3]}@${data[4]}" "$botDir/logs/${data[1]}" "$search" "$replace" "$match" | cut -c-480 | tr -d "\a\r\v\n" | "$botDir/lib/privmsg" "${data[1]}" 
+      "$botDir/lib/sub" "${data[0]}!${data[3]}@${data[4]}" "$botDir/logs/${data[1]}" "$expression" | cut -c-480 | tr -d "\a\r\v\n" | "$botDir/lib/privmsg" "${data[1]}" 
  
+    fi
   done

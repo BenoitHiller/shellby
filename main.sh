@@ -35,7 +35,7 @@ source "$botDir/commandLoader.sh"
 
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 managePipes "$botDir/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
-stdbuf -oL netcat -i 1 $TARGETSERVER $PORT < "$bufferDir/toNetcat" | tee "$bufferDir/fromNetcat" | grep --line-buffered "^"  & 
+stdbuf -oL netcat -i 1 $TARGETSERVER $PORT < "$bufferDir/toNetcat" | sed -u 's/$//' | tee "$bufferDir/fromNetcat" | grep --line-buffered "^"  & 
 
 echo started
 
