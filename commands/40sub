@@ -5,7 +5,6 @@ source "$botDir/lib/utility.sh"
 grep --line-buffered -iE '^\S+\s+privmsg\s+#\S+\s+::.*$' |\
   while read -r line; do
     expression="$(cut -d : -f 3- <<< "$line" | "$botDir/lib/regex.awk")"
-    echo "$expression" >&2
     if [ -n "$expression" ]; then
       declare -a data=( $(getIRCInfo "$line") ) 
 

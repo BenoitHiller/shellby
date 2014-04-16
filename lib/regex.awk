@@ -5,9 +5,10 @@ BEGIN {
   illegalEscapes="[afnrvcdox]"
 }
 
+
 $1 == ":s" && length($2) == 1 {
+  flags = ""
   if($NF ~ /((gI?)|(Ig?))\s*/) {
-    flags = ""
     if($NF ~ /[iI]/) {
       flags = flags "I"
     }
@@ -17,56 +18,56 @@ $1 == ":s" && length($2) == 1 {
     end = NF - 1
   }
   else if($NF == $2) {
-    flags=""
+    # we con't have any flags
     end = NF
   }
   else {
+    # the command is not terminated correctly
     next
   }
-  search = ""
+
+  expression = "s"$2
   searchDone = 0
-  replace = ""
-  replaceDone = 0
 
 
   for(i = 3; i <= end; i++) {
+    # If this token has preceeding backslashes
     if(length($i) > 1)
     {
-      slashes = ""
+      # If there is an even number of backslashes
       if(length($i) % 2 == 1) {
-        slashes = substr($i,1,length($i) - 1)
+        expression = expression substr($i,1,length($i) - 1)
         c = substr($i,length($i)) 
       }
       else
       {
         lastChar = substr($i,length($i)) 
+        # if we want to double escape the sequence to prevent issues
         if(lastChar ~ illegalEscapes)
         {
-          slashes = substr($i,1,length($i) - 1) "\\"
+          expression = expression substr($i,1,length($i) - 1) "\\"
           c = lastChar
         }
+        # if we want to include the escape sequence
         else {
-         c = substr($i,length($i) - 1)
+          c = substr($i,length($i) - 1)
           if(length($i) > 2) {
-            slashes = substr($i,1,length($i) - 2)
+            expression = expression substr($i,1,length($i) - 2)
           }
         }
-      }
-
-      if(searchDone) {
-        replace = replace slashes
-      }
-      else {
-        search = search slashes
       }
     }
     else {
       c = $i
     }
+
+    # on reading the delimiter character
     if(c == $2) {
+      # check if we are in the search or the replacement
       if(searchDone) {
+        # if we are in the replcaement check if we terminated correctly
         if(i == end) {
-          replaceDone = 1
+          print expression c flags
           break
         }
         else {
@@ -77,15 +78,7 @@ $1 == ":s" && length($2) == 1 {
         searchDone = 1
       }
     }
-    else if(searchDone) {
-      replace = replace c
-    }
-    else {
-      search = search c
-    }
-  }
 
-  if(replaceDone) {
-    printf("s%s%s%s%s%s%s\n",$2,search,$2,replace,$2,flags)
+    expression = expression c
   }
 }
