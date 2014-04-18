@@ -4,7 +4,7 @@
 # load config #
 ###############
 
-declare -r botDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" 
+declare -r botDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
 export botDir
 source $botDir/config
 
@@ -27,7 +27,7 @@ trap "rm -rf $bufferDir; exit 1" SIGINT SIGTERM EXIT
 # load dependencies #
 #####################
 
-source "$botDir/commandLoader.sh"
+source "$botDir/lib/commandLoader.sh"
 
 #################
 # start the bot #
