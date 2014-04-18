@@ -7,7 +7,7 @@ declare -r expression="$3"
 
 declare -a logFiles=($(find $logDir -type f | sort -r | head -n 2))
 
-tac "${logFiles[@]}" |awk '$2 == userString  {
+tac "${logFiles[@]}" | gawk '$2 == userString  {
   if($0 ~ /^\S+\s+\S+\s+: ([^:]|(:[^s]))/)
   {
     s=$0

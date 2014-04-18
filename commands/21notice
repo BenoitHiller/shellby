@@ -4,7 +4,7 @@ source $botDir/config
 password=$(redis-cli get config:password)
 trap '' SIGHUP
 
-awk '
+gawk '
 
 /^:?\S+ NOTICE \* :\*\*\* Looking up your hostname\.\.\./{
 
