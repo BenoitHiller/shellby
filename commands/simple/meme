@@ -1,0 +1,19 @@
+#!/bin/bash
+
+declare -r channel="$2"
+declare -r message="${6#*meme }"
+declare -r memeFile="$botDir/share/memes"
+
+getMeme() {
+  local memeString="$1"
+  local filteredMemeString
+
+  filteredMemeString="$(tr A-Z a-z <<< "$memeString" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
+
+  if [[ -n "$memeString" ]]; then
+    grep -E -m 1 "(^$filteredMemeString[,:])|(,\s?$filteredMemeString[,:])" "$memeFile" \
+      | sed -E 's/[^:]*:\s?(.*)/\1/'
+  fi
+}
+
+getMeme "$message" | "$botDir/lib/privmsg" "$channel"
