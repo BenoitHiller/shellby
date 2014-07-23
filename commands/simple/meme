@@ -4,6 +4,10 @@ declare -r channel="$2"
 declare -r message="${6#*meme }"
 declare -r memeFile="$botDir/share/memes"
 
+if [[ ! -e "$memeFile" ]]; then
+  exit 1
+fi
+
 getMeme() {
   local memeString="$1"
   local filteredMemeString
