@@ -8,7 +8,6 @@ I will get back to you on that shortly.
 
 ## Dependencies
 
-* Redis
 * netcat
 * gawk 
 * bash >=4

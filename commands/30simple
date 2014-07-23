@@ -5,14 +5,14 @@ source "$botDir/lib/utility.sh"
 declare grepPid
 
 function parseCommands {
-  declare botName="$(redis-cli --raw get config:botname)" 
+  declare botName="$(cat "$bufferDir/etc/nickname")" 
   grep --line-buffered -iE "^\S+\s+privmsg\s+((#\S+\s+:(($botName\>)|(\./)))|([^#[:space:]]+\s+:))" | \
     while read line; do
       local -a data=( $(getIRCInfo "$line") ) 
       local message="$(getMessageNoNick "$line" "$botName" )"
 
       local command="${message%%[[:space:]]*}"
-      local command="${command##./}"
+      command="${command##./}"
       if [[ ! $command =~ [^a-zA-Z0-9] ]]; then
         if [ -e "$botDir/commands/simple/$command" ]; then
           # run command with the following params
@@ -37,4 +37,5 @@ grepPid=$!
 
 while true; do
   wait $grepPid
+  sleep 1
 done

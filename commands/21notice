@@ -1,7 +1,7 @@
 #!/bin/bash
 
-source $botDir/config
-password=$(redis-cli get config:password)
+source "$botDir/config"
+password="$(cat "$botDir/etc/password")"
 trap '' SIGHUP
 
 gawk '
