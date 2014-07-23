@@ -1,11 +1,26 @@
 #!/bin/bash
 
+source "$botDir/lib/utility.sh"
+
 declare -r channel="$2"
 declare -r message="${6#*meme }"
 declare -r memeFile="$botDir/share/memes"
 
 if [[ ! -e "$memeFile" ]]; then
   exit 1
+fi
+
+printUsage() {
+  cat <<EOF
+Summary: Queries a list of "funny" images indexed by one or more keywords. Usage: ./meme [-h] [--help] search_string...
+EOF
+}
+
+parseArgs $message
+
+if [[ "${argMap[h]+_}" ||  "${argMap[help]+_}" ]]; then
+  printUsage | "$botDir/lib/privmsg" "$channel" 
+  exit 0
 fi
 
 getMeme() {
@@ -20,4 +35,4 @@ getMeme() {
   fi
 }
 
-getMeme "$message" | "$botDir/lib/privmsg" "$channel"
+getMeme "$( echo "${vargs[*]}" )" | "$botDir/lib/privmsg" "$channel"

@@ -1,5 +1,21 @@
 #!/bin/bash
 
+source "$botDir/lib/utility.sh"
+
 declare -r channel="$2"
+declare -r message="${6#*gh }"
+
+printUsage() {
+  cat <<EOF
+Summary: Grabs a random entry from a database of grouphug.us submissions. Usage ./gh [-h] [--help]
+EOF
+}
+
+parseArgs $message
+
+if [[ "${argMap[h]+_}" ||  "${argMap[help]+_}" ]]; then
+  printUsage | "$botDir/lib/privmsg" "$channel" 
+  exit 0
+fi
 
 shuf -n 1 "$botDir/share/hugs.irc.final" | sed -E 's/^[0-9]+	//' | tr "" "\n" | "$botDir/lib/privmsg" "$channel"

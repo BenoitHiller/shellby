@@ -11,6 +11,8 @@ source $botDir/config
 declare -r bufferDir=$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)
 export bufferDir
 
+source "$botDir/lib/loadConfig.sh"
+
 ################
 # toggle debug #
 ################
