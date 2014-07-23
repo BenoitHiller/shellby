@@ -8,7 +8,7 @@ grep --line-buffered -iE '^\S+\s+privmsg\s+#\S+\s+::.*$' |\
     if [ -n "$expression" ]; then
       declare -a data=( $(getIRCInfo "$line") ) 
 
-      "$botDir/lib/sub" "${data[0]}!${data[3]}@${data[4]}" "$botDir/logs/${data[1]}" "$expression" | cut -c-480 | tr -d "\a\r\v\n" | "$botDir/lib/privmsg" "${data[1]}" 
+      "$botDir/lib/sub" "${data[0]}!${data[3]}@${data[4]}" "$botDir/logs/${data[1]}" "$expression" | sed -E 's/^/=> /' | cut -c-470 | tr -d "\a\r\v\n" | "$botDir/lib/privmsg" "${data[1]}" 
  
     fi
   done
