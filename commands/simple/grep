@@ -1,0 +1,50 @@
+#!/bin/bash
+
+source "$botDir/lib/utility.sh"
+
+declare -r channel="$2"
+declare -r message="${6#*grep }"
+
+declare -a assignableParameters=( e A B C )
+
+parseArgs $message
+
+if (( "${#vargs[@]}" > 0 )); then
+  declare gargs="$( echo "${vargs[*]}")"
+
+  declare -a gflags=( )
+
+  if [[ "${argMap[c]+_}" ]]; then
+    gflags+=( -c )
+  fi
+
+  if [[ "${argMap[i]+_}" ]]; then
+    gflags+=( -i )
+  fi
+
+  if [[ "${argMap[C]+_}" && -n "${argMap[C]}" ]]; then
+    gflags+=( -C "${argMap[C]}" )
+  fi
+
+  find "$botDir/logs/$channel" -type f -name '*_message' -print0 \
+    | sort -rz \
+    | xargs -0 tac \
+    | grep "${gflags[@]}" -- "$gargs" \
+    | awk -F "\r" '
+        /^[0-9]+/{
+          if ($5 ~ "message") {
+            print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", $2 ":", $6
+          }
+          else if ( $5 ~ "action") {
+            print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", "*", $2, $6
+          }
+          else {
+            print $0
+          }
+        }
+        /^[^0-9]/{print $0}
+      ' \
+    | head -n 500 \
+    | tac \
+    | "$botDir/lib/privorpaste" "$channel" "$(getServerNameLength "$bufferDir")"
+fi

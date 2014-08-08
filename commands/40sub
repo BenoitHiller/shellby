@@ -2,13 +2,39 @@
 
 source "$botDir/lib/utility.sh"
 
-grep --line-buffered -iE '^\S+\s+privmsg\s+#\S+\s+::.*$' |\
-  while read -r line; do
-    expression="$(cut -d : -f 3- <<< "$line" | "$botDir/lib/regex.awk")"
-    if [ -n "$expression" ]; then
-      declare -a data=( $(getIRCInfo "$line") ) 
+declare subPid
 
-      "$botDir/lib/sub" "${data[0]}!${data[3]}@${data[4]}" "$botDir/logs/${data[1]}" "$expression" | sed -E 's/^/=> /' | cut -c-470 | tr -d "\a\r\v\n" | "$botDir/lib/privmsg" "${data[1]}" 
- 
-    fi
-  done
+substitute() {
+  local -ri maxLength="$((510 - $(getServerNameLength "$bufferDir") - 50))"
+  grep --line-buffered -iE '^\S+\s+privmsg\s+#\S+\s+::.*$' |\
+    while read -r line; do
+      expression="$(cut -d : -f 3- <<< "$line" | "$botDir/lib/regex.awk")"
+      if [ -n "$expression" ]; then
+        declare -a data=( $(getIRCInfo "$line") ) 
+
+        "$botDir/lib/sub" "${data[0]}" "$botDir/logs/${data[1]}" "$expression" \
+          | sed -E 's/^/=> /' \
+          | cut -c-"$maxLength" \
+          | tr -d "\a\r\v\n" \
+          | "$botDir/lib/privmsg" "${data[1]}" "$(getServerNameLength "$bufferDir")"
+   
+      fi
+    done
+}
+
+
+function reload {
+  killtree $subPid
+  substitute <&0 &
+  subPid=$!
+}
+
+trap reload SIGHUP
+
+substitute <&0 &
+subPid=$!
+
+while true; do
+  wait $subPid
+  sleep 1
+done

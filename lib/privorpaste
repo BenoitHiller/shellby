@@ -1,0 +1,16 @@
+#!/bin/bash
+
+declare -r channel="$1"
+declare -ri headerLength="$2"
+
+read -r line1
+read -r line2
+
+if (( $? != 0 )); then
+  "$botDir/lib/privmsg" "$channel" "$headerLength" <<< "$line1"
+else
+  cat <( echo "$line1" ) <(echo "$line2") - \
+    | curl -si -F "content=<-" "http://dpaste.com/api/v2/" \
+    | sed -n 's/^Location: //;T;p' \
+    | "$botDir/lib/privmsg" "$channel" "$headerLength"
+fi

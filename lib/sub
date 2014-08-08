@@ -7,13 +7,11 @@ declare -r expression="$3"
 
 declare -a logFiles=($(find $logDir -type f | sort -r | head -n 2))
 
-tac "${logFiles[@]}" | gawk '$2 == userString  {
-  if($0 ~ /^\S+\s+\S+\s+: ([^:]|(:[^s]))/)
+tac "${logFiles[@]}" | gawk -F "\r" '$2 == nick  {
+  if($6 ~ /^([^:]|(:[^s]))/)
   {
-    s=$0
-    sub(/^\S+\s+\S+\s+: ?/,"",s)
-    print s
+    print $6
     exit 0
   }
 }
-' userString="$user" | sed -E "$expression"
+' nick="$user" | sed -E "$expression"

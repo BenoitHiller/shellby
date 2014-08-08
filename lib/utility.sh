@@ -152,6 +152,25 @@ parseArgs() {
   shopt -u extglob
 }
 
+
+# print the header that the server will prepend to all of our messages
+#
+# 1.bufferDir the buffer directory
+getNameOnServer() {
+  local -r bufferDir="$1"
+
+  printf ":%s!%s@%s " "$(cat "$bufferDir/etc/nickname")" "$(cat "$bufferDir/etc/username")" "$(cat "$bufferDir/etc/hostname")"
+}
+
+# print the length of the header the server will prepend to our messages
+#
+# 1.bufferDir the buffer directory
+getServerNameLength() {
+  local -r bufferDir="$1"
+
+  echo $(($(getNameOnServer "$bufferDir" | wc -c) + 1))
+}
+
 # parse out the metadata from a privmsg
 #
 # supports a number of other similar messages as well

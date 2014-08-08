@@ -4,6 +4,7 @@ source "$botDir/lib/utility.sh"
 
 declare -r channel="$2"
 declare -r message="${6#*gh }"
+set -x
 
 printUsage() {
   cat <<EOF
@@ -14,8 +15,8 @@ EOF
 parseArgs $message
 
 if [[ "${argMap[h]+_}" ||  "${argMap[help]+_}" ]]; then
-  printUsage | "$botDir/lib/privmsg" "$channel" 
+  printUsage | "$botDir/lib/privmsg" "$channel" "$(getServerNameLength "$bufferDir")"
   exit 0
 fi
 
-shuf -n 1 "$botDir/share/hugs.irc.final" | sed -E 's/^[0-9]+	//' | tr "" "\n" | "$botDir/lib/privmsg" "$channel"
+shuf -n 1 "$botDir/share/hugs.irc.final" | sed -E 's/^[0-9]+	//' | tr "" "\n" | "$botDir/lib/privmsg" "$channel" "$(getServerNameLength "$bufferDir")"

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+trap '' SIGHUP
+
+cat - > /dev/null &
+
+( while true; do
+  echo WHOIS $(cat "$bufferDir/etc/nickname")
+  sleep 30
+done
+) &
+
+wait

@@ -6,8 +6,8 @@ declare grepPid
 
 function parseCommands {
   declare botName="$(cat "$bufferDir/etc/nickname")" 
-  grep --line-buffered -iE "^\S+\s+privmsg\s+((#\S+\s+:(($botName\>)|(\./)))|([^#[:space:]]+\s+:))" | \
-    while read line; do
+  grep --line-buffered -iE "^\S+\s+privmsg\s+((#\S+\s+:(($botName\>)|(\./)))|([^#[:space:]]+\s+:))" \
+    | while read -r line; do
       local -a data=( $(getIRCInfo "$line") ) 
       local message="$(getMessageNoNick "$line" "$botName" )"
 

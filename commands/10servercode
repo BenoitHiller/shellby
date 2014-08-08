@@ -5,4 +5,8 @@ trap '' SIGHUP
 gawk -v botDir="$botDir" ' 
 /^:?\S+\s+001\s+/ {
   printf("connect %s\n",$1) | botDir "/commands/events/connected" 
+}
+
+/^:?\S+\s+311\s+/ {
+  system(botDir "/commands/events/whois " $4 " " $5 " " $6)
 }' 

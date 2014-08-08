@@ -1,11 +1,12 @@
 #!/bin/bash
 
 declare -r channel="$1"
+declare -ri headerLength="$2"
 declare meta
 
 if [ -z "$channel" ]; then
   exit 1;
 fi
 
-"$botDir/lib/wrap" "PRIVMSG $channel :"
+"$botDir/lib/wrap" "PRIVMSG $channel :" "$headerLength"
 exit $?
