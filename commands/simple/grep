@@ -5,7 +5,8 @@ source "$botDir/lib/utility.sh"
 declare -r channel="$2"
 declare -r message="${6#*grep }"
 
-declare -a assignableParameters=( e A B C )
+declare -a assignableParameters=( m e A B C )
+declare -a passThroughFlags=( c i E )
 
 parseArgs $message
 
@@ -14,21 +15,33 @@ if (( "${#vargs[@]}" > 0 )); then
 
   declare -a gflags=( )
 
-  if [[ "${argMap[c]+_}" ]]; then
-    gflags+=( -c )
-  fi
+  declare re='^[0-9]+$'
 
-  if [[ "${argMap[i]+_}" ]]; then
-    gflags+=( -i )
-  fi
+  for f in "${passThroughFlags[@]}"; do
+    if [[ "${argMap[$f]+_}" ]]; then
+      gflags+=( -$f )
+    fi
+  done
 
-  if [[ "${argMap[C]+_}" && -n "${argMap[C]}" ]]; then
+  if [[ "${argMap[C]+_}" && "${argMap[C]}" =~ $re ]]; then
     gflags+=( -C "${argMap[C]}" )
+  else 
+    if [[ "${argMap[B]+_}" && "${argMap[B]}" =~ $re ]]; then
+      gflags+=( -A "${argMap[B]}" )
+    fi
+    if [[ "${argMap[A]+_}" && "${argMap[A]}" =~ $re ]]; then
+      gflags+=( -B "${argMap[A]}" )
+    fi
+  fi
+
+  if [[ "${argMap[m]+_}" && "${argMap[m]}" =~ $re ]]; then
+    gflags+=( -m "${argMap[m]}" )
   fi
 
   find "$botDir/logs/$channel" -type f -name '*_message' -print0 \
     | sort -rz \
     | xargs -0 tac \
+    | grep -vF "$6" \
     | grep "${gflags[@]}" -- "$gargs" \
     | awk -F "\r" '
         /^[0-9]+/{

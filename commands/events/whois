@@ -10,3 +10,4 @@ if [[ "$nick" == "$currentNick" ]]; then
   echo "$username" > "$bufferDir/etc/username"
   echo "$host" > "$bufferDir/etc/hostname"
 fi
+

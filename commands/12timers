@@ -2,12 +2,32 @@
 
 trap '' SIGHUP
 
-cat - > /dev/null &
+source "$botDir/config"
 
-( while true; do
-  echo WHOIS $(cat "$bufferDir/etc/nickname")
-  sleep 30
-done
-) &
+# consume the input to the command so that the pipe does not fill
+grep --line-buffered "^" <&0 > /dev/null &
+
+thirtyLoop() {
+  while true; do
+    if (( $(date +%s) - $(cat "$bufferDir/etc/lastContact") > 500 )); then
+      echo "Restarted at: $(date +%s) after no contact since $(cat "$bufferDir/etc/lastContact")" >&2
+      kill -USR1 $thisPid
+    fi
+
+    echo PING "$TARGETSERVER"
+
+    sleep 30
+  done
+}
+
+oneTwentyLoop() {
+  while true; do
+    echo WHOIS $(cat "$bufferDir/etc/nickname") &
+    sleep 120
+  done
+}
+
+thirtyLoop &
+oneTwentyLoop &
 
 wait

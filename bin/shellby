@@ -4,13 +4,45 @@
 # set up signal handler #
 #########################
 
+declare exitp=true
+
+handleTerm() {
+  if $exitp; then
+    exit 1
+  else
+    exitp=true
+  fi
+}
+
 declare -r thisPid=$$
+export thisPid
 # when the parent is killed, clean up all of the subprocesses(maybe not -9...)
 trap "kill -TERM -$thisPid;" SIGINT EXIT
+
+trap "handleTerm" SIGTERM
 
 ###################
 # launch with env #
 ###################
 
 declare -r botDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
-env -i  DEBUG=$DEBUG $botDir/lib/main "$@"
+declare botPid
+
+startBot() {
+  env -i thisPid=$thisPid DEBUG=$DEBUG $botDir/lib/main "$@"
+}
+
+reload() {
+  exitp=false
+  kill -TERM -$thisPid
+  startBot &
+}
+
+trap "reload" SIGUSR1
+
+startBot &
+
+while true; do
+  wait
+  sleep 1
+done

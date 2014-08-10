@@ -35,6 +35,8 @@ source "$botDir/lib/commandLoader.sh"
 # start the bot #
 #################
 
+date +%s > "$bufferDir/etc/lastContact"
+
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 managePipes "$botDir/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 stdbuf -oL netcat -i 1 $TARGETSERVER $PORT < "$bufferDir/toNetcat" | sed -u 's/$//' | tee "$bufferDir/fromNetcat" | grep --line-buffered "^"  & 

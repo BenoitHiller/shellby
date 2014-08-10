@@ -68,7 +68,7 @@ function pipeInput {
   local -r input="$1"
   local -ra outputs=( "${@:2}" )
 
-  capPipe=$(mktemp -u -p "$buffDir" cap.XXXXXXXX)
+  capPipe=$(mktemp -u "$bufferDir/cap.XXXXXXXX")
   mkfifo "$capPipe"
   grep --line-buffered "^" "$input" | tee "${outputs[@]}" "$capPipe" > /dev/null &
   "$botDir/lib/cap" < "$capPipe" &

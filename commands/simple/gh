@@ -4,7 +4,6 @@ source "$botDir/lib/utility.sh"
 
 declare -r channel="$2"
 declare -r message="${6#*gh }"
-set -x
 
 printUsage() {
   cat <<EOF
