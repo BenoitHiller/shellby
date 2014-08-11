@@ -5,12 +5,70 @@ source "$botDir/lib/utility.sh"
 declare -r channel="$2"
 declare -r message="${6#*grep }"
 
-declare -a assignableParameters=( m e A B C )
+declare -a assignableParameters=( m e A B C t T )
 declare -a passThroughFlags=( c i E )
 
 parseArgs $message
 
 if (( "${#vargs[@]}" > 0 )); then
+
+  ###########################
+  # Process Time parameters #
+  ###########################
+
+  declare -i firstYear=0
+  declare -i firstMonth=0
+  declare -i firstDay=0
+  declare -i lastYear=9999
+  declare -i lastMonth=99
+  declare -i lastDay=99
+
+  declare -r timeRegex="([0-9]{1,4}|\*)-([0-9]{1,2}|\*)-([0-9]{1,2}|\*)"
+  
+  # WARNING: disabling globbing to use * in strings as a wildcard
+  set -f 
+
+  if [[ "${argMap[t]+_}" && "${argMap[t]}" =~ $timeRegex ]]; then
+    declare firstParts=( $(IFS="-"; echo ${argMap[t]}) )
+    if [[ "${firstParts[0]}" != "*" ]]; then
+      if [[ "${firstParts[0]}" =~ ^[0-9]{2}$ ]]; then
+        firstYear="20${firstParts[0]}"
+      else
+        firstYear="${firstParts[0]##*0}"
+      fi
+    fi
+    if [[ "${firstParts[1]}" != "*" ]]; then
+        firstMonth="${firstParts[1]##*0}"
+    fi
+    if [[ "${firstParts[2]}" != "*" ]]; then
+        firstDay="${firstParts[2]##*0}"
+    fi
+  fi
+
+  if [[ "${argMap[T]+_}" && "${argMap[T]}" =~ $timeRegex ]]; then
+    declare lastParts=( $(IFS="-"; echo ${argMap[T]}) )
+    if [[ "${lastParts[0]}" != "*" ]]; then
+      if [[ "${lastParts[0]}" =~ ^[0-9]{2}$ ]]; then
+        lastYear="20${lastParts[0]}"
+      else
+        lastYear="${lastParts[0]##0}"
+      fi
+    fi
+    if [[ "${lastParts[1]}" != "*" ]]; then
+        lastMonth="${lastParts[1]##0}"
+    fi
+    if [[ "${lastParts[2]}" != "*" ]]; then
+        lastDay="${lastParts[2]##0}"
+    fi
+  fi
+
+  # WARNING: enabling globbing again
+  set +f
+
+  ############################
+  # Process other parameters #
+  ############################
+
   declare gargs="$( echo "${vargs[*]}")"
 
   declare -a gflags=( )
@@ -38,7 +96,29 @@ if (( "${#vargs[@]}" > 0 )); then
     gflags+=( -m "${argMap[m]}" )
   fi
 
+  ###################
+  # Search pipeline #
+  ###################
+
   find "$botDir/logs/$channel" -type f -name '*_message' -print0 \
+    | awk -F "/" '
+      BEGIN {
+        RS = "\0"
+        ORS = "\0"
+      }
+      {
+        min = int(sprintf("%d%02d%02d", firstYear, firstMonth, firstDay))
+        max = int(sprintf("%d%02d%02d", lastYear, lastMonth, lastDay))
+        year = int($(NF - 2))
+        month = int(gensub(/^0*/, "", 1, $(NF - 1)))
+        day = int(gensub(/_message|^0*/, "", "g", $NF)) 
+        summed = int(sprintf("%d%02d%02d", year, month, day))
+        if (summed >= min && summed <= max)
+        {
+          print $0
+        }
+      }
+    ' firstYear="$firstYear" firstMonth="$firstMonth" firstDay="$firstDay" lastYear="$lastYear" lastMonth="$lastMonth" lastDay="$lastDay"  \
     | sort -rz \
     | xargs -0 tac \
     | grep -vF "$6" \
