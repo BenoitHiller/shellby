@@ -5,7 +5,7 @@ declare -r logDir="$2"
 
 declare -r expression="$3"
 
-declare -a logFiles=($(find $logDir -type f | sort -r | head -n 2))
+declare -a logFiles=($(find $logDir -name "*_message" -type f | sort -r | head -n 2))
 
 tac "${logFiles[@]}" | gawk -F "\r" '$2 == nick  {
   if($6 ~ /^([^:]|(:[^s]))/)
