@@ -9,7 +9,7 @@ grep --line-buffered "^" <&0 > /dev/null &
 
 thirtyLoop() {
   while true; do
-    if (( $(date +%s) - $(cat "$bufferDir/etc/lastContact") > 500 )); then
+    if (( $(date +%s) - $(cat "$bufferDir/etc/lastContact") > 300 )); then
       echo "Restarted at: $(date +%s) after no contact since $(cat "$bufferDir/etc/lastContact")" >&2
       kill -USR1 $thisPid
     fi

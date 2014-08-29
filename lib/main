@@ -31,6 +31,14 @@ trap "rm -rf $bufferDir; exit 1" SIGINT SIGTERM EXIT
 
 source "$botDir/lib/commandLoader.sh"
 
+###################
+# Test Connection #
+###################
+
+while ! netcat -z -w 5 $TARGETSERVER $PORT; do
+  sleep 1
+done
+
 #################
 # start the bot #
 #################

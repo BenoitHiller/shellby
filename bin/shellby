@@ -35,6 +35,7 @@ startBot() {
 reload() {
   exitp=false
   kill -TERM -$thisPid
+  sleep 30
   startBot &
 }
 
