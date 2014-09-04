@@ -49,9 +49,14 @@ mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 managePipes "$botDir/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 stdbuf -oL netcat -i 1 $TARGETSERVER $PORT < "$bufferDir/toNetcat" | sed -u 's/$//' | tee "$bufferDir/fromNetcat" | grep --line-buffered "^"  & 
 
+declare -ri pipelinePid=$!
+
 echo started
 
 trap reloadAllConfig SIGHUP
 
 watchFiles "$botDir/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
-wait
+
+wait $pipelinePid 
+
+kill -USR1 $thisPid
