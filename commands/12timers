@@ -7,6 +7,18 @@ source "$botDir/config"
 # consume the input to the command so that the pipe does not fill
 grep --line-buffered "^" <&0 > /dev/null &
 
+updateUptime() {
+  local -ri started="$(stat -c %Z "$bufferDir")"
+  local -ri current="$(date +%s)"
+
+  local -ri elapsed=$((current - started))
+  local -i previous
+  previous=$(cat "$botDir/logs/uptime")
+  if (($?)) || ((previous < elapsed)); then
+    echo "$elapsed" > "$botDir/logs/uptime"
+  fi
+}
+
 thirtyLoop() {
   while true; do
     if (( $(date +%s) - $(cat "$bufferDir/etc/lastContact") > 300 )); then
@@ -15,6 +27,8 @@ thirtyLoop() {
     fi
 
     echo PING "$TARGETSERVER"
+
+    updateUptime
 
     sleep 30
   done

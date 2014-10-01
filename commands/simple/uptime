@@ -1,14 +1,33 @@
 #!/bin/bash
 declare -r channel="$2"
 
+declare -i previous
+previous="$(cat "$botDir/logs/uptime")"
+if (($?)); then
+  previous=0
+fi
+
 declare -ri started="$(stat -c %Z "$bufferDir")"
 declare -ri current="$(date +%s)"
 
 declare -ri elapsed=$((current - started))
 
-declare -ri seconds=$((elapsed % 60))
-declare -ri minutes=$(( (elapsed / 60 ) % 60))
-declare -ri hours=$(( (elapsed / 60 / 60) % 24 ))
-declare -ri days=$(( elapsed / 60 / 60 / 24 ))
+# print a number of seconds as a formatted date
+#
+# 1.totalSeconds the number of seconds to format
+printDate() {
+  local -ri totalSeconds="$1"
 
-printf "%d days, %d hours, %d minutes, %d seconds\n" $days $hours $minutes $seconds | "$botDir/lib/privmsg" "$channel"
+  local -ri seconds=$((totalSeconds % 60))
+  local -ri minutes=$(( (totalSeconds / 60 ) % 60))
+  local -ri hours=$(( (totalSeconds / 60 / 60) % 24 ))
+  local -ri days=$(( totalSeconds / 60 / 60 / 24 ))
+
+  printf "%d days, %d hours, %d minutes and %d seconds" $days $hours $minutes $seconds 
+}
+
+if ((previous > elapsed)); then
+  printf "current: %s. best: %s." "$(printDate "$elapsed")" "$(printDate "$previous")" | "$botDir/lib/privmsg" "$channel"
+else
+  printDate "$elapsed" | "$botDir/lib/privmsg" "$channel"
+fi
