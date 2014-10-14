@@ -5,8 +5,10 @@ source "$botDir/lib/utility.sh"
 declare -r channel="$2"
 declare -r message="${6#*grep }"
 
-declare -a assignableParameters=( m e A B C t T )
+declare -a assignableParameters=( m e f A B C t T )
 declare -a passThroughFlags=( c i E )
+
+declare targetChannel
 
 parseArgs $message
 
@@ -96,11 +98,21 @@ if (( "${#vargs[@]}" > 0 )); then
     gflags+=( -m "${argMap[m]}" )
   fi
 
+  declare -r channelRegex="^#[^/]+$"
+
+  if [[ "${argMap[f]+_}" && "${argMap[f]}" =~ $channelRegex ]]; then
+    echo "${argMap[f]}" >&2
+    targetChannel="${argMap[f]}"
+  else
+    echo "${argMap[f]}" >&2
+    targetChannel="$channel"
+  fi
+
   ###################
   # Search pipeline #
   ###################
 
-  find "$botDir/logs/$channel" -type f -name '*_message' -print0 \
+  find "$botDir/logs/$targetChannel" -type f -name '*_message' -print0 \
     | awk -F "/" '
       BEGIN {
         RS = "\0"
