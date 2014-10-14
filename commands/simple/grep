@@ -4,6 +4,7 @@ source "$botDir/lib/utility.sh"
 
 declare -r channel="$2"
 declare -r message="${6#*grep }"
+declare -r fullMessage="$6"
 
 declare -a assignableParameters=( m e f A B C t T )
 declare -a passThroughFlags=( c i E )
@@ -133,7 +134,7 @@ if (( "${#vargs[@]}" > 0 )); then
     ' firstYear="$firstYear" firstMonth="$firstMonth" firstDay="$firstDay" lastYear="$lastYear" lastMonth="$lastMonth" lastDay="$lastDay"  \
     | sort -rz \
     | xargs -0 tac \
-    | grep -vF "$6" \
+    | grep -vF "$fullMessage" \
     | grep "${gflags[@]}" -- "$gargs" \
     | awk -F "\r" '
         /^[0-9]+/{

@@ -1,0 +1,34 @@
+.TH GREP 1
+.SH NAME
+grep \- search the channel logs
+.SH SYNOPSIS
+.B grep
+[ -ciE ] [ -m count ] [ -f channel ]
+[ -C context_lines | -A context_lines_after -B context_lines_before ]
+[ -t yyyy-MM-dd ] [ -T yyyy-MM-dd ]
+[--]
+.IR search_string...
+.SH DESCRIPTION
+.B grep
+searches the logs for a channel or user based on the search string. It then returns up to the first 500 results in reverse chronological order. If there is only one line of output it is returned inline, otherwise the contents are posted to dpaste.
+.SH OPTIONS
+.IP -c
+Output the number of matching lines instead of the text found.
+.IP -i
+Makes the search case-insensitive
+.IP -E
+Extended regex mode. Makes special characters behave as you are used to. See the real grep man page for more details.
+.IP "-m count"
+Only return at most count lines.
+.IP "-C context_lines"
+Return context_lines number of lines before and after each match. The sections surrounding each match will be separated by lines of "---". If two context sections overlap they will merge together. -C takes precedence over -A and -B.
+.IP "-A context_lines_after"
+Return context_lines_after number of lines after each matched line.
+.IP "-B context_lines_before"
+Return context_lines_before number of lines before each matched line.
+.IP "-t yyyy-MM-dd"
+Only return matches from log files dated after yyyy-MM-dd. The first two numbers of the year can be ommited and any of the year, month or date can be replaced with a "*" to match any year, month or date respectively.
+.IP "-T yyyy-MM-dd"
+Only return matches from log files dated before yyyy-MM-dd. The first two numbers of the year can be ommited and any of the year, month or date can be replaced with a "*" to match any year, month or date respectively.
+.IP search_string
+All of the remaining text is passed as the regex to grep. Note that it does not handle or need quotes at this point(this will be fixed eventually).
