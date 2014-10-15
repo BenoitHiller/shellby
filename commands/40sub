@@ -3,16 +3,18 @@
 source "$botDir/lib/utility.sh"
 
 declare subPid
+set -f
 
 substitute() {
   local -ri maxLength="$((510 - $(getServerNameLength "$bufferDir") - 50))"
-  grep --line-buffered -iE '^\S+\s+privmsg\s+#\S+\s+::.*$' |\
+  grep --line-buffered -iE '^\S+\s+privmsg\s+#\S+\s+:[^:[:space:]+]*(\+[1-9][0-9]*)?:s.*$' |\
     while read -r line; do
       expression="$(cut -d : -f 3- <<< "$line" | "$botDir/lib/regex.awk")"
       if [ -n "$expression" ]; then
-        declare -a data=( $(getIRCInfo "$line") ) 
-
-        "$botDir/lib/sub" "${data[0]}" "$botDir/logs/${data[1]}" "$expression" \
+        local -a data=( $(getIRCInfo "$line") ) 
+        local targetUser="$(sed -E 's/^\S+\s+privmsg\s+#\S+\s+:([^:[:space:]+]*)(\+[1-9][0-9]*)?:s.*$/\1/i' <<< "$line")"
+        local targetLine="$(sed -E 's/^\S+\s+privmsg\s+#\S+\s+:([^:[:space:]+]*)(\+[1-9][0-9]*)?:s.*$/\2/i' <<< "$line")"
+        "$botDir/lib/sub" "${data[0]}" "$botDir/logs/${data[1]}" "$expression" "$targetUser" "$targetLine" \
           | sed -E 's/^/=> /' \
           | cut -c-"$maxLength" \
           | tr -d "\a\r\v\n" \
@@ -38,3 +40,5 @@ while true; do
   wait $subPid
   sleep 1
 done
+
+set +f

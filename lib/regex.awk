@@ -1,12 +1,12 @@
 #!/usr/bin/gawk -f
 
 BEGIN {
-  FPAT="(^:s)|((\\\\)*.)|([giI0-9]+\\s*$)"
+  FPAT="(^[^:[:space:]+]*(\\+[1-9][0-9]*)?:s)|((\\\\)*.)|([giI0-9]+\\s*$)"
   illegalEscapes="[afnrvcdox]"
 }
 
 
-$1 == ":s" && length($2) == 1 {
+$1 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s$/ && length($2) == 1 {
   flags = ""
   if($NF ~ /[giI0-9]+\s*/) {
     if($NF ~ /[iI]/) {

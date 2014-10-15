@@ -20,6 +20,8 @@ Makes the search case-insensitive
 Extended regex mode. Makes special characters behave as you are used to. See the real grep man page for more details.
 .IP "-m count"
 Only return at most count lines.
+.IP "-f channel"
+The channel to search the logs for. Does not support searching other users' logs.
 .IP "-C context_lines"
 Return context_lines number of lines before and after each match. The sections surrounding each match will be separated by lines of "---". If two context sections overlap they will merge together. -C takes precedence over -A and -B.
 .IP "-A context_lines_after"
