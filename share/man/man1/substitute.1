@@ -1,0 +1,22 @@
+.TH SUBSTITUTE 1
+.SH NAME
+substitute \- command to perform substitutions on past messages
+.SH SYNOPSIS
+[NICK][+INDEX]:s/REGEX/REPLACEMENT/[i|I][g|[0-9]+]
+.SH DESCRIPTION
+This command supports vim like notation to perform substitutions on your past messages. Despite the vim like syntax the replacement is actually performed using sed -E.
+.LP
+If your provided substitution passes validation it is passed "directly" to sed. Note that some parts of your input are actually modified so that they will behave as though you had provided the same input to sed on the command line (this involves escaping certain characters and has the consequence that you can't use a number of metacharacters).
+.LP
+The first character following the :s acts as the delimeter. In the synopsis this is "/" however any character can be used instead. The specified character needs to be escaped if you wish to use it literally within either the REGEX or the REPLACEMENT string.
+.SH OPTIONS
+.IP NICK
+If NICK is specified it will do substitutions based on that user's backlog.
+.IP INDEX
+If an index is specified it will do the substitution to the message that many back(so INDEX=0 is the default behaviour, INDEX=1 will skip a message back).
+.IP g
+Perform the substitution on all matches in the target message.
+.IP i|I
+Use case insensitive matching.
+.IP [0-9]+
+Replace only the nth match, where n is the specified number.
