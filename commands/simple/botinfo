@@ -1,0 +1,8 @@
+#!/bin/bash
+source "$botDir/lib/utility.sh"
+
+set -f
+
+declare -r channel="$2"
+
+cat "$botDir/share/botInfo/$channel" | "$botDir/lib/privmsg" "$channel" "$(getServerNameLength "$bufferDir")"
