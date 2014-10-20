@@ -6,12 +6,17 @@ set -f
 declare -r channel="$2"
 declare -r message="${6#*wolfram }"
 
+declare -r apiKey="$(cat "$botDir/share/wolframKey")"
+
+[[ -z $apiKey ]] && exit 2;
+
 declare result
 
-result="$(curl -G -s "http://api.wolframalpha.com/v2/query" --data-urlencode "input=$message" --data "appid=XXXXXX-XXXXXXXXXX&format=plaintext&podindex=2" \
-   | grep -oPz "((?<=title=')[^']+)|((?<=<plaintext>)[^<]+)" \
-   | sed '1{N;s/\n/ = /}' \
-   | tr '\n' ' ' )"
+result="$(curl -G -s "http://api.wolframalpha.com/v2/query" --data-urlencode "input=$message" --data "appid=$apiKey&format=plaintext&podindex=2" \
+  | grep -oPz "((?<=title=')[^']+)|((?<=<plaintext>)[^<]+)" \
+  | sed '1{N;s/\n/ = /}' \
+  | tr '\n' ' ' \
+  | "$botDir/lib/decodehtml.awk" )"
 
 if [[ -n "$result" ]]; then
   "$botDir/lib/privmsg" "$channel" "$(getServerNameLength "$bufferDir")" <<< "$result"
