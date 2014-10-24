@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -f
+
 declare -r channel="$1"
 declare -ri headerLength="$2"
 declare meta
@@ -8,5 +10,7 @@ if [ -z "$channel" ]; then
   exit 1;
 fi
 
-"$botDir/lib/wrap" "PRIVMSG $channel :" "$headerLength"
+declare -r shellbyHostname="$(cat "$bufferDir/etc/nickname")!$(cat "$bufferDir/etc/username")@$(cat "$bufferDir/etc/hostname")"
+
+"$botDir/lib/wrap" "PRIVMSG $channel :" "$headerLength" | tee >( "$botDir/lib/logCommand" "$shellbyHostname" )
 exit $?

@@ -1,3 +1,5 @@
 #!/bin/bash
 
-gawk -f "$botDir/lib/logCommand.awk" logDir="$botDir/logs/"
+declare -r shellbyHostname="$1"
+
+gawk -f "$botDir/lib/logCommand.awk" logDir="$botDir/logs/" shellbyHostname="$shellbyHostname"

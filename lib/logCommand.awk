@@ -22,6 +22,12 @@ function logLine(user,action,message,channel,type) {
   fflush(file)
 }
 
+/^PRIVMSG/ {
+  message=substr($3,3)
+
+  logLine(shellbyHostname, "message", message, $2, "message") 
+}
+
 /^\S+\s+privmsg\s/ {
   message=substr($4,3)
   if(message ~ /ACTION.*$/) {
@@ -32,6 +38,7 @@ function logLine(user,action,message,channel,type) {
   else {
     action = "message"
   }
+
   logLine($1,action,message,$3,"message")
 }
 
