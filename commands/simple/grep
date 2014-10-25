@@ -10,11 +10,14 @@ declare -r message="${6#*grep }"
 declare -r fullMessage="$6"
 
 declare -a assignableParameters=( m e f A B C t T )
-declare -a passThroughFlags=( c i E )
+declare -a passThroughFlags=( c i E P )
 
 declare targetChannel
 
-parseArgs $message
+declare -a splitArgs=()
+declare -i i=0
+
+resplitAndParse "$message"
 
 if (( "${#vargs[@]}" > 0 )); then
 
@@ -70,7 +73,7 @@ if (( "${#vargs[@]}" > 0 )); then
   # Process other parameters #
   ############################
 
-  declare gargs="$( echo "${vargs[*]}")"
+  declare gargs="$( printf "%s " "${vargs[@]}" | sed 's/ $//')"
 
   declare -a gflags=( )
 

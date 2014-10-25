@@ -46,6 +46,17 @@ checkType() {
   return $?
 }
 
+# resplit the passed parameters taking into account quoting
+#
+# @. parameters to split
+resplitAndParse() {
+  local -a splitArgs=()
+  while IFS= read -r -d $'\0' arg; do
+    splitArgs[i++]="$arg"
+  done < <(printf "%s " "$@" | sed 's/ $//' | "$botDir/lib/resplit.awk")
+  parseArgs "${splitArgs[@]}"
+}
+
 declare -A argMap=()
 declare -a vargs=()
 
@@ -188,7 +199,9 @@ getIRCInfo() {
     return 1
   fi
 
-  if [[ ! ${infoArray[1]} =~ ^# ]] ; then
+  local -r channelRegex="^#"
+
+  if [[ ! ${infoArray[1]} =~ $channelRegex ]] ; then
     infoArray[1]="${infoArray[0]}"
   fi
 
