@@ -3,7 +3,7 @@
 grep \- search the channel logs
 .SH SYNOPSIS
 .B grep
-[ -ciEP ] [ -m count ] [ -f channel ]
+[ -ci ] [ -E | -P | -F ] [ -m count ] [ -f channel ]
 [ -C context_lines | -A context_lines_after -B context_lines_before ]
 [ -t yyyy-MM-dd ] [ -T yyyy-MM-dd ]
 [--]
@@ -20,6 +20,8 @@ Makes the search case-insensitive
 Extended regex mode. Makes special characters behave as you are used to. See the real grep man page for more details.
 .IP -P
 Perl regex mode for the lulz. See real grep for more info.
+.IP -F
+Search for literal matches of the provided string.
 .IP "-m count"
 Only return at most count lines.
 .IP "-f channel"

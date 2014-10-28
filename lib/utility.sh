@@ -70,6 +70,7 @@ parseArgs() {
   local arg
   local getNext=false
   local previous
+  local i
   local -A parameterSet=()
   shopt -s extglob
 

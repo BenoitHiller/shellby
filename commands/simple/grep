@@ -10,7 +10,7 @@ declare -r message="${6#*grep }"
 declare -r fullMessage="$6"
 
 declare -a assignableParameters=( m e f A B C t T )
-declare -a passThroughFlags=( c i E P )
+declare -a passThroughFlags=( c i E P F )
 
 declare targetChannel
 
@@ -103,11 +103,18 @@ if (( "${#vargs[@]}" > 0 )); then
   declare -r channelRegex="^#[^/]+$"
 
   if [[ "${argMap[f]+_}" && "${argMap[f]}" =~ $channelRegex ]]; then
-    echo "${argMap[f]}" >&2
     targetChannel="${argMap[f]}"
   else
-    echo "${argMap[f]}" >&2
     targetChannel="$channel"
+  fi
+
+  declare -ir extendedRegex="${argMap[E]+1}"
+  declare -ir perlRegex="${argMap[P]+1}"
+  declare -ir fixedMatch="${argMap[F]+1}"
+
+  if (( extendedRegex + perlRegex + fixedMatch > 1 )); then
+    echo "conflicting options selected" | "$botDir/lib/privmsg" "$channel"
+    exit 0
   fi
 
   if [[ ! "$targetChannel" =~ $channelRegex ]]; then
