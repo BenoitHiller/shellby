@@ -41,7 +41,15 @@ oneTwentyLoop() {
   done
 }
 
+oneHourLoop() {
+  while true; do
+    find "$bufferDir/cache/pastebin/" -name "md5.*" -mtime +6 -exec rm {} \;
+    sleep $(( 60 * 60 ))
+  done
+}
+
 thirtyLoop &
 oneTwentyLoop &
+oneHourLoop &
 
 wait

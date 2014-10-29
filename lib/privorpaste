@@ -3,6 +3,47 @@
 declare -r channel="$1"
 declare -ri headerLength="$2"
 
+declare -r cacheDir="$bufferDir/cache/pastebin"
+
+# Take the contents of stdin and get a pastebin link for them
+#
+# This caches paste links for 6 days.
+# Expired old pastes are not cleaned up automatically.
+pastebin() {
+  set -x
+  if [ ! -d "$cacheDir" ]; then
+    mkdir -p "$cacheDir"
+  fi
+
+  local -r tmpFile="$(mktemp -p "$cacheDir" tmp.XXXXXX)"
+  cat - > "$tmpFile"
+
+  local -r checksum="$(md5sum "$tmpFile" | cut -f1 -d" ")"
+  local -r cachedFile="$cacheDir/md5.$checksum"
+
+  if [ -f "$cachedFile" ]; then
+    declare -ri created="$(stat -c %Z "$cachedFile")"
+    declare -ri current="$(date +%s)"
+
+    declare -ri elapsed=$((current - created))
+
+    if (( elapsed > ( 6 * 24 * 60 * 60 ))); then
+      rm "$cachedFile"
+    fi
+  fi
+
+  if [ -f "$cachedFile" ]; then
+    cat $cachedFile
+  else
+    curl -si -F "content=<$tmpFile" "http://dpaste.com/api/v2/" \
+      | tee /dev/stderr \
+      | sed -n 's/^Location: //;T;p' \
+      | tee "$cachedFile"
+  fi
+  
+  rm "$tmpFile"
+}
+
 read -r line1
 read -r line2
 
@@ -10,7 +51,6 @@ if (( $? != 0 )); then
   "$botDir/lib/privmsg" "$channel" "$headerLength" <<< "$line1"
 else
   cat <( echo "$line1" ) <(echo "$line2") - \
-    | curl -si -F "content=<-" "http://dpaste.com/api/v2/" \
-    | sed -n 's/^Location: //;T;p' \
+    | pastebin \
     | "$botDir/lib/privmsg" "$channel" "$headerLength"
 fi
