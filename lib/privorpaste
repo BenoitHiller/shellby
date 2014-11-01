@@ -10,7 +10,6 @@ declare -r cacheDir="$bufferDir/cache/pastebin"
 # This caches paste links for 6 days.
 # Expired old pastes are not cleaned up automatically.
 pastebin() {
-  set -x
   if [ ! -d "$cacheDir" ]; then
     mkdir -p "$cacheDir"
   fi
@@ -36,7 +35,6 @@ pastebin() {
     cat $cachedFile
   else
     curl -si -F "content=<$tmpFile" "http://dpaste.com/api/v2/" \
-      | tee /dev/stderr \
       | sed -n 's/^Location: //;T;p' \
       | tee "$cachedFile"
   fi
