@@ -8,7 +8,7 @@ declare -r botDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 export botDir
 source $botDir/config
 
-declare -r bufferDir=$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)
+declare -r bufferDir="$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)"
 export bufferDir
 
 source "$botDir/lib/loadConfig.sh"
