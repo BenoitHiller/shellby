@@ -109,8 +109,14 @@ function managePipes {
 
 }
 
-# put a process that throws out input on the end of the pipeline above and replace it
-# to tack on new commands
+# Watch a directory for added commands or changed commands.
+# 
+# When a command modified, it will be killed and its pipes will be reused by
+# the new process.
+#
+# When new commands are added the "cap" at the end of the old pipeline is
+# removed, the new commands are plumbed with the cap's input and a new cap is
+# placed on the end of the pipeline.
 #
 # 1.dir the directory to watch
 # 2.output the output pipe

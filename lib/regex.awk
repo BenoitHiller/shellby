@@ -25,7 +25,7 @@ $1 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s$/ && length($2) == 1 {
     end = NF - 1
   }
   else if($NF == $2) {
-    # we con't have any flags
+    # we therefore can't have any flags
     end = NF
   }
   else {

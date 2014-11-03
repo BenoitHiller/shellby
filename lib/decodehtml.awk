@@ -1,7 +1,6 @@
 #!/usr/bin/gawk -f
 BEGIN {
 
-  # set the FS for reading in the entity file
   FPAT="[^\r]+"
   botDir = ENVIRON["botDir"]
   entityFile = botDir "/share/htmlentity.lst"
@@ -13,7 +12,7 @@ BEGIN {
 
   close(entityFile)
 
-  # now change the RS and FS for the actual file
+  # change the RS and FS for the actual input processing
   RS="\0"
   FPAT="([^&;]*[&;])|([^&;]*$)"
 }
