@@ -6,7 +6,7 @@ Shellby is an IRC bot built mostly in bash script. This allows you to write hand
 
 > Yeah, yeah, but your [developers] were so preoccupied with whether or not they could that they didn't stop to think if they should.
 >
-> - Dr. Ian Malcolm
+> Dr. Ian Malcolm
 
 # Usage
 
