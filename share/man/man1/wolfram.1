@@ -1,0 +1,16 @@
+.TH WOLFRAM 1
+.SH NAME
+wolfram \- run a query on WolframAlpha
+.SH SYNOPSIS
+.B wolfram
+.IR search_string...
+.SH DESCRIPTION
+The command submits the query as written to the WolframAlpha API then grabs the first "pod" of info from the reply. A pod is what WolframAlpha calls the separated sections results on the site.
+
+The information from the pod is then displayed in the format:
+
+pod_name = info...
+
+Sometimes the first pod is completely useless. This is a consequence of WolframAlpha's API being frighteningly stupid.
+
+No attempt is made to deal with other kinds of replies, like when it asks you "did you mean" on finding no results.

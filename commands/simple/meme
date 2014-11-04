@@ -1,38 +1,17 @@
 #!/bin/bash
 
-source "$botDir/lib/utility.sh"
-
 declare -r channel="$2"
 declare -r message="${6#*meme }"
 declare -r memeFile="$botDir/share/memes"
 
 if [[ ! -e "$memeFile" ]]; then
-  exit 1
+  exit 2
 fi
 
-printUsage() {
-  cat <<EOF
-Summary: Queries a list of "funny" images indexed by one or more keywords. Usage: ./meme [-h] [--help] search_string...
-EOF
-}
+declare -r filteredMemeString="$(tr A-Z a-z <<< "$message" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
 
-parseArgs $message
-
-if [[ "${argMap[h]+_}" ||  "${argMap[help]+_}" ]]; then
-  printUsage | privmsg "$channel" 
-  exit 0
+if [[ -n "$message" ]]; then
+  grep -E -m 1 "(^$filteredMemeString[,:])|(,\s?$filteredMemeString[,:])" "$memeFile" \
+    | sed -E 's/[^:]*:\s?(.*)/\1/' \
+    | privmsg "$channel"
 fi
-
-getMeme() {
-  local memeString="$1"
-  local filteredMemeString
-
-  filteredMemeString="$(tr A-Z a-z <<< "$memeString" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
-
-  if [[ -n "$memeString" ]]; then
-    grep -E -m 1 "(^$filteredMemeString[,:])|(,\s?$filteredMemeString[,:])" "$memeFile" \
-      | sed -E 's/[^:]*:\s?(.*)/\1/'
-  fi
-}
-
-getMeme "$( echo "${vargs[*]}" )" | privmsg "$channel"
