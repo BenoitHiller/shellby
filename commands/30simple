@@ -2,8 +2,6 @@
 
 source "$botDir/lib/utility.sh"
 
-declare grepPid
-
 function parseCommands {
   declare botName="$(cat "$bufferDir/etc/nickname")" 
   grep --line-buffered -iE "^\S+\s+privmsg\s+((#\S+\s+:(($botName\>)|(\./)))|([^#[:space:]]+\s+:))" \
@@ -21,21 +19,6 @@ function parseCommands {
         fi
       fi
     done
-
 }
 
-function reload {
-  killtree $grepPid
-  parseCommands <&0 &
-  grepPid=$!
-}
-
-trap reload SIGHUP
-
-parseCommands <&0 &
-grepPid=$!
-
-while true; do
-  wait $grepPid
-  sleep 1
-done
+startAndWatch parseCommands

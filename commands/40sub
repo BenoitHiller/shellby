@@ -2,7 +2,6 @@
 
 source "$botDir/lib/utility.sh"
 
-declare subPid
 set -f
 
 declare -r subRegex='^\S+\s+privmsg\s+#\S+\s+:([^:[:space:]+]*)(\+[1-9][0-9]*)?:s.*$'
@@ -27,21 +26,4 @@ substitute() {
     done
 }
 
-
-function reload {
-  killtree $subPid
-  substitute <&0 &
-  subPid=$!
-}
-
-trap reload SIGHUP
-
-substitute <&0 &
-subPid=$!
-
-while true; do
-  wait $subPid
-  sleep 1
-done
-
-set +f
+startAndWatch substitute
