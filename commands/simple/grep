@@ -112,6 +112,10 @@ parseTime() {
 
 }
 
+##################
+# Variable Setup #
+##################
+
 declare -a assignableParameters=( m e f A B C t T )
 declare -a passThroughFlags=( c i E P F )
 
