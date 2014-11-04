@@ -79,6 +79,39 @@ formatLogLines() {
   '
 }
 
+# Parses the -t and -T time parameters
+#
+# The output is three space separated values:
+# year month day
+#
+# 1.parameterInput the parameter we are parsing
+# 2.timeParts[0] the default year
+# 2.timeParts[1] the default month
+# 2.timeParts[2] the default day
+parseTime() {
+  local -r parameterInput="$1"
+  shift
+  local -a timeParts=("$@")
+
+  local -a splitParams=( $(IFS="-"; echo $parameterInput) )
+  if [[ "${splitParams[0]}" != "*" ]]; then
+    if [[ "${splitParams[0]}" =~ ^[0-9]{2}$ ]]; then
+      timeParts[0]="20${splitParams[0]}"
+    else
+      timeParts[0]="${splitParams[0]##0}"
+    fi
+  fi
+  if [[ "${splitParams[1]}" != "*" ]]; then
+      timeParts[1]="${splitParams[1]##0}"
+  fi
+  if [[ "${splitParams[2]}" != "*" ]]; then
+      timeParts[2]="${splitParams[2]##0}"
+  fi
+
+  echo "${timeParts[@]}"
+
+}
+
 declare -a assignableParameters=( m e f A B C t T )
 declare -a passThroughFlags=( c i E P F )
 
@@ -95,48 +128,18 @@ if (( "${#vargs[@]}" > 0 )); then
   # Process Time parameters #
   ###########################
 
-  declare -i firstYear=0
-  declare -i firstMonth=0
-  declare -i firstDay=0
-  declare -i lastYear=9999
-  declare -i lastMonth=99
-  declare -i lastDay=99
+  declare -a startTime=(0 0 0)
+  declare -a endTime=(9999 99 99)
 
   declare -r timeRegex="([0-9]{1,4}|\*)-([0-9]{1,2}|\*)-([0-9]{1,2}|\*)"
   
 
   if [[ "${argMap[t]+_}" && "${argMap[t]}" =~ $timeRegex ]]; then
-    declare firstParts=( $(IFS="-"; echo ${argMap[t]}) )
-    if [[ "${firstParts[0]}" != "*" ]]; then
-      if [[ "${firstParts[0]}" =~ ^[0-9]{2}$ ]]; then
-        firstYear="20${firstParts[0]}"
-      else
-        firstYear="${firstParts[0]##0}"
-      fi
-    fi
-    if [[ "${firstParts[1]}" != "*" ]]; then
-        firstMonth="${firstParts[1]##0}"
-    fi
-    if [[ "${firstParts[2]}" != "*" ]]; then
-        firstDay="${firstParts[2]##0}"
-    fi
+    startTime=( $(parseTime "${argMap[t]}" "${startTime[@]}") )
   fi
 
   if [[ "${argMap[T]+_}" && "${argMap[T]}" =~ $timeRegex ]]; then
-    declare lastParts=( $(IFS="-"; echo ${argMap[T]}) )
-    if [[ "${lastParts[0]}" != "*" ]]; then
-      if [[ "${lastParts[0]}" =~ ^[0-9]{2}$ ]]; then
-        lastYear="20${lastParts[0]}"
-      else
-        lastYear="${lastParts[0]##0}"
-      fi
-    fi
-    if [[ "${lastParts[1]}" != "*" ]]; then
-        lastMonth="${lastParts[1]##0}"
-    fi
-    if [[ "${lastParts[2]}" != "*" ]]; then
-        lastDay="${lastParts[2]##0}"
-    fi
+    endTime=( $(parseTime "${argMap[T]}" "${endTime[@]}") )
   fi
 
   ############################
@@ -196,7 +199,7 @@ if (( "${#vargs[@]}" > 0 )); then
   ###################
 
   find "$botDir/logs/$targetChannel" -type f -name '*_message' -print0 \
-    | filterDateRange "$firstYear" "$firstMonth" "$firstDay" "$lastYear" "$lastMonth" "$lastDay" \
+    | filterDateRange "${startTime[@]}" "${endTime[@]}" \
     | sort -rz \
     | xargs -0 tac \
     | grep -vF "$fullMessage" \
