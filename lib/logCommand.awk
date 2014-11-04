@@ -1,4 +1,3 @@
-#!/usr/bin/awk -f
 BEGIN {
   FPAT="(\\s:.*$)|(\\S+)"
   IGNORECASE = 1
