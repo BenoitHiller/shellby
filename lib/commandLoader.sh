@@ -71,7 +71,7 @@ function pipeInput {
   capPipe=$(mktemp -u "$bufferDir/cap.XXXXXXXX")
   mkfifo "$capPipe"
   grep --line-buffered "^" "$input" | tee "${outputs[@]}" "$capPipe" > /dev/null &
-  "$botDir/lib/cap" < "$capPipe" &
+  cap < "$capPipe" &
   capPid=$(pgrep -P $this -x cap)
 }
 

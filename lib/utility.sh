@@ -53,7 +53,7 @@ resplitAndParse() {
   local -a splitArgs=()
   while IFS= read -r -d $'\0' arg; do
     splitArgs[i++]="$arg"
-  done < <(printf "%s " "$@" | sed 's/ $//' | "$botDir/lib/resplit.awk")
+  done < <(printf "%s " "$@" | sed 's/ $//' | resplit.awk)
   parseArgs "${splitArgs[@]}"
 }
 

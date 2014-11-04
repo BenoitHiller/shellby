@@ -14,8 +14,8 @@ EOF
 parseArgs $message
 
 if [[ "${argMap[h]+_}" ||  "${argMap[help]+_}" ]]; then
-  printUsage | "$botDir/lib/privmsg" "$channel" "$(getServerNameLength "$bufferDir")"
+  printUsage | privmsg "$channel" "$(getServerNameLength "$bufferDir")"
   exit 0
 fi
 
-shuf -n 1 "$botDir/share/hugs.irc.final" | sed -E 's/^[0-9]+	//' | tr "" "\n" | "$botDir/lib/privmsg" "$channel" "$(getServerNameLength "$bufferDir")"
+shuf -n 1 "$botDir/share/hugs.irc.final" | sed -E 's/^[0-9]+	//' | tr "" "\n" | privmsg "$channel" "$(getServerNameLength "$bufferDir")"

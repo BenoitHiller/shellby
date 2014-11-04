@@ -46,9 +46,9 @@ read -r line1
 read -r line2
 
 if (( $? != 0 )); then
-  "$botDir/lib/privmsg" "$channel" "$headerLength" <<< "$line1"
+  privmsg "$channel" "$headerLength" <<< "$line1"
 else
   cat <( echo "$line1" ) <(echo "$line2") - \
     | pastebin \
-    | "$botDir/lib/privmsg" "$channel" "$headerLength"
+    | privmsg "$channel" "$headerLength"
 fi

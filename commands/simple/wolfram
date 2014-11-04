@@ -16,10 +16,10 @@ result="$(curl -G -s "http://api.wolframalpha.com/v2/query" --data-urlencode "in
   | grep -oPz "((?<=title=')[^']+)|((?<=<plaintext>)[^<]+)" \
   | sed '1{N;s/\n/ = /}' \
   | tr '\n' ' ' \
-  | "$botDir/lib/decodehtml.awk" )"
+  | decodehtml.awk )"
 
 if [[ -n "$result" ]]; then
-  "$botDir/lib/privmsg" "$channel" "$(getServerNameLength "$bufferDir")" <<< "$result"
+  privmsg "$channel" "$(getServerNameLength "$bufferDir")" <<< "$result"
 else
-  "$botDir/lib/privmsg" "$channel" "$(getServerNameLength "$bufferDir")" <<< "no results"
+  privmsg "$channel" "$(getServerNameLength "$bufferDir")" <<< "no results"
 fi

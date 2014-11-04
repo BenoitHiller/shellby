@@ -6,6 +6,10 @@
 
 declare -r botDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
 export botDir
+
+PATH="$botDir/lib:$PATH"
+export PATH
+
 source $botDir/config
 
 declare -r bufferDir="$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)"

@@ -5,9 +5,79 @@ source "$botDir/lib/utility.sh"
 # WARNING: disabling globbing. This is probably a good idea almost everywhere.
 set -f 
 
+###################
+# Input Arguments #
+###################
+
 declare -r channel="$2"
 declare -r message="${6#*grep }"
 declare -r fullMessage="$6"
+
+####################
+# Helper Functions #
+####################
+
+# Filter log files for those between the specified dates
+#
+# Consumes a list of null separated files from stdin.
+# Outputs the filtered list to stdout.
+# 1.firstYear
+# 2.firstMonth
+# 3.firstDay
+# 4.lastYear
+# 5.lastMonth
+# 6.lastDay
+filterDateRange() {
+  local -r firstYear="$1"
+  local -r firstMonth="$2"
+  local -r firstDay="$3"
+  local -r lastYear="$4"
+  local -r lastMonth="$5"
+  local -r lastDay="$6"
+
+
+  gawk -F "/" '
+    BEGIN {
+      RS = "\0"
+      ORS = "\0"
+    }
+
+    {
+      min = int(sprintf("%d%02d%02d", firstYear, firstMonth, firstDay))
+      max = int(sprintf("%d%02d%02d", lastYear, lastMonth, lastDay))
+      year = int($(NF - 2))
+      month = int(gensub(/^0*/, "", 1, $(NF - 1)))
+      day = int(gensub(/_message|^0*/, "", "g", $NF)) 
+      summed = int(sprintf("%d%02d%02d", year, month, day))
+      if (summed >= min && summed <= max)
+      {
+        print $0
+      }
+    }
+  ' firstYear="$firstYear" firstMonth="$firstMonth" firstDay="$firstDay" \
+    lastYear="$lastYear" lastMonth="$lastMonth" lastDay="$lastDay"
+}
+
+# Formats lines in standard IRC log style
+#
+# Consumes lines of shellby log format from stdin.
+# Outputs formatted lines to stdout.
+formatLogLines() {
+  gawk -F "\r" '
+    /^[0-9]+/{
+      if ($5 ~ "message") {
+        print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", $2 ":", $6
+      }
+      else if ( $5 ~ "action") {
+        print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", "*", $2, $6
+      }
+      else {
+        print $0
+      }
+    }
+    /^[^0-9]/{print $0}
+  '
+}
 
 declare -a assignableParameters=( m e f A B C t T )
 declare -a passThroughFlags=( c i E P F )
@@ -41,14 +111,14 @@ if (( "${#vargs[@]}" > 0 )); then
       if [[ "${firstParts[0]}" =~ ^[0-9]{2}$ ]]; then
         firstYear="20${firstParts[0]}"
       else
-        firstYear="${firstParts[0]##*0}"
+        firstYear="${firstParts[0]##0}"
       fi
     fi
     if [[ "${firstParts[1]}" != "*" ]]; then
-        firstMonth="${firstParts[1]##*0}"
+        firstMonth="${firstParts[1]##0}"
     fi
     if [[ "${firstParts[2]}" != "*" ]]; then
-        firstDay="${firstParts[2]##*0}"
+        firstDay="${firstParts[2]##0}"
     fi
   fi
 
@@ -113,7 +183,7 @@ if (( "${#vargs[@]}" > 0 )); then
   declare -ir fixedMatch="${argMap[F]+1}"
 
   if (( extendedRegex + perlRegex + fixedMatch > 1 )); then
-    echo "conflicting options selected" | "$botDir/lib/privmsg" "$channel"
+    echo "conflicting options selected" | privmsg "$channel"
     exit 0
   fi
 
@@ -126,44 +196,13 @@ if (( "${#vargs[@]}" > 0 )); then
   ###################
 
   find "$botDir/logs/$targetChannel" -type f -name '*_message' -print0 \
-    | awk -F "/" '
-      BEGIN {
-        RS = "\0"
-        ORS = "\0"
-      }
-      {
-        min = int(sprintf("%d%02d%02d", firstYear, firstMonth, firstDay))
-        max = int(sprintf("%d%02d%02d", lastYear, lastMonth, lastDay))
-        year = int($(NF - 2))
-        month = int(gensub(/^0*/, "", 1, $(NF - 1)))
-        day = int(gensub(/_message|^0*/, "", "g", $NF)) 
-        summed = int(sprintf("%d%02d%02d", year, month, day))
-        if (summed >= min && summed <= max)
-        {
-          print $0
-        }
-      }
-    ' firstYear="$firstYear" firstMonth="$firstMonth" firstDay="$firstDay" lastYear="$lastYear" lastMonth="$lastMonth" lastDay="$lastDay"  \
+    | filterDateRange "$firstYear" "$firstMonth" "$firstDay" "$lastYear" "$lastMonth" "$lastDay" \
     | sort -rz \
     | xargs -0 tac \
     | grep -vF "$fullMessage" \
     | grep "${gflags[@]}" -- "$gargs" \
-    | awk -F "\r" '
-        /^[0-9]+/{
-          if ($5 ~ "message") {
-            print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", $2 ":", $6
-          }
-          else if ( $5 ~ "action") {
-            print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", "*", $2, $6
-          }
-          else {
-            print $0
-          }
-        }
-        /^[^0-9]/{print $0}
-      ' \
+    | formatLogLines \
     | head -n 500 \
     | tac \
-    | "$botDir/lib/privorpaste" "$channel" "$(getServerNameLength "$bufferDir")"
+    | privorpaste "$channel" "$(getServerNameLength "$bufferDir")"
 fi
-set +f 

@@ -5,4 +5,4 @@ set -f
 
 declare -r channel="$2"
 
-cat "$botDir/share/botInfo/$channel" | "$botDir/lib/privmsg" "$channel" "$(getServerNameLength "$bufferDir")"
+cat "$botDir/share/botInfo/$channel" | privmsg "$channel" "$(getServerNameLength "$bufferDir")"

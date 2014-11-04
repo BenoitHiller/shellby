@@ -19,7 +19,7 @@ EOF
 parseArgs $message
 
 if [[ "${argMap[h]+_}" ||  "${argMap[help]+_}" ]]; then
-  printUsage | "$botDir/lib/privmsg" "$channel" 
+  printUsage | privmsg "$channel" 
   exit 0
 fi
 
@@ -35,4 +35,4 @@ getMeme() {
   fi
 }
 
-getMeme "$( echo "${vargs[*]}" )" | "$botDir/lib/privmsg" "$channel"
+getMeme "$( echo "${vargs[*]}" )" | privmsg "$channel"

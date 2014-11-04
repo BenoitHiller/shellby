@@ -9,13 +9,15 @@ grep --line-buffered "^" <&0 > /dev/null &
 
 updateUptime() {
   local -ri started="$(stat -c %Z "$bufferDir")"
-  local -ri current="$(date +%s)"
+  if (($?)); then
+    local -ri current="$(date +%s)"
 
-  local -ri elapsed=$((current - started))
-  local -i previous
-  previous=$(cat "$botDir/logs/uptime")
-  if (($?)) || ((previous < elapsed)); then
-    echo "$elapsed" > "$botDir/logs/uptime"
+    local -ri elapsed=$((current - started))
+    local -i previous
+    previous=$(cat "$botDir/logs/uptime")
+    if (($?)) || ((previous < elapsed)); then
+      echo "$elapsed" > "$botDir/logs/uptime"
+    fi
   fi
 }
 

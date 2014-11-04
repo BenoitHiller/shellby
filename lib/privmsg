@@ -12,5 +12,5 @@ fi
 
 declare -r shellbyHostname="$(cat "$bufferDir/etc/nickname")!$(cat "$bufferDir/etc/username")@$(cat "$bufferDir/etc/hostname")"
 
-"$botDir/lib/wrap" "PRIVMSG $channel :" "$headerLength" | tee >( "$botDir/lib/logCommand" "$shellbyHostname" )
+wrap "PRIVMSG $channel :" "$headerLength" | tee >( logCommand "$shellbyHostname" )
 exit $?

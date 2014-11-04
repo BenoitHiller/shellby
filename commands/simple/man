@@ -5,4 +5,4 @@ source "$botDir/lib/utility.sh"
 declare -r channel="$2"
 declare -r message="${6#*man }"
 
-man -M "$botDir/share/man/" "$message" 2>&1 | col -b | "$botDir/lib/privorpaste" "$channel" "$(getServerNameLength "$bufferDir")"
+man -M "$botDir/share/man/" "$message" 2>&1 | col -b | privorpaste "$channel" "$(getServerNameLength "$bufferDir")"
