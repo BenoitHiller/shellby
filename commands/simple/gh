@@ -3,4 +3,9 @@
 declare -r channel="$2"
 declare -r message="${6#*gh }"
 
-shuf -n 1 "$botDir/share/hugs.irc.final" | sed -E 's/^[0-9]+	//' | tr "" "\n" | privmsg "$channel"
+declare -r hugFile="$botDir/share/hugs.irc.final"
+
+
+[[ ! -e "$hugFile" ]] && exit 2
+
+shuf -n 1 "$hugFile"  | sed -E 's/^[0-9]+	//' | tr "" "\n" | privmsg "$channel"

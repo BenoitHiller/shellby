@@ -5,7 +5,7 @@ set -f
 declare -r channel="$2"
 declare -r message="${6#*wolfram }"
 
-declare -r apiKey="$(cat "$botDir/share/wolframKey")"
+declare -r apiKey="$(cat "$botDir/etc/wolframKey")"
 
 [[ -z $apiKey ]] && exit 2;
 

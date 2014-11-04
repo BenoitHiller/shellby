@@ -1,6 +1,9 @@
 rawlog
-share
 logs
 dump.rdb
 etc/password
+etc/wolframKey
+share/botInfo
+share/hugs.irc.final
+share/memes
 *.tar.gz
