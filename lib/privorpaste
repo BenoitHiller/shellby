@@ -45,7 +45,7 @@ read -r line1
 read -r line2
 
 if (( $? != 0 )); then
-  privmsg "$channel" <<< "$line1"
+  privmsg "$channel" "$line1"
 else
   cat <( echo "$line1" ) <(echo "$line2") - \
     | pastebin \

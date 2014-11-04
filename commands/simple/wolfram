@@ -18,7 +18,7 @@ result="$(curl -G -s "http://api.wolframalpha.com/v2/query" --data-urlencode "in
   | decodehtml.awk )"
 
 if [[ -n "$result" ]]; then
-  privmsg "$channel" <<< "$result"
+  privmsg "$channel" "$result"
 else
-  privmsg "$channel" <<< "no results"
+  privmsg "$channel" "no results"
 fi

@@ -3,6 +3,7 @@
 set -f
 
 declare -r channel="$1"
+declare -r message="$2"
 declare -ri headerLength="$(getheaderlength)"
 declare meta
 
@@ -12,5 +13,9 @@ fi
 
 declare -r shellbyHostname="$(cat "$bufferDir/etc/nickname")!$(cat "$bufferDir/etc/username")@$(cat "$bufferDir/etc/hostname")"
 
-wrap "PRIVMSG $channel :" "$headerLength" | tee >( logCommand "$shellbyHostname" )
+if [ -n "$message" ]; then
+  echo "$message" | wrap "PRIVMSG $channel :" "$headerLength" | tee >( logCommand "$shellbyHostname" )
+else
+  wrap "PRIVMSG $channel :" "$headerLength" | tee >( logCommand "$shellbyHostname" )
+fi
 exit $?

@@ -183,7 +183,7 @@ if (( "${#vargs[@]}" > 0 )); then
   declare -ir fixedMatch="${argMap[F]+1}"
 
   if (( extendedRegex + perlRegex + fixedMatch > 1 )); then
-    echo "conflicting options selected" | privmsg "$channel"
+    privmsg "$channel" "conflicting options selected"
     exit 0
   fi
 
