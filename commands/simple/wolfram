@@ -1,6 +1,5 @@
 #!/bin/bash
 
-source "$botDir/lib/utility.sh"
 set -f 
 
 declare -r channel="$2"
@@ -19,7 +18,7 @@ result="$(curl -G -s "http://api.wolframalpha.com/v2/query" --data-urlencode "in
   | decodehtml.awk )"
 
 if [[ -n "$result" ]]; then
-  privmsg "$channel" "$(getServerNameLength "$bufferDir")" <<< "$result"
+  privmsg "$channel" <<< "$result"
 else
-  privmsg "$channel" "$(getServerNameLength "$bufferDir")" <<< "no results"
+  privmsg "$channel" <<< "no results"
 fi

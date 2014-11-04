@@ -3,7 +3,7 @@
 set -f
 
 declare -r channel="$1"
-declare -ri headerLength="$2"
+declare -ri headerLength="$(getheaderlength)"
 declare meta
 
 if [ -z "$channel" ]; then

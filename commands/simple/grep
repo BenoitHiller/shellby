@@ -204,5 +204,5 @@ if (( "${#vargs[@]}" > 0 )); then
     | formatLogLines \
     | head -n 500 \
     | tac \
-    | privorpaste "$channel" "$(getServerNameLength "$bufferDir")"
+    | privorpaste "$channel"
 fi

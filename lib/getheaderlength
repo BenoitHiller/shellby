@@ -1,0 +1,7 @@
+#!/bin/bash
+
+declare -r nickname="$(cat "$bufferDir/etc/nickname")"
+declare -r username="$(cat "$bufferDir/etc/username")"
+declare -r hostname="$(cat "$bufferDir/etc/hostname")"
+
+printf ":%s!%s@%s  " "$nickname" "$username" "$hostname" | wc -c
