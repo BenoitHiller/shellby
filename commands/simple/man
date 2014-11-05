@@ -1,6 +1,0 @@
-#!/bin/bash
-
-declare -r channel="$2"
-declare -r message="${6#*man }"
-
-man -M "$botDir/share/man/" "$message" 2>&1 | col -b | privorpaste "$channel" 

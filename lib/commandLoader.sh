@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "$botDir/lib/utility.sh"
+source "$botLib/utility.sh"
 
 # root names for the command input files
 declare -A pipes

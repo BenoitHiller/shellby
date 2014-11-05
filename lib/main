@@ -7,15 +7,22 @@
 declare -r botDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
 export botDir
 
-PATH="$botDir/lib:$PATH"
+PATH="$botLib:$PATH"
 export PATH
 
-source $botDir/config
+export botConfig
+export botLib
+export botShare
+
+declare -r botLogs="$botConfig/logs"
+export botLogs
+
+source "$botConfig/etc/config"
 
 declare -r bufferDir="$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)"
 export bufferDir
 
-source "$botDir/lib/loadConfig.sh"
+source "$botLib/loadConfig.sh"
 
 ################
 # toggle debug #
@@ -33,7 +40,7 @@ trap "rm -rf $bufferDir; exit 1" SIGINT SIGTERM EXIT
 # load dependencies #
 #####################
 
-source "$botDir/lib/commandLoader.sh"
+source "$botLib/commandLoader.sh"
 
 ###################
 # Test Connection #
@@ -50,7 +57,7 @@ done
 date +%s > "$bufferDir/etc/lastContact"
 
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
-managePipes "$botDir/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
+managePipes "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 
 stdbuf -oL netcat -i 1 $TARGETSERVER $PORT < "$bufferDir/toNetcat" \
   | sed -u 's/$//' \
@@ -62,7 +69,7 @@ echo started
 
 trap reloadAllConfig SIGHUP
 
-watchFiles "$botDir/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
+watchFiles "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 
 wait $pipelinePid 
 

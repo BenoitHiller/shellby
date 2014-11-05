@@ -3,4 +3,4 @@
 declare -r channel="$2"
 
 echo PRIVMSG "$channel" :Available Commands:
-ls -1 "$botDir/commands/simple" |tr "\n" " " | privmsg "$channel"
+ls -1 "$botLib/commands/simple" |tr "\n" " " | privmsg "$channel"

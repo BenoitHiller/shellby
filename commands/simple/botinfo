@@ -1,6 +1,0 @@
-#!/bin/bash
-set -f
-
-declare -r channel="$2"
-
-cat "$botDir/share/botInfo/$channel" | privmsg "$channel"

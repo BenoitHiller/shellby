@@ -9,10 +9,10 @@ function logLine(user,action,message,channel,type) {
   split(user, userParts, "[!@]")
 
   if(length(channel) == 0) {
-    dir=logDir strftime("%Y/%m")
+    dir=logDir "/" strftime("%Y/%m")
   }
   else {
-    dir=logDir channel strftime("/%Y/%m")
+    dir=logDir "/" channel strftime("/%Y/%m")
   }
 
   system("mkdir -p " dir)

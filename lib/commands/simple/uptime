@@ -2,7 +2,7 @@
 declare -r channel="$2"
 
 declare -i previous
-previous="$(cat "$botDir/logs/uptime")"
+previous="$(cat "$botLogs/uptime")"
 if (($?)); then
   previous=0
 fi

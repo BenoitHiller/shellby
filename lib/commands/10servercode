@@ -1,0 +1,12 @@
+#!/bin/bash
+
+trap '' SIGHUP
+
+gawk -v botLib="$botLib" ' 
+/^:?\S+\s+001\s+/ {
+  printf("connect %s\n",$1) | botLib "/commands/events/connected" 
+}
+
+/^:?\S+\s+311\s+/ {
+  system(botLib "/commands/events/whois " $4 " " $5 " " $6)
+}' 

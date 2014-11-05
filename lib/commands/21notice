@@ -1,7 +1,7 @@
 #!/bin/bash
 
-source "$botDir/config"
-password="$(cat "$botDir/etc/password")"
+source "$botConfig/etc/config"
+password="$(cat "$botConfig/etc/password")"
 trap '' SIGHUP
 
 gawk '

@@ -1,9 +1,11 @@
 #!/bin/bash
 
-source $botDir/config
+source "$botConfig/etc/config"
 
 if [ ! -z "$CHANNELS" ] && [ "${#CHANNELS[@]}" -gt 0 ]; then 
   for channel in "${CHANNELS[@]}"; do
     echo "JOIN $channel"
   done
 fi
+
+echo WHOIS $(cat "$bufferDir/etc/nickname") &

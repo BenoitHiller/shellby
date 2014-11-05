@@ -2,7 +2,7 @@
 
 declare -r channel="$2"
 declare -r message="${6#*meme }"
-declare -r memeFile="$botDir/share/memes"
+declare -r memeFile="$botConfig/memes"
 
 if [[ ! -e "$memeFile" ]]; then
   exit 2

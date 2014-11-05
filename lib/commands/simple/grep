@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "$botDir/lib/utility.sh"
+source "$botLib/utility.sh"
 
 # WARNING: disabling globbing. This is probably a good idea almost everywhere.
 set -f 
@@ -202,7 +202,7 @@ if (( "${#vargs[@]}" > 0 )); then
   # Search pipeline #
   ###################
 
-  find "$botDir/logs/$targetChannel" -type f -name '*_message' -print0 \
+  find "$botLogs/$targetChannel" -type f -name '*_message' -print0 \
     | filterDateRange "${startTime[@]}" "${endTime[@]}" \
     | sort -rz \
     | xargs -0 tac \

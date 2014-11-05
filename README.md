@@ -10,9 +10,9 @@ Shellby is an IRC bot built mostly in bash script. This allows you to write hand
 
 # Usage
 
-Edit `config` file with appropriate values then run `bin/shellby`.
+Configure `~/.shellby/etc/config` with appropriate values then run `bin/shellby`.
 
-If you register the account for the bot you can add a `etc/password` file containing just the nickserv password and it will auth itself on join.
+If you register the account for the bot you can add a `~/.shellby/etc/password` file containing just the nickserv password and it will auth itself on join.
 
 ## Dependencies
 

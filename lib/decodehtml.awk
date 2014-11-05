@@ -2,8 +2,8 @@
 BEGIN {
 
   FPAT="[^\r]+"
-  botDir = ENVIRON["botDir"]
-  entityFile = botDir "/share/htmlentity.lst"
+  botShare = ENVIRON["botShare"]
+  entityFile = botShare "/htmlentity.lst"
 
   entities["&NewLine;"]="\n"
   while (getline < entityFile) {

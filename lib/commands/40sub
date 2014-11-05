@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "$botDir/lib/utility.sh"
+source "$botLib/utility.sh"
 
 set -f
 
@@ -17,7 +17,7 @@ substitute() {
         local targetUser="$(sed -E "s/$subRegex/\\1/i" <<< "$line")"
         local targetLine="$(sed -E "s/$subRegex/\\2/i" <<< "$line")"
 
-        sub "${data[0]}" "$botDir/logs/${data[1]}" "$expression" "$targetUser" "$targetLine" \
+        sub "${data[0]}" "$botLogs/${data[1]}" "$expression" "$targetUser" "$targetLine" \
           | sed -E 's/^/=> /' \
           | cut -c-"$maxLength" \
           | tr -d "\a\r\v\n" \

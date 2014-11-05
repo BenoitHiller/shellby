@@ -2,7 +2,7 @@
 
 trap '' SIGHUP
 
-source "$botDir/config"
+source "$botConfig/etc/config"
 
 # consume the input to the command so that the pipe does not fill
 grep --line-buffered "^" <&0 > /dev/null &
@@ -14,9 +14,9 @@ updateUptime() {
 
     local -ri elapsed=$((current - started))
     local -i previous
-    previous=$(cat "$botDir/logs/uptime")
+    previous=$(cat "$botLogs/uptime")
     if (($?)) || ((previous < elapsed)); then
-      echo "$elapsed" > "$botDir/logs/uptime"
+      echo "$elapsed" > "$botLogs/uptime"
     fi
   fi
 }

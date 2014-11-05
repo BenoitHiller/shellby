@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "$botDir/lib/utility.sh"
+source "$botLib/utility.sh"
 
 function parseCommands {
   declare botName="$(cat "$bufferDir/etc/nickname")" 
@@ -12,10 +12,10 @@ function parseCommands {
       local command="${message%%[[:space:]]*}"
       command="${command##./}"
       if [[ ! $command =~ [^a-zA-Z0-9] ]]; then
-        if [ -e "$botDir/commands/simple/$command" ]; then
+        if [ -e "$botLib/commands/simple/$command" ]; then
           # run command with the following params
           # FROMNICK FROMNICK/CHANNEL CMD USERNAME HOSTNAME MESSAGE
-          "$botDir/commands/simple/$command" "${data[@]}" "$message" 
+          "$botLib/commands/simple/$command" "${data[@]}" "$message" 
         fi
       fi
     done

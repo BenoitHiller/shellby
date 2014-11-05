@@ -3,7 +3,7 @@
 declare -r channel="$2"
 declare -r message="${6#*gh }"
 
-declare -r hugFile="$botDir/share/hugs.irc.final"
+declare -r hugFile="$botShare/hugs.irc.final"
 
 
 [[ ! -e "$hugFile" ]] && exit 2
