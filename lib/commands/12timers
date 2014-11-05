@@ -21,6 +21,28 @@ updateUptime() {
   fi
 }
 
+# update the info in the uptimeStats file
+updateUptimeStats() {
+  if [ -f "$botLogs/uptimeStats" ]; then
+    local -r newData="$(gawk '
+      {
+        current = strftime("%s")
+        previousValue = $1
+        first = $2
+        last = $3
+        newValue = (previousValue * (last - first) + (current - last)) / (current - first)
+        printf("%.12g %d %d", newValue, first, current)
+      }
+
+      ' < "$botLogs/uptimeStats")"
+
+    echo "$newData" > "$botLogs/uptimeStats"
+  else
+    local -r date="$(date +%s)"
+    echo "1 $date $date" > "$botLogs/uptimeStats"
+  fi
+}
+
 thirtyLoop() {
   while true; do
     if (( $(date +%s) - $(cat "$bufferDir/etc/lastContact") > 300 )); then
@@ -31,6 +53,7 @@ thirtyLoop() {
     echo PING "$TARGETSERVER"
 
     updateUptime
+    updateUptimeStats
 
     sleep 30
   done

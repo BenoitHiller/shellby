@@ -26,8 +26,19 @@ printDate() {
   printf "%d days, %d hours, %d minutes and %d seconds" $days $hours $minutes $seconds 
 }
 
+# Print the current uptime stats
+printUptimePercent() {
+  if [ -f "$botLogs/uptimeStats" ]; then
+    gawk '
+      {
+        printf("%.7g%% since %s", $1 * 100, strftime("%Y-%m-%d", $2));
+      }
+    ' < "$botLogs/uptimeStats"
+  fi
+}
+
 if ((previous > elapsed)); then
-  printf "current: %s. best: %s." "$(printDate "$elapsed")" "$(printDate "$previous")" | privmsg "$channel"
+  printf "current: %s. best: %s. %s" "$(printDate "$elapsed")" "$(printDate "$previous")" "$(printUptimePercent)" | privmsg "$channel"
 else
-  printDate "$elapsed" | privmsg "$channel"
+  printf "%s. %s" "$(printDate "$elapsed")" "$(printUptimePercent)" | privmsg "$channel"
 fi

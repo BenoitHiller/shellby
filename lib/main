@@ -51,10 +51,28 @@ while ! netcat -z -w 5 $TARGETSERVER $PORT; do
 done
 
 #################
-# start the bot #
+# update uptime #
 #################
 
 date +%s > "$bufferDir/etc/lastContact"
+
+if [ -f "$botLogs/uptimeStats" ]; then
+  gawk '
+    {
+      current = strftime("%s")
+      previousValue = $1
+      first = $2
+      last = $3
+      newValue = (previousValue * (last - first)) / (current - first)
+      printf("%.12g %d %d", newValue, first, current)
+    }
+
+  ' < "$botLogs/uptimeStats" > "$botLogs/uptimeStats"
+fi
+
+#################
+# start the bot #
+#################
 
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 managePipes "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
