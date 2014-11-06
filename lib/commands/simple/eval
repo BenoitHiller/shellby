@@ -32,11 +32,11 @@ if ! verify "$nickname" "$username" "$hostname"; then
   privmsg "$channel" "${replies[$selection]}"
 else
   if [[ "${argMap[r]+_}" ]]; then
-    ( eval "${vargs[@]}" ) &
+    ( eval "${vargs[@]}" 2>&1 ) &
   elif [[ "${argMap[e]+_}" ]]; then 
-    ( eval echo "${vargs[@]}" | privorpaste "$channel" ) &
+    ( eval echo "${vargs[@]}" 2>&1 | privorpaste "$channel" ) &
   else
-    ( eval "${vargs[@]}" | privorpaste "$channel" ) &
+    ( eval "${vargs[@]}" 2>&1 | privorpaste "$channel" ) &
   fi
   declare evalPid="$!"
   for ((i=1; i<60; i++)); do
