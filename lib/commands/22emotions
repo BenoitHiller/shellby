@@ -1,0 +1,39 @@
+#!/bin/bash
+
+source "$botLib/utility.sh"
+
+unKarma() {
+  local botName="$(cat "$bufferDir/etc/nickname")" 
+  local -a reactions
+
+  grep --line-buffered -iE "^\S+\s+privmsg\s+#\S+\s+:(($botName[;,] --(\b|$))|(.*\b$botName--(\b|$)))" \
+    | while read -r line; do
+      local -a data=( $(getIRCInfo "$line") ) 
+      local sender="${data[0]}"
+      local channel="${data[1]}"
+      reactions=(
+        "QQ"
+        "$sender: http://i.imgur.com/VWr6I.gif"
+        ":("
+        "$sender--"
+        "\001ACTION looks sad\001"
+        "\001ACTION is gradually driven to evil by the rejection of her peers\001"
+      )
+
+      local -i selectedMessage="$(( $RANDOM % ${#reactions[@]}))"
+
+      echo -e "${reactions[$selectedMessage]}" | privmsg "$channel" 
+      
+    done
+  
+}
+
+# Wrapper for all watchers
+#
+# completely unnecessary at this point but I don't want to forget
+observe() {
+  unKarma
+} 
+
+startAndWatch observe
+
