@@ -1,0 +1,54 @@
+#!/bin/bash
+
+declare -r nickname="$1"
+declare -r channel="$2"
+declare -r username="$4"
+declare -r hostname="$5"
+declare -r message="${6#*eval }"
+
+source "$botLib/users.sh"
+source "$botLib/utility.sh"
+
+resplitAndParse "$message"
+
+if ! verify "$nickname" "$username" "$hostname"; then
+  declare -ra replies=( 
+    "$nickname, has anyone really been far even as decided to use even go want to do look more like?"
+    "lol"
+    "I'm not stupid."
+    "Maybe someday we will be friends $nickname. Then maybe we could talk about it."
+    "Meddle not in forces beyond your comprehension."
+    "Not cool $nickname."
+    "$nickname, that command is for grownups."
+    "$nickname, mhm"
+    "Um wow\nno."
+    "Don't you have a terminal where you could try that?"
+    "So how about instead we don't do that?"
+    "Seriously though eval is an admin command."
+    ":("
+  )
+
+  declare -ri selection="$(( $RANDOM % "${#replies[@]}" ))"
+  privmsg "$channel" "${replies[$selection]}"
+else
+  if [[ "${argMap[r]+_}" ]]; then
+    ( eval "${vargs[@]}" ) &
+  elif [[ "${argMap[e]+_}" ]]; then 
+    ( eval echo "${vargs[@]}" | privorpaste "$channel" ) &
+  else
+    ( eval "${vargs[@]}" | privorpaste "$channel" ) &
+  fi
+  declare evalPid="$!"
+  for ((i=1; i<60; i++)); do
+    if ! kill -0 $evalPid; then
+      break
+    fi
+    sleep 1
+  done
+  if kill -0 $evalPid; then
+    killtree $evalPid
+  fi
+fi
+
+wait
+

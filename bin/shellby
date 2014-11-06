@@ -58,11 +58,20 @@ startBot() {
 reload() {
   exitp=false
   kill -TERM -$thisPid
-  sleep 30
+  sleep 10
   startBot &
 }
 
 trap "reload" SIGUSR1
+
+replace() {
+  exitp=false
+  kill -TERM -$thisPid
+  wait
+  exec "${BASH_SOURCE[0]}"
+}
+
+trap "replace" SIGUSR2
 
 startBot &
 

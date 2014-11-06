@@ -57,7 +57,7 @@ done
 date +%s > "$bufferDir/etc/lastContact"
 
 if [ -f "$botLogs/uptimeStats" ]; then
-  gawk '
+  declare uptimeStats="$(gawk '
     {
       current = strftime("%s")
       previousValue = $1
@@ -67,7 +67,8 @@ if [ -f "$botLogs/uptimeStats" ]; then
       printf("%.12g %d %d", newValue, first, current)
     }
 
-  ' < "$botLogs/uptimeStats" > "$botLogs/uptimeStats"
+    ' < "$botLogs/uptimeStats")"
+  echo "$uptimeStats" > "$botLogs/uptimeStats"
 fi
 
 #################

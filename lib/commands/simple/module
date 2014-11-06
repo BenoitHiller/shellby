@@ -1,0 +1,44 @@
+#!/bin/bash
+
+declare -r nickname="$1"
+declare -r channel="$2"
+declare -r username="$4"
+declare -r hostname="$5"
+declare -r message="${6#*module }"
+
+source "$botLib/utility.sh"
+source "$botLib/users.sh"
+
+if ! verify "$nickname" "$username" "$hostname"; then
+  notice "$nickname" "You do not have premission to perform that action"
+  exit 0
+fi
+
+reloadModules() {
+  if (( $# > 1 )); then
+    shift
+    printf "%s\n" "$@" >> "$bufferDir/modules/reload"
+  fi
+}
+
+# send the list of running modules to the target
+#
+# 1.target the person to send the modules to
+printModules() {
+  local -r target="$1"
+
+  cat "$bufferDir/modules/list" | tr "\n" " " | privmsg "$target" 
+}
+
+resplitAndParse "$message" 
+
+if (( "${#vargs[@]}" > 0 )); then
+  case "${vargs[0]}" in
+    reload)
+      reloadModules "${vargs[@]}"
+      ;;
+    list)
+      printModules "$channel"
+      ;;
+  esac
+fi

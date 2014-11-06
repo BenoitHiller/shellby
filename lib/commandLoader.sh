@@ -13,6 +13,18 @@ declare this=$$
 declare capPid
 declare capPipe
 
+# print the command name and pid
+#
+# 1.coreFile
+printCommand() {
+  local -r coreFile="$1"
+
+  local -r filePid="$(pgrep -P $this -x "$coreFile")"
+  if [ -n "$filePid" ]; then
+    printf "%s:%d\n" "$coreFile" "$filePid"
+  fi
+}
+
 ######################
 # loading and piping #
 ######################
@@ -126,6 +138,9 @@ function watchFiles {
   local -r output="$2"
   local -r input="$3"
 
+  local -r moduleDir="$bufferDir/modules"
+  mkdir "$moduleDir"
+
   while true; do
     local -a newInputs=()
     sleep 10
@@ -142,8 +157,13 @@ function watchFiles {
       # check to see if we want to reload
       elif ! md5sum -c <<< "$savedChecksum" >/dev/null 2>&1; then
         replacePipe "$coreFile" "$output"
+      elif [ -f "$moduleDir/reload" ] && grep -q -f "$moduleDir/reload" <<< "$coreFile"; then
+        replacePipe "$coreFile" "$output"
       fi
+
     done < <(find -L "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
+
+    rm "$moduleDir/reload" 2>/dev/null
 
     # plumb the array of new input pipes if it isn't empty
     if [ ${#newInputs[@]} -ne 0 ]; then
@@ -155,5 +175,10 @@ function watchFiles {
 
       exec {CAP}>&-
     fi
+
+    for file in "${!md5s[@]}"; do
+      printCommand "$(basename "$file")"
+    done > "$moduleDir/list"
+
   done
 }

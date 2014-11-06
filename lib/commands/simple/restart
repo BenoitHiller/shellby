@@ -1,0 +1,22 @@
+#!/bin/bash
+
+declare -r nickname="$1"
+declare -r channel="$2"
+declare -r username="$4"
+declare -r hostname="$5"
+declare -r message="${6#*restart }"
+
+source "$botLib/users.sh"
+source "$botLib/utility.sh"
+
+resplitAndParse "$message"
+
+if verify "$nickname" "$username" "$hostname"; then
+  if [[ "${argMap[f]+_}" ]]; then
+    kill -USR2 $thisPid
+  else
+    kill -USR1 $thisPid
+  fi
+else
+  notice "$nickname" "You do not have premission to perform that action"
+fi

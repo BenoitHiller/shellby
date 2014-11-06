@@ -15,7 +15,7 @@ function parseCommands {
         if [ -e "$botLib/commands/simple/$command" ]; then
           # run command with the following params
           # FROMNICK FROMNICK/CHANNEL CMD USERNAME HOSTNAME MESSAGE
-          "$botLib/commands/simple/$command" "${data[@]}" "$message" 
+          "$botLib/commands/simple/$command" "${data[@]}" "$message" &
         fi
       fi
     done
