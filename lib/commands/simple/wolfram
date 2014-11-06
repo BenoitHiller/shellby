@@ -2,12 +2,19 @@
 
 set -f 
 
+declare -r nick="$1"
 declare -r channel="$2"
 declare -r message="${6#*wolfram }"
 
 declare -r apiKey="$(cat "$botConfig/etc/wolframKey")"
 
 [[ -z $apiKey ]] && exit 2;
+
+declare -ra errorMessages=(
+  "Wolfram could not make heads or tails of your query. For more info give them a call at 1-800-WOLFRAM and mention this error code: $RANDOM."
+  "So wolfram doesn't seem to be able to solve that one. Wait while I check mycourses to see if anyone else has figured it out."
+  "Sorry $nick the query came back empty."
+)
 
 declare result
 
@@ -20,5 +27,6 @@ result="$(curl -G -s "http://api.wolframalpha.com/v2/query" --data-urlencode "in
 if [[ -n "$result" ]]; then
   privmsg "$channel" "$result"
 else
-  privmsg "$channel" "no results"
+  declare -ri selectedMessage="$(( $RANDOM % ${#errorMessages[@]} ))"
+  privmsg "$channel" "${errorMessages[$selectedMessage]}"
 fi

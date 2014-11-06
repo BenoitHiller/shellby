@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -f
+
 declare -r nickname="$1"
 declare -r channel="$2"
 declare -r username="$4"
@@ -10,7 +12,7 @@ source "$botLib/utility.sh"
 source "$botLib/users.sh"
 
 if ! verify "$nickname" "$username" "$hostname"; then
-  notice "$nickname" "You do not have premission to perform that action"
+  notice "$nickname" "What do you think you are trying to do?"
   exit 0
 fi
 

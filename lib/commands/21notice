@@ -2,6 +2,7 @@
 
 source "$botConfig/etc/config"
 password="$(cat "$botConfig/etc/password")"
+export password
 trap '' SIGHUP
 
 gawk '
@@ -13,5 +14,5 @@ gawk '
 }
 
 /^:?NickServ!NickServ@services\.\s+NOTICE\s+\S+\s+:This nickname is registered./{
-  print "NS identify " password
-}' user=$USER nick=$NICK realname="$REALNAME" hostname=$HOSTNAME servername=$SERVERNAME password="$password"
+  print "NS identify " ENVIRON["password"]
+}' user=$USER nick=$NICK realname="$REALNAME" hostname=$HOSTNAME servername=$SERVERNAME

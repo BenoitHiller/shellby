@@ -98,7 +98,7 @@ parseArgs() {
             argMap["$previous"]=
           fi
 
-          if (( "${#arg}" == 2 )); then
+          if (( ${#arg} == 2 )); then
             local char="${arg:1:1}"
             if [[ -n "${parameterSet[@]}" ]] && [[ "${parameterSet[$char]+_}" ]]; then
               previous="$char"

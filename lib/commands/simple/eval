@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -f
+
 declare -r nickname="$1"
 declare -r channel="$2"
 declare -r username="$4"
@@ -15,20 +17,19 @@ if ! verify "$nickname" "$username" "$hostname"; then
   declare -ra replies=( 
     "$nickname, has anyone really been far even as decided to use even go want to do look more like?"
     "lol"
-    "I'm not stupid."
     "Maybe someday we will be friends $nickname. Then maybe we could talk about it."
     "Meddle not in forces beyond your comprehension."
     "Not cool $nickname."
     "$nickname, that command is for grownups."
     "$nickname, mhm"
     "Um wow\nno."
-    "Don't you have a terminal where you could try that?"
+    "Don't you have a terminal to try that in?"
     "So how about instead we don't do that?"
     "Seriously though eval is an admin command."
     ":("
   )
 
-  declare -ri selection="$(( $RANDOM % "${#replies[@]}" ))"
+  declare -ri selection="$(( $RANDOM % ${#replies[@]} ))"
   privmsg "$channel" "${replies[$selection]}"
 else
   if [[ "${argMap[r]+_}" ]]; then

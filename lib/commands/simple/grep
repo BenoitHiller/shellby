@@ -126,7 +126,7 @@ declare -i i=0
 
 resplitAndParse "$message"
 
-if (( "${#vargs[@]}" > 0 )); then
+if (( ${#vargs[@]} > 0 )); then
 
   ###########################
   # Process Time parameters #
@@ -190,7 +190,7 @@ if (( "${#vargs[@]}" > 0 )); then
   declare -ir fixedMatch="${argMap[F]+1}"
 
   if (( extendedRegex + perlRegex + fixedMatch > 1 )); then
-    privmsg "$channel" "conflicting options selected"
+    privmsg "$channel" "Um, that is more than one regex engine at once. Want to try again?"
     exit 0
   fi
 
