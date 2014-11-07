@@ -33,7 +33,7 @@ printCommand() {
 #
 # 1.file the file to reload
 # 2.output the output pipe
-function replacePipe {
+replacePipe() {
   local -r file="$1"
   local -r output="$2"
 
@@ -54,7 +54,7 @@ function replacePipe {
 #
 # 1.coreFile the file to start
 # 2.output the output pipe for the command
-function startCommand {
+startCommand() {
   local -r coreFile="$1"
   local -r output="$2"
 
@@ -76,7 +76,7 @@ function startCommand {
 #
 # 1.input the input pipe
 # @:2.outputs the output pipes
-function pipeInput {
+pipeInput() {
   local -r input="$1"
   local -ra outputs=( "${@:2}" )
 
@@ -92,7 +92,7 @@ function pipeInput {
 ######################
 
 # function to send SIGHUP to each running command
-function reloadAllConfig {
+reloadAllConfig() {
   for file in "${!md5s[@]}"; do
     local commandName="$(basename "$file")"
     local pid=$(pgrep -P $this -x "$commandName")
@@ -107,7 +107,7 @@ function reloadAllConfig {
 # 1.dir the directory containing the commands
 # 2.output the output pipe
 # 3.input the input pipe
-function managePipes {
+managePipes() {
   local -r dir="$1"
   local -r output="$2"
   local -r input="$3"
@@ -133,7 +133,7 @@ function managePipes {
 # 1.dir the directory to watch
 # 2.output the output pipe
 # 3.input the input pipe
-function watchFiles {
+watchFiles() {
   local -r dir="$1"
   local -r output="$2"
   local -r input="$3"
