@@ -30,7 +30,25 @@ checkKnowYourMeme() {
   local -r sortType="${sortTypes[$(( $RANDOM % 2))]}"
 
   curl -s -G --data "context=images&sort=$sortType" --data-urlencode "q=$query" http://knowyourmeme.com/search/ \
-    | sed -nE "/<div class='item/{N;g;N;s/.*\ssrc=\"(\S+)\".*/\1/;s/masonry/newsfeed/;p;q}"
+    | sed -nE "
+      /<div class='item/{
+        # grab just the line two after the match
+        N;g;N
+
+        # extract the src url
+        s/.*\ssrc=\"(\S+)\".*/\1/
+
+        # if the link is a NSFW cover, move on to the next match
+        /image-covers/{
+          d
+        }
+
+        # otherwise replace the thumbnail with the full image
+        s/masonry/newsfeed/
+
+        # output and exit
+        p;q
+      }"
 }
 
 declare -r filteredMemeString="$(tr A-Z a-z <<< "$message" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
