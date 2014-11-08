@@ -2,20 +2,6 @@
 
 set -f
 
-declare -r nickname="$1"
-declare -r channel="$2"
-declare -r username="$4"
-declare -r hostname="$5"
-declare -r message="${6#*module }"
-
-source "$botLib/utility.sh"
-source "$botLib/users.sh"
-
-if ! verify "$nickname" "$username" "$hostname"; then
-  notice "$nickname" "What do you think you are trying to do?"
-  exit 0
-fi
-
 reloadModules() {
   if (( $# > 1 )); then
     shift
@@ -32,15 +18,33 @@ printModules() {
   cat "$bufferDir/modules/list" | tr "\n" " " | privmsg "$target" 
 }
 
-resplitAndParse "$message" 
+main() {
+  local -r nickname="$1"
+  local -r channel="$2"
+  local -r username="$4"
+  local -r hostname="$5"
+  local -r message="${6#*module }"
 
-if (( "${#vargs[@]}" > 0 )); then
-  case "${vargs[0]}" in
-    reload)
-      reloadModules "${vargs[@]}"
-      ;;
-    list)
-      printModules "$channel"
-      ;;
-  esac
-fi
+  source "$botLib/utility.sh"
+  source "$botLib/users.sh"
+
+  if ! verify "$nickname" "$username" "$hostname"; then
+    notice "$nickname" "What do you think you are trying to do?"
+    exit 0
+  fi
+
+  resplitAndParse "$message" 
+
+  if (( "${#vargs[@]}" > 0 )); then
+    case "${vargs[0]}" in
+      reload)
+        reloadModules "${vargs[@]}"
+        ;;
+      list)
+        printModules "$channel"
+        ;;
+    esac
+  fi
+}
+
+main "$@"

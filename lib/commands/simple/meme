@@ -1,9 +1,5 @@
 #!/bin/bash
-
-declare -r channel="$2"
-declare message="${6#*meme}"
-message="$(sed -E 's/\s+$//' <<< "$message")"
-declare -r memeFile="$botConfig/memes"
+set -f
 
 # Checks the local meme file for a query
 #
@@ -51,19 +47,32 @@ checkKnowYourMeme() {
       }"
 }
 
-declare -r filteredMemeString="$(tr A-Z a-z <<< "$message" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
+main() {
+  shopt -s extglob
 
-if [[ -n "$message" ]]; then
-  declare result="$( checkMemeFile "$message" )"
-  if [[ -z "$result" ]]; then
-    result="$( checkKnowYourMeme "$message" )"
-  fi 
+  local -r channel="$2"
+  local -r message="${6#*meme*( )}"
+  local -r memeFile="$botConfig/memes"
+
+  local -r filteredMemeString="$(tr A-Z a-z <<< "$message" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
+
+  if [[ -n "$message" ]]; then
+    local result="$( checkMemeFile "$message" )"
+
+    if [[ -z "$result" ]]; then
+      result="$( checkKnowYourMeme "$message" )"
+    fi 
+
     echo "$result" | privmsg "$channel"
-else
-  if [[ ! -e "$memeFile" ]]; then
-    exit 2
+  else
+    if [[ ! -e "$memeFile" ]]; then
+      exit 2
+    fi
+
+    shuf -n 1 "$memeFile" \
+      | sed -E 's/[^:]*:\s?(.*)/\1/' \
+      | privmsg "$channel"
   fi
-  shuf -n 1 "$memeFile" \
-    | sed -E 's/[^:]*:\s?(.*)/\1/' \
-    | privmsg "$channel"
-fi
+}
+
+main "$@"

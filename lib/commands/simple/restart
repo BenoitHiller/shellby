@@ -2,23 +2,27 @@
 
 set -f
 
-declare -r nickname="$1"
-declare -r channel="$2"
-declare -r username="$4"
-declare -r hostname="$5"
-declare -r message="${6#*restart }"
+main() {
+  local -r nickname="$1"
+  local -r channel="$2"
+  local -r username="$4"
+  local -r hostname="$5"
+  local -r message="${6#*restart }"
 
-source "$botLib/users.sh"
-source "$botLib/utility.sh"
+  source "$botLib/users.sh"
+  source "$botLib/utility.sh"
 
-resplitAndParse "$message"
+  resplitAndParse "$message"
 
-if verify "$nickname" "$username" "$hostname"; then
-  if [[ "${argMap[f]+_}" ]]; then
-    kill -USR2 $thisPid
+  if verify "$nickname" "$username" "$hostname"; then
+    if [[ "${argMap[f]+_}" ]]; then
+      kill -USR2 $thisPid
+    else
+      kill -USR1 $thisPid
+    fi
   else
-    kill -USR1 $thisPid
+    notice "$nickname" "I don't really like being bossed around. Try ./please"
   fi
-else
-  notice "$nickname" "I don't really like being bossed around. Try ./please"
-fi
+}
+
+main "$@"

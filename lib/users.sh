@@ -5,13 +5,13 @@
 # 3.hostname
 # 4.nickserv
 verify() {
-  local nick="$1"
-  local user="$2"
-  local host="$3"
-  local serv="$4"
+  local nickname="$1"
+  local username="$2"
+  local hostname="$3"
+  local nickserv="$4"
 
   if [[ -f "$botConfig/etc/admins" ]]; then
-    grep -q -i -f "$botConfig/etc/admins" <<< "$serv!$nick!$user@$host"
+    grep -q -i -f "$botConfig/etc/admins" <<< "$nickserv!$nickname!$username@$hostname"
     return $?
   else
     return 1

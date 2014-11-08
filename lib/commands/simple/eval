@@ -2,19 +2,13 @@
 
 set -f
 
-declare -r nickname="$1"
-declare -r channel="$2"
-declare -r username="$4"
-declare -r hostname="$5"
-declare -r message="${6#*eval }"
+# generate an error message for invalid permissions
+#
+# 1.nickname the nick of the triggering user
+invalidPermissionsMessage() {
+  local -r nickname="$1"
 
-source "$botLib/users.sh"
-source "$botLib/utility.sh"
-
-resplitAndParse "$message"
-
-if ! verify "$nickname" "$username" "$hostname"; then
-  declare -ra replies=( 
+  local -ra replies=( 
     "$nickname, has anyone really been far even as decided to use even go want to do look more like?"
     "lol"
     "Maybe someday we will be friends $nickname. Then maybe we could talk about it."
@@ -29,27 +23,49 @@ if ! verify "$nickname" "$username" "$hostname"; then
     ":("
   )
 
-  declare -ri selection="$(( $RANDOM % ${#replies[@]} ))"
-  echo -e "${replies[$selection]}" | privmsg "$channel" 
-else
-  if [[ "${argMap[r]+_}" ]]; then
+  local -ri selection="$(( $RANDOM % ${#replies[@]} ))"
+  echo -e "${replies[$selection]}" 
+}
+
+main() {
+
+  local -r nickname="$1"
+  local -r channel="$2"
+  local -r username="$4"
+  local -r hostname="$5"
+  local -r message="${6#*eval }"
+
+  source "$botLib/users.sh"
+  source "$botLib/utility.sh"
+
+  resplitAndParse "$message"
+
+  if ! verify "$nickname" "$username" "$hostname"; then
+    invalidPermissionsMessage "$nickname" | privmsg "$channel" 
+    exit 0
+
+  elif [[ "${argMap[r]+_}" ]]; then
     ( eval "${vargs[@]}" 2>&1 ) &
   elif [[ "${argMap[e]+_}" ]]; then 
     ( eval echo "${vargs[@]}" 2>&1 | privorpaste "$channel" ) &
   else
     ( eval "${vargs[@]}" 2>&1 | privorpaste "$channel" ) &
   fi
-  declare evalPid="$!"
+  local evalPid="$!"
+
   for ((i=1; i<60; i++)); do
     if ! kill -0 $evalPid; then
       break
     fi
     sleep 1
   done
+
   if kill -0 $evalPid; then
     killtree $evalPid
   fi
-fi
 
-wait
+  wait
 
+}
+
+main "$@"
