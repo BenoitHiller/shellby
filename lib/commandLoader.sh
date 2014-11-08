@@ -20,7 +20,7 @@ printCommand() {
   local -r coreFile="$1"
 
   local -r filePid="$(pgrep -P $this -x "$coreFile")"
-  if [ -n "$filePid" ]; then
+  if [[ -n "$filePid" ]]; then
     printf "%s:%d\n" "$coreFile" "$filePid"
   fi
 }
@@ -96,7 +96,7 @@ reloadAllConfig() {
   for file in "${!md5s[@]}"; do
     local commandName="$(basename "$file")"
     local pid=$(pgrep -P $this -x "$commandName")
-    if [ -n "$pid" ]; then
+    if [[ -n "$pid" ]]; then
       kill -HUP $pid
     fi
   done
@@ -149,7 +149,7 @@ watchFiles() {
       local savedChecksum="${md5s[$coreFile]}"
 
       # no checksum. Start a new command
-      if [ -z "$savedChecksum" ]; then
+      if [[ -z "$savedChecksum" ]]; then
         startCommand "$coreFile" "$output"
         # add the new input pipe to an array to be plumbed at the end of the loop
         newInputs+=("$bufferDir/${pipes[$coreFile]}.i")
@@ -157,7 +157,7 @@ watchFiles() {
       # check to see if we want to reload
       elif ! md5sum -c <<< "$savedChecksum" >/dev/null 2>&1; then
         replacePipe "$coreFile" "$output"
-      elif [ -f "$moduleDir/reload" ] && grep -q -f "$moduleDir/reload" <<< "$coreFile"; then
+      elif [[ -f "$moduleDir/reload" ]] && grep -q -f "$moduleDir/reload" <<< "$coreFile"; then
         replacePipe "$coreFile" "$output"
       fi
 
@@ -166,7 +166,7 @@ watchFiles() {
     rm "$moduleDir/reload" 2>/dev/null
 
     # plumb the array of new input pipes if it isn't empty
-    if [ ${#newInputs[@]} -ne 0 ]; then
+    if [[ ${#newInputs[@]} -ne 0 ]]; then
       local oldPipe="$capPipe"
       exec {CAP}< "$oldPipe"
 
