@@ -30,7 +30,7 @@ checkKnowYourMeme() {
   local -r sortType="${sortTypes[$(( $RANDOM % 2))]}"
 
   curl -s -G --data "context=images&sort=$sortType" --data-urlencode "q=$query" http://knowyourmeme.com/search/ \
-    | sed -nE "/<div class='item'>/{N;g;N;s/.*\ssrc=\"(\S+)\".*/\1/;s/masonry/newsfeed/;p;q}"
+    | sed -nE "/<div class='item/{N;g;N;s/.*\ssrc=\"(\S+)\".*/\1/;s/masonry/newsfeed/;p;q}"
 }
 
 declare -r filteredMemeString="$(tr A-Z a-z <<< "$message" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
