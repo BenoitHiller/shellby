@@ -20,7 +20,7 @@ killtree() {
   local joinedPids=$(sed -E 's/\s+/,/g' <<< $@)
 
   local -ra children=( $(pgrep -P "$joinedPids") )
-  if [ ${#children[@]} -ne 0 ]; then
+  if [[ ${#children[@]} != 0 ]]; then
     killtree ${children[@]}
   fi
   kill -TERM $@
@@ -37,7 +37,7 @@ getMessageNoNick() {
   local -r nick="$2"
 
   local nickPattern
-  if [ -n "$nick" ]; then
+  if [[ -n "$nick" ]]; then
     nickPattern="$nick\W?\s*"
   fi
 
@@ -184,7 +184,7 @@ getIRCInfo() {
 
   local -a infoArray=( $( sed -E 's/^:?([^!]+)!([^@]+)@(\S+)\s+(\S+)\s+(\S+)\s+.*/\1 \5 \4 \2 \3/' <<< "$inputString" ) )
 
-  if [ "${#infoArray[@]}" -ne 5 ]; then
+  if [[ "${#infoArray[@]}" != 5 ]]; then
     return 1
   fi
 
@@ -205,7 +205,7 @@ declare watchedFunctionPid
 #
 # Only call this from startAndWatch.
 startFunction() {
-  if [ -n "$watchedFunctionPid" ]; then
+  if [[ -n "$watchedFunctionPid" ]]; then
     killtree "$watchedFunctionPid"
     wait "$watchedFunctionPid"
   fi
@@ -229,7 +229,7 @@ startAndWatch() {
   trap startFunction SIGHUP 
 
   while true; do
-    if [ -n "$watchedFunctionPid" ]; then
+    if [[ -n "$watchedFunctionPid" ]]; then
       wait $watchedFunctionPid
     fi
     sleep 1

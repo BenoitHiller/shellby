@@ -10,7 +10,7 @@ verify() {
   local host="$3"
   local serv="$4"
 
-  if [ -f "$botConfig/etc/admins" ]; then
+  if [[ -f "$botConfig/etc/admins" ]]; then
     grep -q -i -f "$botConfig/etc/admins" <<< "$serv!$nick!$user@$host"
     return $?
   else

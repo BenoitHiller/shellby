@@ -13,7 +13,7 @@ updateUptime() {
     local -ri current="$(date +%s)"
 
     local -ri elapsed=$((current - started))
-    if [ ! -f "$botLogs/uptime" ]; then
+    if [[ ! -f "$botLogs/uptime" ]]; then
       echo "$elapsed" > "$botLogs/uptime"
     else
       local -ri previous=$(cat "$botLogs/uptime")
@@ -26,7 +26,7 @@ updateUptime() {
 
 # update the info in the uptimeStats file
 updateUptimeStats() {
-  if [ -f "$botLogs/uptimeStats" ]; then
+  if [[ -f "$botLogs/uptimeStats" ]]; then
     local -r newData="$(gawk '
       {
         current = strftime("%s")

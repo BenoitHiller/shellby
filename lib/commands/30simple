@@ -12,7 +12,7 @@ parseCommands() {
       local command="${message%%[[:space:]]*}"
       command="${command##./}"
       if [[ ! $command =~ [^a-zA-Z0-9] ]]; then
-        if [ -e "$botLib/commands/simple/$command" ]; then
+        if [[ -e "$botLib/commands/simple/$command" ]]; then
           # run command with the following params
           # FROMNICK FROMNICK/CHANNEL CMD USERNAME HOSTNAME MESSAGE
           "$botLib/commands/simple/$command" "${data[@]}" "$message" &

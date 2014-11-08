@@ -11,7 +11,7 @@ substitute() {
   grep --line-buffered -iE "$subRegex" \
     | while read -r line; do
       expression="$(cut -d : -f 3- <<< "$line" | regex.awk)"
-      if [ -n "$expression" ]; then
+      if [[ -n "$expression" ]]; then
 
         local -a data=( $(getIRCInfo "$line") ) 
         local targetUser="$(sed -E "s/$subRegex/\\1/i" <<< "$line")"

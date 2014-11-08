@@ -7,13 +7,13 @@ declare -r message="$2"
 declare -ri headerLength="$(getheaderlength)"
 declare meta
 
-if [ -z "$channel" ]; then
+if [[ -z "$channel" ]]; then
   exit 1;
 fi
 
 declare -r shellbyHostname="$(cat "$bufferDir/etc/nickname")!$(cat "$bufferDir/etc/username")@$(cat "$bufferDir/etc/hostname")"
 
-if [ -n "$message" ]; then
+if [[ -n "$message" ]]; then
   echo "$message" | wrap "NOTICE $channel :" "$headerLength" | tee >( logCommand "$shellbyHostname" )
 else
   wrap "NOTICE $channel :" "$headerLength" | tee >( logCommand "$shellbyHostname" )

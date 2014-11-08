@@ -4,7 +4,7 @@ declare -r meta="$1"
 declare -ri headerLength="$2"
 declare -i length
 
-if [ -z "$meta" ]; then
+if [[ -z "$meta" ]]; then
   exit 1;
 fi
 

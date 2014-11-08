@@ -28,7 +28,7 @@ printDate() {
 
 # Print the current uptime stats
 printUptimePercent() {
-  if [ -f "$botLogs/uptimeStats" ]; then
+  if [[ -f "$botLogs/uptimeStats" ]]; then
     gawk '
       {
         printf("%.7g%% since %s", $1 * 100, strftime("%Y-%m-%d", $2));

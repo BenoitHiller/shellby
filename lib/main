@@ -56,7 +56,7 @@ done
 
 date +%s > "$bufferDir/etc/lastContact"
 
-if [ -f "$botLogs/uptimeStats" ]; then
+if [[ -f "$botLogs/uptimeStats" ]]; then
   declare uptimeStats="$(gawk '
     {
       current = strftime("%s")

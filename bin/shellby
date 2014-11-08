@@ -25,7 +25,7 @@ trap "handleTerm" SIGTERM
 # check for config #
 ####################
 
-if [ ! -d "$HOME/.shellby" ]; then
+if [[ ! -d "$HOME/.shellby" ]]; then
   mkdir "$HOME/.shellby"
   mkdir "$HOME/.shellby/etc"
 fi
