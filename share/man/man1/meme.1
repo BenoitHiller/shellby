@@ -3,8 +3,12 @@
 meme \- post meme images by name
 .SH SYNOPSIS
 .B meme
-.IR search_string...
+[search_string...]
 .SH DESCRIPTION
 Checks in a file for the provided string. If the string is listed as a matcher for a meme that meme will be sent to channel. Thus each meme can have multiple strings that match.
 
-The memes are taken from the ~/.shellby/memes file.
+If no matches are found in the file it will attempt to grab a result from knowyourmeme.com.
+
+If you do not specify a search string it will try to grab a random meme from the file.
+
+The memes file is located at ~/.shellby/memes.

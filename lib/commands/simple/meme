@@ -1,17 +1,51 @@
 #!/bin/bash
 
 declare -r channel="$2"
-declare -r message="${6#*meme }"
+declare message="${6#*meme}"
+message="$(sed -E 's/\s+$//' <<< "$message")"
 declare -r memeFile="$botConfig/memes"
 
-if [[ ! -e "$memeFile" ]]; then
-  exit 2
-fi
+# Checks the local meme file for a query
+#
+# 1.query the query string
+checkMemeFile() {
+  local -r query="$1"
+  if [[ ! -e "$memeFile" ]]; then
+    return 2
+  fi
+
+  grep -E -m 1 "(^$filteredMemeString[,:])|(,\s?$filteredMemeString[,:])" "$memeFile" \
+    | sed -E 's/[^:]*:\s?(.*)/\1/'
+}
+
+# Gets the first image result on knowyourmeme.com
+#
+# Chooses randomly whether to sort by views or relevance.
+# Neither option is right consistently enough.
+#
+# 1.query the query string
+checkKnowYourMeme() {
+  local -r query="$1"
+  local -ar sortTypes=( views relevance ) 
+  local -r sortType="${sortTypes[$(( $RANDOM % 2))]}"
+
+  curl -s -G --data "context=images&sort=$sortType" --data-urlencode "q=$query" http://knowyourmeme.com/search/ \
+    | sed -nE "/<div class='item'>/{N;g;N;s/.*\ssrc=\"(\S+)\".*/\1/;s/masonry/newsfeed/;p;q}"
+}
 
 declare -r filteredMemeString="$(tr A-Z a-z <<< "$message" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
 
 if [[ -n "$message" ]]; then
-  grep -E -m 1 "(^$filteredMemeString[,:])|(,\s?$filteredMemeString[,:])" "$memeFile" \
+  declare result="$( checkMemeFile "$message" )"
+  if [[ -z "$result" ]]; then
+    result="$( checkKnowYourMeme "$message" )"
+  fi 
+    echo "$result" | privmsg "$channel"
+else
+  if [[ ! -e "$memeFile" ]]; then
+    exit 2
+  fi
+  shuf -n 1 "$memeFile" \
     | sed -E 's/[^:]*:\s?(.*)/\1/' \
     | privmsg "$channel"
 fi
