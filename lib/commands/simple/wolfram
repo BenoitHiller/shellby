@@ -2,31 +2,36 @@
 
 set -f 
 
-declare -r nick="$1"
-declare -r channel="$2"
-declare -r message="${6#*wolfram }"
+main() {
 
-declare -r apiKey="$(cat "$botConfig/etc/wolframKey")"
+  local -r nick="$1"
+  local -r channel="$2"
+  local -r message="${6#*wolfram }"
 
-[[ -z $apiKey ]] && exit 2;
+  local -r apiKey="$(cat "$botConfig/etc/wolframKey")"
 
-declare -ra errorMessages=(
-  "Wolfram could not make heads or tails of your query. For more info give them a call at 1-800-WOLFRAM and mention this error code: $RANDOM."
-  "So wolfram doesn't seem to be able to solve that one. Wait while I check mycourses to see if anyone else has figured it out."
-  "Sorry $nick the query came back empty."
-)
+  [[ -z $apiKey ]] && exit 2;
 
-declare result
+  local -ra errorMessages=(
+    "Wolfram could not make heads or tails of your query. For more info give them a call at 1-800-WOLFRAM and mention this error code: $RANDOM."
+    "So wolfram doesn't seem to be able to solve that one. Wait while I check mycourses to see if anyone else has figured it out."
+    "Sorry $nick the query came back empty."
+  )
 
-result="$(curl -G -s "http://api.wolframalpha.com/v2/query" --data-urlencode "input=$message" --data "appid=$apiKey&format=plaintext&podindex=2" \
-  | grep -oPz "((?<=title=')[^']+)|((?<=<plaintext>)[^<]+)" \
-  | sed '1{N;s/\n/ = /}' \
-  | tr '\n' ' ' \
-  | decodehtml.awk )"
+  local result
 
-if [[ -n "$result" ]]; then
-  privmsg "$channel" "$result"
-else
-  declare -ri selectedMessage="$(( $RANDOM % ${#errorMessages[@]} ))"
-  privmsg "$channel" "${errorMessages[$selectedMessage]}"
-fi
+  result="$(curl -G -s "http://api.wolframalpha.com/v2/query" --data-urlencode "input=$message" --data "appid=$apiKey&format=plaintext&podindex=2" \
+    | grep -oPz "((?<=title=')[^']+)|((?<=<plaintext>)[^<]+)" \
+    | sed '1{N;s/\n/ = /}' \
+    | tr '\n' ' ' \
+    | decodehtml.awk )"
+
+  if [[ -n "$result" ]]; then
+    privmsg "$channel" "$result"
+  else
+    local -ri selectedMessage="$(( $RANDOM % ${#errorMessages[@]} ))"
+    privmsg "$channel" "${errorMessages[$selectedMessage]}"
+  fi
+}
+
+main "$@"

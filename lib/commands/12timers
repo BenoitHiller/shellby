@@ -1,12 +1,5 @@
 #!/bin/bash
 
-trap '' SIGHUP
-
-source "$botConfig/etc/config"
-
-# consume the input to the command so that the pipe does not fill
-grep --line-buffered "^" <&0 > /dev/null &
-
 updateUptime() {
   local -ri started="$(stat -c %Z "$bufferDir")"
   if (($? == 0)); then
@@ -76,8 +69,19 @@ oneHourLoop() {
   done
 }
 
-thirtyLoop &
-oneTwentyLoop &
-oneHourLoop &
+main() {
+  trap '' SIGHUP
 
-wait
+  source "$botConfig/etc/config"
+
+  # consume the input to the command so that the pipe does not fill
+  grep --line-buffered "^" <&0 > /dev/null &
+
+  thirtyLoop &
+  oneTwentyLoop &
+  oneHourLoop &
+
+  wait
+}
+
+main "$@"

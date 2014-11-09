@@ -14,8 +14,12 @@ fi
 declare -r shellbyHostname="$(cat "$bufferDir/etc/nickname")!$(cat "$bufferDir/etc/username")@$(cat "$bufferDir/etc/hostname")"
 
 if [[ -n "$message" ]]; then
-  printf "%s\n" "$message" | wrap "PRIVMSG $channel :" "$headerLength" | tee >( logCommand "$shellbyHostname" )
+  printf "%s\n" "$message" \
+    | wrap "PRIVMSG $channel :" "$headerLength" \
+    | tee >( logCommand "$shellbyHostname" )
 else
-  wrap "PRIVMSG $channel :" "$headerLength" | tee >( logCommand "$shellbyHostname" )
+  wrap "PRIVMSG $channel :" "$headerLength" \
+    | tee >( logCommand "$shellbyHostname" )
 fi
 exit $?
+

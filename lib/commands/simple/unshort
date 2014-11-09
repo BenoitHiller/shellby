@@ -6,21 +6,6 @@ set -f
 
 source "$botLib/utility.sh"
 
-#############
-# Arguments #
-#############
-
-declare -r channel="$2"
-declare -r message="${6#*unshort}"
-
-declare -r apiKey="$(cat "$botConfig/etc/unshortenKey")"
-
-[[ -z $apiKey ]] && exit 2;
-
-####################
-# Helper Functions #
-####################
-
 # Search today's logs for the most recent url
 #
 # stdout: the text of the last shared link
@@ -35,32 +20,47 @@ getLastUrl() {
   tac "$logFile" | awk -F "\r" '{print $6}' | grep -i -o -m 1 -P "$urlRegex"
 }
 
-########
-# Main #
-########
+main() {
+  #############
+  # Arguments #
+  #############
 
-declare searchUrl
+  local -r channel="$2"
+  local -r message="${6#*unshort}"
 
-if [[ -z "$message" ]]; then
-  searchUrl="$(getLastUrl "$channel")"
-else
-  searchUrl="$message"
-fi
+  ########
+  # Main #
+  ########
 
-if [[ -z "$searchUrl" ]]; then
-  privmsg "$channel" "You want me to look up what now?"
-  exit 0
-fi
+  local -r apiKey="$(cat "$botConfig/etc/unshortenKey")"
 
-declare url
+  [[ -z $apiKey ]] && exit 2;
 
-url="$( curl -G -s -m 10 http://api.unshorten.it/ --data "apiKey=$apiKey" --data-urlencode "shortURL=$searchUrl")"
-if (( $? == 0 )); then
-  if [[ "$url" =~ ^error ]]; then
-    privmsg "$channel" "Their server is very rude. I was saying \"Hello, could you unshorten $searchUrl please?\" and just said \"ERROR (0)\"."
+  local searchUrl
+
+  if [[ -z "$message" ]]; then
+    searchUrl="$(getLastUrl "$channel")"
   else
-    privmsg "$channel" "$searchUrl = $url"
+    searchUrl="$message"
   fi
-else
-  privmsg "$channel" "That didn't work."
-fi
+
+  if [[ -z "$searchUrl" ]]; then
+    privmsg "$channel" "You want me to look up what now?"
+    exit 0
+  fi
+
+  local url
+
+  url="$( curl -G -s -m 10 http://api.unshorten.it/ --data "apiKey=$apiKey" --data-urlencode "shortURL=$searchUrl")"
+  if (( $? == 0 )); then
+    if [[ "$url" =~ ^error ]]; then
+      privmsg "$channel" "Their server is very rude. I was saying \"Hello, could you unshorten $searchUrl please?\" and just said \"ERROR (0)\"."
+    else
+      privmsg "$channel" "$searchUrl = $url"
+    fi
+  else
+    privmsg "$channel" "That didn't work."
+  fi
+}
+
+main "$@"

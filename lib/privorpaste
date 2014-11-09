@@ -1,9 +1,5 @@
 #!/bin/bash
 
-declare -r channel="$1"
-
-declare -r cacheDir="$bufferDir/cache/pastebin"
-
 # Take the contents of stdin and get a pastebin link for them
 #
 # This caches paste links for 6 days.
@@ -41,13 +37,21 @@ pastebin() {
   rm "$tmpFile"
 }
 
-read -r line1
-read -r line2
+main() {
+  local -r channel="$1"
 
-if (( $? != 0 )); then
-  privmsg "$channel" "$line1"
-else
-  cat <( echo "$line1" ) <(echo "$line2") - \
-    | pastebin \
-    | privmsg "$channel"
-fi
+  local -r cacheDir="$bufferDir/cache/pastebin"
+
+  read -r line1
+  read -r line2
+
+  if (( $? != 0 )); then
+    privmsg "$channel" "$line1"
+  else
+    cat <( echo "$line1" ) <(echo "$line2") - \
+      | pastebin \
+      | privmsg "$channel"
+  fi
+}
+
+main "$@"

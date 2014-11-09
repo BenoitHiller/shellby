@@ -1,16 +1,4 @@
 #!/bin/bash
-declare -r channel="$2"
-
-declare -i previous
-previous="$(cat "$botLogs/uptime")"
-if (($?)); then
-  previous=0
-fi
-
-declare -ri started="$(stat -c %Z "$bufferDir")"
-declare -ri current="$(date +%s)"
-
-declare -ri elapsed=$((current - started))
 
 # print a number of seconds as a formatted date
 #
@@ -37,8 +25,25 @@ printUptimePercent() {
   fi
 }
 
-if ((previous > elapsed)); then
-  printf "current: %s. best: %s. %s" "$(printDate "$elapsed")" "$(printDate "$previous")" "$(printUptimePercent)" | privmsg "$channel"
-else
-  printf "%s. %s" "$(printDate "$elapsed")" "$(printUptimePercent)" | privmsg "$channel"
-fi
+main() {
+  local -r channel="$2"
+
+  local -i previous
+  previous="$(cat "$botLogs/uptime")"
+  if (($?)); then
+    previous=0
+  fi
+
+  local -ri started="$(stat -c %Z "$bufferDir")"
+  local -ri current="$(date +%s)"
+
+  local -ri elapsed=$((current - started))
+
+  if ((previous > elapsed)); then
+    printf "current: %s. best: %s. %s" "$(printDate "$elapsed")" "$(printDate "$previous")" "$(printUptimePercent)" | privmsg "$channel"
+  else
+    printf "%s. %s" "$(printDate "$elapsed")" "$(printUptimePercent)" | privmsg "$channel"
+  fi
+}
+
+main "$@"

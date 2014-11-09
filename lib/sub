@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -f
+
 declare -r user="$1"
 declare -r logDir="$2"
 
@@ -8,25 +9,23 @@ declare -r expression="$3"
 declare -r targetUser="${4:-$user}"
 declare -r targetLine="${5:-0}"
 
-declare -a logFiles=($(find $logDir -name "*_message" -type f | sort -r | head -n 2))
-
-tac "${logFiles[@]}" | gawk -F "\r" '
-BEGIN {
-  count = 0
-}
-
-$2 == nick  {
-  if( ! ($6 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s/))
-  {
-    if(count == targetLine)
-    {
-      print $6
-      exit 0
+find $logDir -name "*_message" -type f -print0 \
+  | sort -rz \
+  | sed -n -z "1,2p" \
+  | xargs -0 tac \
+  | gawk -F "\r" '
+    BEGIN {
+      count = 0
     }
-    else
-    {
-      count += 1
-    }
-  }
-}
-' nick="$targetUser" targetLine="$targetLine" | sed -E "$expression"
+
+    $2 == nick {
+      if ( ! ($6 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s/)) {
+        if (count == targetLine) {
+          print $6
+          exit 0
+        } else {
+          count += 1
+        }
+      }
+    }' nick="$targetUser" targetLine="$targetLine" \
+  | sed -E "$expression"

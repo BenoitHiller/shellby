@@ -5,14 +5,6 @@ source "$botLib/utility.sh"
 # WARNING: disabling globbing. This is probably a good idea almost everywhere.
 set -f 
 
-###################
-# Input Arguments #
-###################
-
-declare -r channel="$2"
-declare -r message="${6#*grep }"
-declare -r fullMessage="$6"
-
 ####################
 # Helper Functions #
 ####################
@@ -112,104 +104,116 @@ parseTime() {
 
 }
 
-##################
-# Variable Setup #
-##################
-
-declare -a assignableParameters=( m e f A B C t T )
-declare -a passThroughFlags=( c i E P F )
-
-declare targetChannel
-
-declare -a splitArgs=()
-declare -i i=0
-
-resplitAndParse "$message"
-
-if (( ${#vargs[@]} > 0 )); then
-
-  ###########################
-  # Process Time parameters #
-  ###########################
-
-  declare -a startTime=(0 0 0)
-  declare -a endTime=(9999 99 99)
-
-  declare -r timeRegex="([0-9]{1,4}|\*)-([0-9]{1,2}|\*)-([0-9]{1,2}|\*)"
-  
-
-  if [[ "${argMap[t]+_}" && "${argMap[t]}" =~ $timeRegex ]]; then
-    startTime=( $(parseTime "${argMap[t]}" "${startTime[@]}") )
-  fi
-
-  if [[ "${argMap[T]+_}" && "${argMap[T]}" =~ $timeRegex ]]; then
-    endTime=( $(parseTime "${argMap[T]}" "${endTime[@]}") )
-  fi
-
-  ############################
-  # Process other parameters #
-  ############################
-
-  declare gargs="$( printf "%s " "${vargs[@]}" | sed 's/ $//')"
-
-  declare -a gflags=( )
-
-  declare re='^[0-9]+$'
-
-  for f in "${passThroughFlags[@]}"; do
-    if [[ "${argMap[$f]+_}" ]]; then
-      gflags+=( -$f )
-    fi
-  done
-
-  if [[ "${argMap[C]+_}" && "${argMap[C]}" =~ $re ]]; then
-    gflags+=( -C "${argMap[C]}" )
-  else 
-    if [[ "${argMap[B]+_}" && "${argMap[B]}" =~ $re ]]; then
-      gflags+=( -A "${argMap[B]}" )
-    fi
-    if [[ "${argMap[A]+_}" && "${argMap[A]}" =~ $re ]]; then
-      gflags+=( -B "${argMap[A]}" )
-    fi
-  fi
-
-  if [[ "${argMap[m]+_}" && "${argMap[m]}" =~ $re ]]; then
-    gflags+=( -m "${argMap[m]}" )
-  fi
-
-  declare -r channelRegex="^#[^/]+$"
-
-  if [[ "${argMap[f]+_}" && "${argMap[f]}" =~ $channelRegex ]]; then
-    targetChannel="${argMap[f]}"
-  else
-    targetChannel="$channel"
-  fi
-
-  declare -ir extendedRegex="${argMap[E]+1}"
-  declare -ir perlRegex="${argMap[P]+1}"
-  declare -ir fixedMatch="${argMap[F]+1}"
-
-  if (( extendedRegex + perlRegex + fixedMatch > 1 )); then
-    privmsg "$channel" "Um, that is more than one regex engine at once. Want to try again?"
-    exit 0
-  fi
-
-  if [[ ! "$targetChannel" =~ $channelRegex ]]; then
-    exit 0
-  fi
-
+main() {
   ###################
-  # Search pipeline #
+  # Input Arguments #
   ###################
 
-  find "$botLogs/$targetChannel" -type f -name '*_message' -print0 \
-    | filterDateRange "${startTime[@]}" "${endTime[@]}" \
-    | sort -rz \
-    | xargs -0 tac \
-    | grep -vF "$fullMessage" \
-    | grep "${gflags[@]}" -- "$gargs" \
-    | formatLogLines \
-    | head -n 500 \
-    | tac \
-    | privorpaste "$channel"
-fi
+  local -r channel="$2"
+  local -r message="${6#*grep }"
+  local -r fullMessage="$6"
+
+  ##################
+  # Variable Setup #
+  ##################
+
+  local -a assignableParameters=( m e f A B C t T )
+  local -a passThroughFlags=( c i E P F )
+
+  local targetChannel
+
+  local -a splitArgs=()
+  local -i i=0
+
+  resplitAndParse "$message"
+
+  if (( ${#vargs[@]} > 0 )); then
+
+    ###########################
+    # Process Time parameters #
+    ###########################
+
+    local -a startTime=(0 0 0)
+    local -a endTime=(9999 99 99)
+
+    local -r timeRegex="([0-9]{1,4}|\*)-([0-9]{1,2}|\*)-([0-9]{1,2}|\*)"
+    
+
+    if [[ "${argMap[t]+_}" && "${argMap[t]}" =~ $timeRegex ]]; then
+      startTime=( $(parseTime "${argMap[t]}" "${startTime[@]}") )
+    fi
+
+    if [[ "${argMap[T]+_}" && "${argMap[T]}" =~ $timeRegex ]]; then
+      endTime=( $(parseTime "${argMap[T]}" "${endTime[@]}") )
+    fi
+
+    ############################
+    # Process other parameters #
+    ############################
+
+    local gargs="$( printf "%s " "${vargs[@]}" | sed 's/ $//')"
+
+    local -a gflags=( )
+
+    local re='^[0-9]+$'
+
+    for f in "${passThroughFlags[@]}"; do
+      if [[ "${argMap[$f]+_}" ]]; then
+        gflags+=( -$f )
+      fi
+    done
+
+    if [[ "${argMap[C]+_}" && "${argMap[C]}" =~ $re ]]; then
+      gflags+=( -C "${argMap[C]}" )
+    else 
+      if [[ "${argMap[B]+_}" && "${argMap[B]}" =~ $re ]]; then
+        gflags+=( -A "${argMap[B]}" )
+      fi
+      if [[ "${argMap[A]+_}" && "${argMap[A]}" =~ $re ]]; then
+        gflags+=( -B "${argMap[A]}" )
+      fi
+    fi
+
+    if [[ "${argMap[m]+_}" && "${argMap[m]}" =~ $re ]]; then
+      gflags+=( -m "${argMap[m]}" )
+    fi
+
+    local -r channelRegex="^#[^/]+$"
+
+    if [[ "${argMap[f]+_}" && "${argMap[f]}" =~ $channelRegex ]]; then
+      targetChannel="${argMap[f]}"
+    else
+      targetChannel="$channel"
+    fi
+
+    local -ir extendedRegex="${argMap[E]+1}"
+    local -ir perlRegex="${argMap[P]+1}"
+    local -ir fixedMatch="${argMap[F]+1}"
+
+    if (( extendedRegex + perlRegex + fixedMatch > 1 )); then
+      privmsg "$channel" "Um, that is more than one regex engine at once. Want to try again?"
+      exit 0
+    fi
+
+    if [[ ! "$targetChannel" =~ $channelRegex ]]; then
+      exit 0
+    fi
+
+    ###################
+    # Search pipeline #
+    ###################
+
+    find "$botLogs/$targetChannel" -type f -name '*_message' -print0 \
+      | filterDateRange "${startTime[@]}" "${endTime[@]}" \
+      | sort -rz \
+      | xargs -0 tac \
+      | grep -vF "$fullMessage" \
+      | grep "${gflags[@]}" -- "$gargs" \
+      | formatLogLines \
+      | head -n 500 \
+      | tac \
+      | privorpaste "$channel"
+  fi
+}
+
+main "$@"
