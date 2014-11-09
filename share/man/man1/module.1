@@ -1,0 +1,16 @@
+.TH MODULE 1
+.SH NAME
+module \- manage modules
+.SH SYNOPSIS
+.B module
+list
+
+.B module
+reload regex...
+.SH DESCRIPTION
+Can list and reload the loaded modules(referred to as commands internally).
+.SH COMMANDS
+.IP list
+List all of the loaded modules and their current pids.
+.IP "reload regex..."
+Reload all modules whose names match any of the provided regexes. Each argument after reload is interpreted as a regex.

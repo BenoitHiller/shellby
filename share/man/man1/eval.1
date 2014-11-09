@@ -1,0 +1,23 @@
+.TH EVAL 1
+.SH NAME
+eval \- evals the provided strings in bash
+.SH SYNOPSIS
+.B eval
+[-r|-e|-m]
+.IR code...
+.SH DESCRIPTION
+.B eval
+executes code using the bash eval builtin. The code is executed in a subshell which will be able to see the global variables that shellby uses to figure out where to store data.
+
+The evaled code will be killed after 60 seconds if it has not finished running.
+
+Warning, you probably want to quote the whole string to eval as otherwise shellby is going to try and process flags.
+.SH OPTIONS
+.IP -r
+Eval the provided string, but don't privmsg the output back to the channel.
+.IP -e
+Place the code to be evaled inside a string which is echoed.
+
+e.g. ./eval $RANDOM -> eval echo "$RANDOM"
+.IP -m
+Eval the provided string using the bash $(( )) builtin. Note that this uses unquoted expansion on the provided arguments.

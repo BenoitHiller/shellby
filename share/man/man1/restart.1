@@ -1,0 +1,11 @@
+.TH RESTART 1
+.SH NAME
+restart \- restart shellby
+.SH SYNOPSIS
+.B restart
+[-f]
+.SH DESCRIPTION
+Restarts shellby entirely. This requires a reconnect. This is done by terminating lib/main process and its children then starting a new one.
+.SH OPTIONS
+.IP -f
+Performs a restart by using exec to replace the top level process with a new instance of itself after killing all its children.
