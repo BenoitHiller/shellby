@@ -1,0 +1,25 @@
+#!/usr/bin/gawk -f
+
+BEGIN {
+  FPAT="(\\\\u[0-9a-fA-F]{4})|([^\\\\])|(\\\\.)"
+  mappings["\\\""] = "\""
+  mappings["\\\\"] = "\\"
+  mappings["\\/"] = "/"
+  mappings["\\b"] = "\b"
+  mappings["\\f"] = "\f"
+  mappings["\\n"] = "\n"
+  mappings["\\r"] = "\r"
+  mappings["\\t"] = "\t"
+}
+{
+  for(i = 1; i <= NF; i++) {
+    if( $i in mappings ) {
+      printf("%s", mappings[$i])
+    } else if( $i ~ /^\\u[0-9a-fA-F]{4}$/ ) {
+      printf("%c", strtonum( "0x" substr($i, 3)))
+    } else {
+      printf("%s", $i)
+    }
+  }
+}
+
