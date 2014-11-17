@@ -107,7 +107,7 @@ parseArgs() {
 
           if (( ${#arg} == 2 )); then
             local char="${arg:1:1}"
-            if [[ -n "${parameterSet[@]}" ]] && [[ "${parameterSet[$char]+_}" ]]; then
+            if [[ -n "${!parameterSet[@]}" ]] && [[ "${parameterSet[$char]+_}" ]]; then
               previous="$char"
               getNext=true
             else
@@ -231,6 +231,9 @@ startAndWatch() {
   while true; do
     if [[ -n "$watchedFunctionPid" ]]; then
       wait $watchedFunctionPid
+      if (( $? != 0 )); then
+        break
+      fi
     fi
     sleep 1
   done
