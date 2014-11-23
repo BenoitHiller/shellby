@@ -1,0 +1,11 @@
+#!/bin/bash
+
+source "$botLib/utility.sh"
+
+watchJoins() {
+  local botName="$( cat "$bufferDir/etc/nickname" )" 
+  grep --line-buffered -iE "^:$botName!\S+\s+JOIN\s+" \
+    | gawk '{ print $3 }' >> "$bufferDir/etc/channels" 
+}
+
+startAndWatch watchJoins
