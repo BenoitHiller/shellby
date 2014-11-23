@@ -1,0 +1,59 @@
+#!/bin/bash
+
+source "$botLib/utility.sh"
+
+# 32767 * (1/15)
+declare -ri THRESHOLD=4681
+
+# Get the time and author of the last message
+#
+# 1.channel the channel to search
+getLast() {
+  local -r channel="$1"
+ 
+  local -r file="$(find "$botLogs/$channel/" -name "*_message" -print0 \
+    | sort -zr \
+    | awk 'BEGIN{RS="\0"}{print $0; exit}'
+  )"
+
+  if [[ -n "$file" ]]; then
+    tail -n 1 "$file" | awk -F "\r" '{ print $1, $2 }'
+  fi
+}
+
+checkSilence() {
+  set -f
+
+  # consume the input to the command so that the pipe does not fill
+  grep --line-buffered "^" <&0 > /dev/null &
+
+  while true; do
+    local -i hour="$( date +%H )"
+    
+    if (( hour >= 9 )); then
+      local botName="$( cat "$bufferDir/etc/nickname" )" 
+      while read -r channel; do
+        local -a info=( $( getLast "$channel" ) )
+        local -i lastTime="${info[0]}"
+        local lastUser="${info[1]}"
+        local -i now="$(date +%s)"
+
+        local -i waitTime
+
+        if [[ "$lastUser" == "$botName" ]]; then
+          waitTime=$(( 12 * 60 * 60 )) 
+        else
+          waitTime=$(( 3 * 60 * 60 )) 
+        fi 
+
+        if (( now - lastTime > waitTime && RANDOM < THRESHOLD  )); then
+          "$botLib/commands/simple/gh" "$botName" "$channel"
+        fi
+      done < "$bufferDir/etc/channels"
+    fi
+
+    sleep 3600
+  done
+}
+
+startAndWatch checkSilence
