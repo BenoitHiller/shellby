@@ -21,7 +21,7 @@ main() {
   local result
 
   result="$(curl -G -s "http://api.wolframalpha.com/v2/query" --data-urlencode "input=$message" --data "appid=$apiKey&format=plaintext&podindex=2" \
-    | grep -oPz "((?<=title=')[^']+)|((?<=<plaintext>)[^<]+)" \
+    | grep -oaPz "((?<=title=')[^']+)|((?<=<plaintext>)[^<]+)" \
     | sed '1{N;s/\n/ = /}' \
     | tr '\n' ' ' \
     | decodehtml.awk )"
