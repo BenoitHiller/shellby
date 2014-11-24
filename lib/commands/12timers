@@ -64,7 +64,9 @@ oneTwentyLoop() {
 
 oneHourLoop() {
   while true; do
-    find "$bufferDir/cache/pastebin/" -name "md5.*" -mtime +6 -exec rm {} \;
+    if [[ -d "$bufferDir/cache/pastebin/" ]]; then
+      find "$bufferDir/cache/pastebin/" -name "md5.*" -mtime +6 -exec rm {} \;
+    fi
     sleep $(( 60 * 60 ))
   done
 }
