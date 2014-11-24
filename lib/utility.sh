@@ -206,8 +206,11 @@ declare watchedFunctionPid
 # Only call this from startAndWatch.
 startFunction() {
   if [[ -n "$watchedFunctionPid" ]]; then
-    killtree "$watchedFunctionPid"
-    wait "$watchedFunctionPid"
+    local tempPid="$watchedFunctionPid"
+    watchedFunctionPid=
+
+    killtree "$tempPid"
+    wait "$tempPid"
   fi
 
   "$watchedFunctionName" <&0 &
