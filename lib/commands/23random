@@ -2,8 +2,8 @@
 
 source "$botLib/utility.sh"
 
-# 32767 * (1/15)
-declare -ri THRESHOLD=4681
+# 32767 / 4
+declare -ri THRESHOLD=8192
 
 # Get the time and author of the last message
 #
@@ -23,12 +23,13 @@ getLast() {
 
 checkSilence() {
   set -f
+  set -x
 
   # consume the input to the command so that the pipe does not fill
   grep --line-buffered "^" <&0 > /dev/null &
 
   while true; do
-    local -i hour="$( date +%H )"
+    local -i hour="$( date +%H | sed 's/^0//' )"
     
     if (( hour >= 9 )); then
       local botName="$( cat "$bufferDir/etc/nickname" )" 
@@ -43,7 +44,7 @@ checkSilence() {
         if [[ "$lastUser" == "$botName" ]]; then
           waitTime=$(( 12 * 60 * 60 )) 
         else
-          waitTime=$(( 3 * 60 * 60 )) 
+          waitTime=$(( 60 * 60 )) 
         fi 
 
         if (( now - lastTime > waitTime && RANDOM < THRESHOLD  )); then
