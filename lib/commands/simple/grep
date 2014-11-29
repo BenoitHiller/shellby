@@ -151,7 +151,7 @@ main() {
     # Process other parameters #
     ############################
 
-    local gargs="$( printf "%s " "${vargs[@]}" | sed 's/ $//')"
+    local gargs="$( printf "%s " "${vargs[@]}" | sed 's/ $//;s/\\r/\r/g')"
 
     local -a gflags=( )
 

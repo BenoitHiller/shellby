@@ -11,6 +11,10 @@ grep \- search the channel logs
 .SH DESCRIPTION
 .B grep
 searches the logs for a channel or user based on the search string. It then returns up to the first 500 results in chronological order. If there is only one line of output it is returned inline, otherwise the contents are posted to dpaste.
+
+Note that the logs contain the following fields separated by "\\r":
+
+unix_timestamp, nick, username, hostname, (message | action), message_content
 .SH OPTIONS
 .IP -c
 Output the number of matching lines instead of the text found.
