@@ -17,13 +17,21 @@ declare -r urlRegex='\b((?:https?:(?:/{1,3}|[a-z0-9%]))(?:[^\s()<>{}[]]+|([^\s()
 #
 # @. a list of pid numbers. quoting does not matter
 killtree() {
-  local joinedPids=$(sed -E 's/\s+/,/g' <<< $@)
+  local -a safePids=()
+  for arg in "$@"; do
+    if (( $arg > 0 )); then
+      safePids+=( "$arg" )
+    fi
+  done
+  if (( ${#safePids[@]} > 0 )); then
+    local joinedPids=$(sed -E 's/\s+/,/g' <<< "${safePids[@]}")
 
-  local -ra children=( $(pgrep -P "$joinedPids") )
-  if [[ ${#children[@]} != 0 ]]; then
-    killtree ${children[@]}
+    local -ra children=( $(pgrep -P "$joinedPids") )
+    if [[ ${#children[@]} != 0 ]]; then
+      killtree ${children[@]}
+    fi
+    kill -TERM ${safePids[@]}
   fi
-  kill -TERM $@
 }
 
 # get the message after the initial mention
@@ -205,6 +213,7 @@ declare watchedFunctionPid
 #
 # Only call this from startAndWatch.
 startFunction() {
+  set -x
   if [[ -n "$watchedFunctionPid" ]]; then
     local tempPid="$watchedFunctionPid"
     watchedFunctionPid=
@@ -225,6 +234,7 @@ startFunction() {
 #
 # 1. the name of the function to run. Assigned to global variable.
 startAndWatch() {
+  set -x
   watchedFunctionName="$1"
 
   startFunction
