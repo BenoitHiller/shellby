@@ -9,7 +9,7 @@ declare -r ballFile="$botShare/8ball"
 
 if [[ -n "$message" ]]; then
   declare hash="$(md5sum <<< "$message" | cut -c-8)"
-  declare -i line="$(( 0x$hash % 20))"
+  declare -i line="$(( (0x$hash % 20) + 1))"
   sed -n "${line}p" "$ballFile" | privmsg "$channel"
 else
   shuf -n 1 "$ballFile" | privmsg "$channel"
