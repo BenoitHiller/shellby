@@ -1,0 +1,17 @@
+#!/bin/bash
+
+declare -r channel="$2"
+declare -r message="$(sed 's/^ //' <<< "${6#*8ball}")"
+
+declare -r ballFile="$botShare/8ball"
+
+[[ ! -e "$ballFile" ]] && exit 2
+
+if [[ -n "$message" ]]; then
+  declare hash="$(md5sum <<< "$message" | cut -c-8)"
+  declare -i line="$(( 0x$hash % 20))"
+  sed -n "${line}p" "$ballFile" | privmsg "$channel"
+else
+  shuf -n 1 "$ballFile" | privmsg "$channel"
+fi
+
