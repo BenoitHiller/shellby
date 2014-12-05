@@ -20,7 +20,7 @@ getLastId() {
   tac "$logFile" \
     | awk -F "\r" '{print $6}' \
     | sed -E -n '
-      s%.*(https?://)?(www\.)?youtube.com/((watch.*[?&]v=)|(/v/))([a-zA-Z0-9_-]+).*%\6%
+      s%.*(https?://)?(www\.)?(youtube.com/((watch.*[?&]v=)|(v/))|youtu.be/)([a-zA-Z0-9_-]+).*%\7%
       tp
       d
       :p
@@ -47,11 +47,16 @@ main() {
   local videoId
 
   if [[ -z "$message" ]]; then
+    local -r channelRegex="^#[^/]+$"
+    if [[ ! "$channel" =~ $channelRegex ]]; then
+      exit 0
+    fi
+
     videoId="$(getLastId "$channel")"
   else
     videoId="$(
       sed -E -n '
-        s%(https?://)?(www\.)?youtube.com/((watch.*[?&]v=)|(/v/))([a-zA-Z0-9_-]+)%\6%
+        s%(https?://)?(www\.)?(youtube.com/((watch.*[?&]v=)|(v/))|youtu.be/)([a-zA-Z0-9_-]+)%\7%
         s/^\s*([a-zA-Z0-9_-]*).*/\1/
         tp
         d
