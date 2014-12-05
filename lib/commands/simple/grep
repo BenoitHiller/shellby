@@ -203,6 +203,15 @@ main() {
     # Search pipeline #
     ###################
 
+    local -ra emptyMessages=(
+      "nada"
+      "No one has ever said anything remotely like that."
+      "RTFM"
+      "Error: your query was dumb"
+    )
+
+    local -ri selection="$(( RANDOM % ${#emptyMessages[@]} ))"
+
     find "$botLogs/$targetChannel" -type f -name '*_message' -print0 \
       | filterDateRange "${startTime[@]}" "${endTime[@]}" \
       | sort -rz \
@@ -212,6 +221,7 @@ main() {
       | formatLogLines \
       | head -n 500 \
       | tac \
+      | ifEmpty "${emptyMessages[$selection]}" \
       | privorpaste "$channel"
   fi
 }

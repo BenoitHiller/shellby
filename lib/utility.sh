@@ -34,6 +34,19 @@ killtree() {
   fi
 }
 
+# If stdin is empty print an error message
+#
+# 1.message the message to print
+ifEmpty() {
+  local -r message="$1"
+
+  if read -r line; then
+    cat <( echo "$line" ) -
+  else
+    echo "$message"
+  fi
+}
+
 # get the message after the initial mention
 #
 # 1.inputString the whole irc command as one string
