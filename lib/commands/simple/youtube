@@ -1,0 +1,89 @@
+#!/bin/bash
+#
+# Command that queries info for youtube videos
+
+set -f 
+
+source "$botLib/utility.sh"
+
+# Search today's logs for the most recent youtube id
+#
+# stdout: the text of the last shared id
+#
+# 1.searchChannel the channel to search in
+getLastId() {
+  local -r searchChannel="$1"
+  local -r date="$(date +%Y/%m/%d)"
+
+  local -r logFile="$botConfig/logs/$searchChannel/${date}_message"
+
+  tac "$logFile" \
+    | awk -F "\r" '{print $6}' \
+    | sed -E -n '
+      s%.*(https?://)?(www\.)?youtube.com/((watch.*[?&]v=)|(/v/))([a-zA-Z0-9_-]+).*%\6%
+      tp
+      d
+      :p
+      p
+      q' 
+}
+
+main() {
+  #############
+  # Arguments #
+  #############
+
+  local -r channel="$2"
+  local -r message="${6#*youtube}"
+
+  ########
+  # Main #
+  ########
+
+  local -r apiKey="$(cat "$botConfig/etc/youtubeKey")"
+
+  [[ -z $apiKey ]] && exit 2;
+
+  local videoId
+
+  if [[ -z "$message" ]]; then
+    videoId="$(getLastId "$channel")"
+  else
+    videoId="$(
+      sed -E -n '
+        s%(https?://)?(www\.)?youtube.com/((watch.*[?&]v=)|(/v/))([a-zA-Z0-9_-]+)%\6%
+        s/^\s*([a-zA-Z0-9_-]*).*/\1/
+        tp
+        d
+        :p
+        p
+        q 
+      ' <<< "$message")"
+  fi
+
+  if [[ -z "$videoId" ]]; then
+    exit 0
+  fi
+
+  local snippet
+  
+  snippet="$( curl -G -s -m 10 "https://www.googleapis.com/youtube/v3/videos" --data "part=snippet&id=$videoId&key=$apiKey")"
+  if (( $? == 0 )); then
+    echo "$snippet" \
+      | sed -E -n '
+        s/^\s+"title":\s+"//
+        tp
+        d
+        :p
+        s/",$//
+        p
+        q' \
+      | jsondecode \
+      | privmsg "$channel"
+  else
+    privmsg "$channel" "That didn't work."
+  fi
+  
+}
+
+main "$@"
