@@ -39,6 +39,11 @@ main() {
   local searchUrl
 
   if [[ -z "$message" ]]; then
+    local -r channelRegex="^#[^/]+$"
+    if [[ ! "$channel" =~ $channelRegex ]]; then
+      exit 0
+    fi
+
     searchUrl="$(getLastUrl "$channel")"
   else
     searchUrl="$message"
