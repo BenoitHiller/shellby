@@ -5,7 +5,14 @@ declare -r message="${6#*8ball}"
 
 declare -r ballFile="$botShare/8ball"
 
+declare -r whoops="You try to pick up the 8ball but its smooth black shell slips through your fingers.\nIt shatters at your feet.\nYou watch dumbstruck as the dark blue liquid drains from the mess of cheap plastic exposing at its heart the naked icosahedron.\nYou see all of the possibilities laid out before you, and you know...\nnow you choose your own fate."
+
 [[ ! -e "$ballFile" ]] && exit 2
+
+if ((RANDOM % 100 == 1)); then
+  echo -e "$whoops" | privmsg "$channel"
+  exit 0
+fi
 
 if [[ -n "$message" ]]; then
   declare hash="$(md5sum <<< "$message" | cut -c-8)"
