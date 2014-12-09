@@ -1,11 +1,71 @@
 #!/bin/bash
 
-declare -r channel="$2"
-declare -r message="${6#*gh }"
+# given the current line in the markov file get the next
+#
+# 1.line the current line
+# 2.markovFile the file with markov data
+getMarkovLine() {
+  local -r line="$1"
+  local -r markovFile="$2"
+  
+  local -i lineNumber="$(gawk '
+    BEGIN {
+      srand(systime() + PROCINFO["pid"]) 
+    }
 
-declare -r hugFile="$botShare/hugs.irc.final"
+    {
+      split($1, first, ":");
+      total = first[2];
+      selected = rand() * total;
+      #print selected > "/dev/stderr"
+      soFar = 0;
+      for (i=2; i <= NF; i++) {
+        #print $i > "/dev/stderr"
+        split($i, parts, ":");
+        soFar = soFar + parts[2];
+        if (selected < soFar) {
+          print parts[1];
+          exit 0;
+        }
+      }
+    }' <<< "$line")"
 
+  sed -n "$lineNumber{p;q}" "$markovFile"
+}
 
-[[ ! -e "$hugFile" ]] && exit 2
+# get a full markov grouphug
+getMarkov() {
+  local -r markovFile="$botShare/hugs.markov"
 
-shuf -n 1 "$hugFile"  | sed -E 's/^[0-9]+	//' | tr "" "\n" | privmsg "$channel"
+  local line="$(head -n 1 "$markovFile" )"
+
+  while grep -qE "^[10]" <<< "$line"; do
+    line="$( getMarkovLine "$line" "$markovFile" )"
+  done
+    
+  while ! grep -qE "^1" <<< "$line"; do
+    printf "%s " "${line%%:*}"
+    line="$( getMarkovLine "$line" "$markovFile" )"
+  done | sed -E 's/ $/./;s/.*/\u&/'
+}
+
+main() {
+  local -r channel="$2"
+  local -r message="${6#*gh}"
+
+  source "$botLib/utility.sh"
+
+  resplitAndParse "$message"
+
+  if [[ "${argMap[m]+_}" ]]; then
+    getMarkov | privmsg "$channel"
+  else
+    local -r hugFile="$botShare/hugs.irc.final"
+
+    [[ ! -e "$hugFile" ]] && exit 2
+
+    shuf -n 1 "$hugFile"  | sed -E 's/^[0-9]+	//' | tr "" "\n" | privmsg "$channel"
+  fi
+}
+
+main "$@"
