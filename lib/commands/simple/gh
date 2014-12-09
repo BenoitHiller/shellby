@@ -10,7 +10,7 @@ getMarkovLine() {
   
   local -i lineNumber="$(gawk '
     BEGIN {
-      srand(systime() + PROCINFO["pid"]) 
+      srand(systime() + PROCINFO["pid"] * 31) 
     }
 
     {
