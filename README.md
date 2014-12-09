@@ -19,3 +19,7 @@ If you register the account for the bot you can add a `~/.shellby/etc/password` 
 * netcat
 * gawk 
 * bash >=4
+
+## Data
+
+The files for the gh command are not included in the repository. I have compiled a list of submissions for use with the bot, but I do not believe that I am allowed to redistribute said content. Email me if you would like a copy.
