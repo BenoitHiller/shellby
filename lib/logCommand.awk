@@ -41,6 +41,12 @@ function logLine(user,action,message,channel,type) {
   logLine($1,action,message,$3,"message")
 }
 
+/^\S+\s+notice\s/ {
+  message=substr($4,3)
+
+  logLine($1,"notice",message,$3,"message")
+}
+
 /^\S+\s+(part|join)\s/ {
   message=substr($4,3)
   logLine($1,tolower($2),message,$3, "user")
