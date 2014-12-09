@@ -46,7 +46,10 @@ getMarkov() {
   while ! grep -qE "^1" <<< "$line"; do
     printf "%s " "${line%%:*}"
     line="$( getMarkovLine "$line" "$markovFile" )"
-  done | sed -E 's/ $/./;s/.*/\u&/'
+  done \
+    | sed -E '
+      s/ $/./
+      s/.*/\u&/'
 }
 
 main() {
@@ -64,7 +67,10 @@ main() {
 
     [[ ! -e "$hugFile" ]] && exit 2
 
-    shuf -n 1 "$hugFile"  | sed -E 's/^[0-9]+	//' | tr "" "\n" | privmsg "$channel"
+    shuf -n 1 "$hugFile" \
+      | sed -E 's/^[0-9]+	//' \
+      | tr "" "\n" \
+      | privmsg "$channel"
   fi
 }
 
