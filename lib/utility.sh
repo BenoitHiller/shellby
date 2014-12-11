@@ -203,9 +203,9 @@ parseArgs() {
 getIRCInfo() {
   local -r inputString="$1"
 
-  local -a infoArray=( $( sed -E 's/^:?([^!]+)!([^@]+)@(\S+)\s+(\S+)\s+(\S+)\s+.*/\1 \5 \4 \2 \3/' <<< "$inputString" ) )
+  local -a infoArray=( $( sed -E 's/^:?([^![:space:]]+)(!([^@[:space:]]+)@(\S+))?\s+(\S+)\s+(\S+)(\s+.*)?/\1 \6 \5 \3 \4/' <<< "$inputString" ) )
 
-  if [[ "${#infoArray[@]}" != 5 ]]; then
+  if (( ${#infoArray[@]} < 2 )); then
     return 1
   fi
 
@@ -219,6 +219,19 @@ getIRCInfo() {
   return 0
 }
 
+# get fields from space separated data
+#
+# 1.line the line to split
+# @:1. the list of fields to print on separate lines 
+getFields() {
+  local -r line="$1"
+  shift 
+  local -ra fields=( $line )
+  for i in "$@"; do
+    echo "${fields[$i]}" 
+  done
+}
+
 declare watchedFunctionName
 declare watchedFunctionPid
 
@@ -226,7 +239,6 @@ declare watchedFunctionPid
 #
 # Only call this from startAndWatch.
 startFunction() {
-  set -x
   if [[ -n "$watchedFunctionPid" ]]; then
     local tempPid="$watchedFunctionPid"
     watchedFunctionPid=
@@ -247,7 +259,6 @@ startFunction() {
 #
 # 1. the name of the function to run. Assigned to global variable.
 startAndWatch() {
-  set -x
   watchedFunctionName="$1"
 
   startFunction
@@ -261,6 +272,6 @@ startAndWatch() {
         break
       fi
     fi
-    sleep 1
+    sleep 5
   done
 }

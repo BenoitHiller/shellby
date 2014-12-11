@@ -51,6 +51,12 @@ thirtyLoop() {
     updateUptime
     updateUptimeStats
 
+    local botName="$(cat "$bufferDir/etc/nickname")" 
+    while read -r channel; do
+      if [[ ! -d "$bufferDir/etc/users/$botName/channels/$channel" ]]; then
+        echo JOIN "$channel" &
+      fi
+    done < "$bufferDir/etc/channels"
     sleep 30
   done
 }
@@ -58,6 +64,11 @@ thirtyLoop() {
 oneTwentyLoop() {
   while true; do
     echo WHOIS $(cat "$bufferDir/etc/nickname") &
+    if [[ -f "$bufferDir/etc/channels" ]]; then
+      while read -r channel; do
+        echo WHO "$channel" %nuhacf &
+      done < "$bufferDir/etc/channels"
+    fi
     sleep 120
   done
 }

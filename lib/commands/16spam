@@ -1,0 +1,41 @@
+#!/bin/bash
+set -f
+
+source "$botLib/utility.sh"
+source "$botLib/users.sh"
+
+main() {
+  local -A tokens=()
+  local -A lastTime=()
+  local botName="$(cat "$bufferDir/etc/nickname")" 
+  while read -r line; do
+    local -a data=( $(getIRCInfo "$line") ) 
+    local nick="${data[0]}"
+    local channel="${data[1]}"
+    local key="$nick $channel ${data[*]:3:2}"
+    
+    local -i current="$( date +%s )" 
+    local -i previous="${lastTime[$key]}"
+    local -i elapsed=$((current - previous))
+    lastTime["$key"]="$current"
+    
+    local -i currentTokens="${tokens[$key]}"
+    local -i addTokens=$(( elapsed / 10 ))
+    currentTokens=$((
+      addTokens + currentTokens > 6
+        ? 5
+        : addTokens + currentTokens - 1
+    ))
+    tokens["$key"]="$currentTokens"
+
+    if (( currentTokens <= 0 )) && [[ "$nick" != "$botName" ]]; then
+      if isOp "$botName" "${data[1]}"; then
+        echo "KICK $channel $nick :Spam"
+      else
+        echo "kick $nick from $channel" >&2
+      fi
+    fi
+  done < <(grep --line-buffered -iE "^:?\S+\s+(privmsg|notice)\s+#")
+}
+
+startAndWatch main

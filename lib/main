@@ -4,6 +4,8 @@
 # load config #
 ###############
 
+export botPid="$$"
+
 declare -r botDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
 export botDir
 

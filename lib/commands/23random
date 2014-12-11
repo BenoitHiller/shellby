@@ -23,7 +23,6 @@ getLast() {
 
 checkSilence() {
   set -f
-  set -x
 
   # consume the input to the command so that the pipe does not fill
   grep --line-buffered "^" <&0 > /dev/null &

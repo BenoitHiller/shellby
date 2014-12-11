@@ -49,8 +49,6 @@ fi
 # launch with env #
 ###################
 
-declare botPid
-
 startBot() {
   env -i thisPid=$thisPid DEBUG=$DEBUG botConfig="$botConfig" botLib="$botLib" botShare="$botShare" $botLib/main "$@"
 }

@@ -43,8 +43,9 @@ function logLine(user,action,message,channel,type) {
 
 /^\S+\s+notice\s/ {
   message=substr($4,3)
-
-  logLine($1,"notice",message,$3,"message")
+  if ($3 != "*") {
+    logLine($1,"notice",message,$3,"message")
+  }
 }
 
 /^\S+\s+(part|join)\s/ {

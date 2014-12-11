@@ -1,0 +1,163 @@
+#!/bin/bash
+
+set -f
+
+source "$botLib/utility.sh"
+
+# remove a user from a channel
+#
+# 1.userDir the user's directory
+# 2.channel the channel to leave
+leaveChannel() {
+  local -r userDir="$1"
+  local -r channel="$2"
+
+  rm -r "$userDir/channels/$channel"
+
+  if [[ ! -n "$(ls -A "$userDir/channels" )" ]]; then
+    rm -r "$userDir"
+  fi
+}
+
+# update channel info for user
+#
+# 1.userDir the user's directory
+# 2.channel the channel to leave
+# 3.flags status flags on channel
+updateChannelInfo() {
+  local -r userDir="$1"
+  local -r channel="$2"
+  local -r flags="$3"
+
+  local -r channelDir="$userDir/channels/$channel"
+  mkdir -p "$channelDir"
+
+  rm "$channelDir/op" 2>/dev/null
+  rm "$channelDir/voice" 2>/dev/null
+
+  if [[ "$flags" =~ @ ]]; then
+    date +%s > "$channelDir/op"
+  elif [[ "$flags" =~ \+ ]]; then
+    date +%s > "$channelDir/voice"
+  fi 
+}
+
+# update mode for user in channel
+#
+# 1.userDir directory for user
+# 2.channel channel name
+# 3.mode mode string
+updateMode() {
+  local -r userDir="$1"
+  local -r channel="$2"
+  local -r mode="$3"
+  local channelDir="$userDir/channels/$channel"
+
+  mkdir -p "$channelDir"
+
+  if [[ "$mode" =~ ^\+ ]]; then
+    if [[ "$mode" =~ o ]]; then
+      rm "$channelDir/op" >&2
+    fi
+    if [[ "$mode" =~ v ]]; then
+      rm "$channelDir/voice" >&2
+    fi
+  else
+    if [[ "$mode" =~ o ]]; then
+      date +%s > "$channelDir/op"
+    fi
+    if [[ "$mode" =~ v ]]; then
+      date +%s > "$channelDir/voice"
+    fi
+  fi
+}
+# update the user and hostname
+#
+# 1.userDir
+# 2.username
+# 3.hostname
+# 4.nickserv nickserv account name
+updateUserInfo() {
+  local -r userDir="$1"
+  local -r username="$2"
+  local -r hostname="$3"
+  local -r nickserv="$4"
+
+  mkdir -p "$userDir"
+
+  echo "$username" > "$userDir/username"
+  echo "$hostname" > "$userDir/hostname"
+  if [[ -z "$nickserv" || "$nickserv" == 0 ]]; then
+    rm "$userDir/nickserv" 2>/dev/null
+  else
+    echo "$nickserv" > "$userDir/nickserv"
+  fi
+}
+
+monitorUsers() {
+  local -r channelRegex="^#"
+  local -r botName="$( < "$bufferDir/etc/nickname")" 
+  local -r userDir="$bufferDir/etc/users" 
+
+  mkdir -p "$userDir"
+
+  while read -r line; do
+    local -a data
+    data=( $(getIRCInfo "$line") ) 
+    if (( $? == 0 )); then
+      local cmd="${data[2],,}"
+      local nick="${data[0]}"
+      local currentUser="$userDir/$nick"
+      case "$cmd" in
+        quit)
+            rm -r "$currentUser"
+            ;;
+        part)
+            local channel="${data[1]}"
+            leaveChannel "$currentUser" "$channel"
+            ;;
+        kick)
+            local channel="${data[1]}"
+            leaveChannel "$userDir/$target" "$channel"
+            ;;
+        nick)
+            local newNick="$( getFields "$line" 2 )"
+            rm "$currentUser/nickserv"
+            mv "$currentUser" "$userDir/${newNick#:}"
+            echo WHO "${newNick#:}" %nuhaf &
+            ;;
+        join)
+            local channel="${data[1]}"
+            updateUserInfo "$currentUser" "${data[3]}" "${data[4]}"
+            echo WHO "$nick" %nuhcaf &
+            mkdir -p "$currentUser/channels/$channel"
+            ;;
+        mode)
+            local channel="${data[1]}"
+            if [[ "$channel" =~ $channelRegex ]]; then
+              # mode nick
+              local -a fields=( $(getFields "$line" 3 4) )
+              nick="${fields[1]}"
+              currentUser="$userDir/$nick"
+              
+              local mode="${fields[0]}"
+              if [[ ! "$mode" =~ b ]]; then
+                updateMode "$currentUser" "$channel" "$mode"
+              fi
+            fi
+            ;;
+        354)
+            # channel username hostname nick flag nickserv
+            local -a fields=( $(getFields "$line" 3 4 5 6 7 8) )
+            local channel="${fields[0]}"
+            nick="${fields[3]}"
+            currentUser="$userDir/$nick"
+            updateUserInfo "$currentUser" "${fields[1]}" "${fields[2]}" "${fields[5]}"
+            updateChannelInfo "$currentUser" "$channel" "${fields[4]}"
+            ;;
+      esac
+    fi
+  done
+}
+
+startAndWatch monitorUsers

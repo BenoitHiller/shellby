@@ -147,7 +147,9 @@ watchFiles() {
 
     while read coreFile; do
       local savedChecksum="${md5s[$coreFile]}"
+      local base="$(basename "$coreFile")"
 
+      local corePid=$(pgrep -P $this -x "$base")
       # no checksum. Start a new command
       if [[ -z "$savedChecksum" ]]; then
         startCommand "$coreFile" "$output"
@@ -158,6 +160,8 @@ watchFiles() {
       elif ! md5sum -c <<< "$savedChecksum" >/dev/null 2>&1; then
         replacePipe "$coreFile" "$output"
       elif [[ -f "$moduleDir/reload" ]] && grep -q -f "$moduleDir/reload" <<< "$coreFile"; then
+        replacePipe "$coreFile" "$output"
+      elif [[ -z "$corePid" ]]; then
         replacePipe "$coreFile" "$output"
       fi
 
