@@ -61,7 +61,6 @@ verify() {
 # 3.username
 # 4.hostname
 isOp() {
-  set -x
   local nickname="$1"
   local channel="$2"
   local username="$3"

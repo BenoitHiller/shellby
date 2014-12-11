@@ -5,6 +5,13 @@ source "$botLib/utility.sh"
 source "$botLib/users.sh"
 
 main() {
+  local -a messages=(
+    "No."
+    "GOOOOOOOOOAL!!!"
+    "You talk too much."
+    "You were spamming the channel."
+    "Reasons."
+  )
   local -A tokens=()
   local -A lastTime=()
   local botName="$(cat "$bufferDir/etc/nickname")" 
@@ -30,7 +37,8 @@ main() {
 
     if (( currentTokens <= 0 )) && [[ "$nick" != "$botName" ]]; then
       if isOp "$botName" "${data[1]}"; then
-        echo "KICK $channel $nick :Spam"
+        local selection=$(( RANDOM % ${#messages[@]} ))
+        echo "KICK $channel $nick :${messages[$selection]}"
       else
         echo "kick $nick from $channel" >&2
       fi

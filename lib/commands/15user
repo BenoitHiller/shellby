@@ -124,7 +124,7 @@ monitorUsers() {
             local newNick="$( getFields "$line" 2 )"
             rm "$currentUser/nickserv"
             mv "$currentUser" "$userDir/${newNick#:}"
-            echo WHO "${newNick#:}" %nuhaf &
+            echo WHO "${newNick#:}" %nuhcaf &
             ;;
         join)
             local channel="${data[1]}"

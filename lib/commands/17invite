@@ -1,0 +1,23 @@
+#!/bin/bash
+
+source "$botLib/utility.sh"
+source "$botLib/users.sh"
+
+main() {
+  local botName="$(cat "$bufferDir/etc/nickname")" 
+  grep --line-buffered -iE ":?\S+\s+invite\s+" \
+    | while read -r line; do
+      local -a data=( $(getIRCInfo "$line") ) 
+      local nick="${data[0]}"
+      local username="${data[3]}"
+      local hostname="${data[4]}"
+      if verify "$nick" "$username" "$hostname"; then
+        local -a fields=( $(getFields "$line" 2 3) )
+        if [[ "${fields[0]}" == "$botName" ]]; then
+          echo JOIN "${fields[1]#:}"
+        fi
+      fi
+    done
+}
+
+startAndWatch main
