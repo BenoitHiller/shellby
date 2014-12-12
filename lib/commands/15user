@@ -57,10 +57,10 @@ updateMode() {
 
   if [[ "$mode" =~ ^\+ ]]; then
     if [[ "$mode" =~ o ]]; then
-      rm "$channelDir/op" >&2
+      rm "$channelDir/op" 2>/dev/null
     fi
     if [[ "$mode" =~ v ]]; then
-      rm "$channelDir/voice" >&2
+      rm "$channelDir/voice" 2>/dev/null
     fi
   else
     if [[ "$mode" =~ o ]]; then
