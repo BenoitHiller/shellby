@@ -48,10 +48,8 @@ checkKnowYourMeme() {
 }
 
 main() {
-  shopt -s extglob
-
   local -r channel="$2"
-  local -r message="${6#*meme*( )}"
+  local -r message="$6"
   local -r memeFile="$botConfig/memes"
 
   local -r filteredMemeString="$(tr A-Z a-z <<< "$message" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"

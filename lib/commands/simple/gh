@@ -70,7 +70,7 @@ main() {
   set -f
 
   local -r channel="$2"
-  local -r message="$( sed -E 's/^\s+//' <<< "${6#*gh}")"
+  local -r message="$6"
 
   source "$botLib/utility.sh"
 

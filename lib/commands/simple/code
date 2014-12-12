@@ -22,7 +22,7 @@ sendCode() {
 
 main() {
   local -r channel="$2"
-  local -r message="${6#*code }"
+  local -r message="$6"
   local -ri headerLength="$(getheaderlength)"
   local -A languages=()
 

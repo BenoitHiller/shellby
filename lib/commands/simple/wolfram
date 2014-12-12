@@ -6,7 +6,7 @@ main() {
 
   local -r nick="$1"
   local -r channel="$2"
-  local -r message="${6#*wolfram }"
+  local -r message="$6"
 
   local -r apiKey="$(cat "$botConfig/etc/wolframKey")"
 

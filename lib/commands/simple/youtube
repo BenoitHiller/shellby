@@ -34,7 +34,7 @@ main() {
   #############
 
   local -r channel="$2"
-  local -r message="${6#*youtube}"
+  local -r message="$6"
 
   ########
   # Main #

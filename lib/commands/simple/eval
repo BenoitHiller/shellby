@@ -33,7 +33,7 @@ main() {
   local -r channel="$2"
   local -r username="$4"
   local -r hostname="$5"
-  local -r message="${6#*eval }"
+  local -r message="$6"
 
   source "$botLib/users.sh"
   source "$botLib/utility.sh"

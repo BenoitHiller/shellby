@@ -110,8 +110,8 @@ main() {
   ###################
 
   local -r channel="$2"
-  local -r message="${6#*grep }"
-  local -r fullMessage="$6"
+  local -r message="$6"
+  local -r fullMessage="$7"
 
   ##################
   # Variable Setup #
