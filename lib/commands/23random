@@ -47,7 +47,7 @@ checkSilence() {
         fi 
 
         if (( now - lastTime > waitTime && RANDOM < THRESHOLD  )); then
-          "$botLib/commands/simple/gh" "$botName" "$channel"
+          "$botLib/commands/simple/gh" "$botName" "$channel" "CMD" "USERNAME" "HOSTNAME" "-m"
         fi
       done < "$bufferDir/etc/channels"
     fi
