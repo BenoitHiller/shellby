@@ -36,8 +36,22 @@ getMarkovLine() {
 # get a full markov grouphug
 getMarkov() {
   local -r markovFile="$botShare/hugs.markov"
-
-  local line="$(head -n 1 "$markovFile" )"
+  local line
+  if (( $# > 0 )); then
+    echo "$@" >&2
+    local startToken="$( sed "s/[^a-zA-Z'-]//g" <<< "$1" )"
+    if [[ -z "$startToken" ]]; then
+      echo "I can't work with that."
+      return 1
+    fi
+    line="$(grep -m 1 -i "^$startToken:" "$markovFile")"
+    if [[ -z "$line" ]]; then
+      echo "There is no $startToken in the database."
+      return 1
+    fi
+  else
+    line="$(head -n 1 "$markovFile" )"
+  fi
 
   while grep -qE "^[10]" <<< "$line"; do
     line="$( getMarkovLine "$line" "$markovFile" )"
@@ -53,15 +67,17 @@ getMarkov() {
 }
 
 main() {
+  set -f
+
   local -r channel="$2"
-  local -r message="${6#*gh}"
+  local -r message="$( sed -E 's/^\s+//' <<< "${6#*gh}")"
 
   source "$botLib/utility.sh"
 
   resplitAndParse "$message"
 
   if [[ "${argMap[m]+_}" ]]; then
-    getMarkov | privmsg "$channel"
+    getMarkov "${vargs[@]}" | privmsg "$channel"
   else
     local -r hugFile="$botShare/hugs.irc.final"
 
