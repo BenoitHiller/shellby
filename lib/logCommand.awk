@@ -15,7 +15,7 @@ function logLine(user,action,message,channel,type) {
     dir=logDir "/" channel strftime("/%Y/%m")
   }
 
-  system("mkdir -p " dir)
+  system("mkdir -p '" dir "'")
   file=dir "/" strftime("%d") "_" type
   printf("%d\r%s\r%s\r%s\r%s\r%s\n", systime(),userParts[1],userParts[2],userParts[3],action,message) >> file
   fflush(file)
@@ -43,7 +43,7 @@ function logLine(user,action,message,channel,type) {
 
 /^\S+\s+notice\s/ {
   message=substr($4,3)
-  if ($3 != "*") {
+  if (! $3 ~ /^[$*]+$/) {
     logLine($1,"notice",message,$3,"message")
   }
 }

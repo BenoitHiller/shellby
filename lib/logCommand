@@ -4,4 +4,5 @@ declare -r shellbyHostname="$1"
 
 trap '' SIGHUP
 
+
 gawk -f "$botLib/logCommand.awk" logDir="$botLogs" shellbyHostname="$shellbyHostname"
