@@ -16,17 +16,6 @@ pastebin() {
   local -r cachedFile="$cacheDir/md5.$checksum"
 
   if [[ -f "$cachedFile" ]]; then
-    declare -ri created="$(stat -c %Z "$cachedFile")"
-    declare -ri current="$(date +%s)"
-
-    declare -ri elapsed=$((current - created))
-
-    if (( elapsed > ( 6 * 24 * 60 * 60 ))); then
-      rm "$cachedFile"
-    fi
-  fi
-
-  if [[ -f "$cachedFile" ]]; then
     cat $cachedFile
   else
     curl -si -F "content=<$tmpFile" "http://dpaste.com/api/v2/" \

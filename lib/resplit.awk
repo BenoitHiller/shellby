@@ -5,7 +5,7 @@ BEGIN {
   true = 1
   false = 0
   RS="\0"
-  FPAT="[\\\"'[:space:]]|[^\\\"'[:space:]]+"
+  FPAT="([\"'[:space:]\\\\])|([^\"'[:space:]\\\\]+)"
 }
 
 {
@@ -15,6 +15,7 @@ BEGIN {
   currentIndex = 0
   items[0] = ""
   for(i = 1; i <= NF; i++) {
+    print $i > "/dev/stderr"
     if($i == "\\") {
       if(escaped) {
         items[currentIndex] = items[currentIndex] $i

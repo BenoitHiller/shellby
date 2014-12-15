@@ -8,6 +8,6 @@ if [[ -z "$meta" ]]; then
   exit 1;
 fi
 
-length="$((510 - $headerLength - $(wc -c <<< "$meta")))"
+length="$((510 - headerLength - ${#meta}))"
 
 fold -s -w $length | xargs -d "\n" printf "$meta%s\n"
