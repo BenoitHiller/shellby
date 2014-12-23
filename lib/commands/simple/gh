@@ -39,7 +39,7 @@ getMarkov() {
   local line
   if (( $# > 0 )); then
     echo "$@" >&2
-    local startToken="$( sed "s/[^a-zA-Z'-]//g" <<< "$1" )"
+    local startToken="$( sed "s/[^a-zA-Z0-9'-]//g" <<< "$1" )"
     if [[ -z "$startToken" ]]; then
       echo "I can't work with that."
       return 1
@@ -53,11 +53,11 @@ getMarkov() {
     line="$(head -n 1 "$markovFile" )"
   fi
 
-  while grep -qE "^[10]" <<< "$line"; do
+  while grep -qE "^[{}]" <<< "$line"; do
     line="$( getMarkovLine "$line" "$markovFile" )"
   done
     
-  while ! grep -qE "^1" <<< "$line"; do
+  while ! grep -qE "^}" <<< "$line"; do
     printf "%s " "${line%%:*}"
     line="$( getMarkovLine "$line" "$markovFile" )"
   done \
