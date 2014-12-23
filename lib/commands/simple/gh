@@ -90,6 +90,7 @@ main() {
           s/^[0-9]+	//
           s/$/\n----------/
           s//\n/g' \
+        | sed '$d' \
         | ifEmpty "No one has ever felt the need to confess something like that." \
         | privorpaste "$channel"
     else
