@@ -15,7 +15,6 @@ BEGIN {
   currentIndex = 0
   items[0] = ""
   for(i = 1; i <= NF; i++) {
-    print $i > "/dev/stderr"
     if($i == "\\") {
       if(escaped) {
         items[currentIndex] = items[currentIndex] $i
