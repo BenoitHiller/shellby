@@ -19,7 +19,11 @@ pastebin() {
     cat $cachedFile
   else
     curl -si -F "content=<$tmpFile" "http://dpaste.com/api/v2/" \
-      | sed -n 's/^Location: //;T;p' \
+      | sed -E -n '
+        s/^Location: //
+        T
+        s/\s+$/#wrap/
+        p' \
       | tee "$cachedFile"
   fi
   
