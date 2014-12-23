@@ -83,10 +83,21 @@ main() {
 
     [[ ! -e "$hugFile" ]] && exit 2
 
-    shuf -n 1 "$hugFile" \
-      | sed -E 's/^[0-9]+	//' \
-      | tr "" "\n" \
-      | privmsg "$channel"
+    if (( ${#vargs[@]} > 0 )); then
+      local -a gflags=( -i -E -m 100 )
+      grep "${gflags[@]}" -- "${vargs[*]}" "$hugFile" \
+        | sed -E '
+          s/^[0-9]+	//
+          s/$/\n----------/
+          s//\n/g' \
+        | ifEmpty "No one has ever felt the need to confess something like that." \
+        | privorpaste "$channel"
+    else
+      shuf -n 1 "$hugFile" \
+        | sed -E 's/^[0-9]+	//' \
+        | tr "" "\n" \
+        | privmsg "$channel"
+    fi
   fi
 }
 

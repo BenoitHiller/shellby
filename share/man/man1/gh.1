@@ -3,14 +3,15 @@
 gh \- post grouphug.us entries
 .SH SYNOPSIS
 .B gh
-
+[search string]
 .B gh
 -m [initial token]
 .SH DESCRIPTION
 Grabs a random entry from a list of archived submissions to grouphug.us.
 
+If you provide a search string it will grab the first hundred results for that string. These searches are not case sensitive and use grep -E.
+
 This will grab the entries from share/hugs.irc.final, which is not included with shellby by default(I do not own the content of grouphug.us and can't distribute it with the source as such).
 .SH OPTIONS
-
 .IP -m
 Generate a new grouphug using a markov chain trained on the grouphug corpus. If you also passed a param
