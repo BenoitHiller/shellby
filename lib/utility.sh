@@ -269,7 +269,7 @@ startAndWatch() {
     if [[ -n "$watchedFunctionPid" ]]; then
       wait $watchedFunctionPid
       if (( $? != 0 )); then
-        break
+        return
       fi
     fi
     sleep 5
