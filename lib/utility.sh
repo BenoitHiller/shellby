@@ -108,8 +108,8 @@ parseArgs() {
     done
   fi
 
-  local -r pattern1="-+([a-zA-Z])"
-  local -r pattern2="--+([a-zA-Z])"
+  local -r shortOption="-+([a-zA-Z])"
+  local -r longOption="--+([a-zA-Z])"
 
   if checkType argMap A && checkType vargs a; then
 
@@ -121,7 +121,7 @@ parseArgs() {
       shift
       
       case "$arg" in
-        $pattern1 )
+        $shortOption )
           if "$getNext"; then
             argMap["$previous"]=
           fi
@@ -152,13 +152,10 @@ parseArgs() {
             previous=
             getNext=false
           fi
-          # do not parse any more parameters
-          while (( $# > 0 )); do
-            vargs+=( "$1" )
-            shift  
-          done
+          vargs+=( "$@" )
+          break
           ;;
-        $pattern2 )
+        $longOption )
           if "$getNext"; then
             argMap["$previous"]=
           fi
