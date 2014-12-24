@@ -10,13 +10,13 @@ sendCode() {
   local -r lang="$1"
 
   curl -is "https://eval.in/" -F "code=<-" -F "lang=$lang" -F "utf8=%CE%BB" -F "execute=on" \
+    | tee /dev/stderr \
     | sed -En '
-      s/^Location: (.*)$/\1/
-      tp
-      d
-      :p
-      p
-      q'\
+      s/^Location: //
+
+      # if location line print and quit
+      T
+      p;q'\
     | tr -d "\n\r"
 }
 

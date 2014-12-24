@@ -21,9 +21,15 @@ pastebin() {
     curl -si -F "content=<$tmpFile" "http://dpaste.com/api/v2/" \
       | sed -E -n '
         s/^Location: //
+        # if location line
         T
+
+        # add wrapping parameter
         s/\s+$/#wrap/
-        p' \
+
+        # print and quit
+        p
+        q' \
       | tee "$cachedFile"
   fi
   

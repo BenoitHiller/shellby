@@ -21,11 +21,8 @@ getLastId() {
     | awk -F "\r" '{print $6}' \
     | sed -E -n '
       s%.*(https?://)?(www\.)?(youtube.com/((watch.*[?&]v=)|(v/))|youtu.be/)([a-zA-Z0-9_-]+).*%\7%
-      tp
-      d
-      :p
-      p
-      q' 
+      # if matching url print and quit
+      T;p;q' 
 }
 
 main() {
@@ -57,12 +54,11 @@ main() {
     videoId="$(
       sed -E -n '
         s%(https?://)?(www\.)?(youtube.com/((watch.*[?&]v=)|(v/))|youtu.be/)([a-zA-Z0-9_-]+)%\7%
+
+        # if matching url
+        T
         s/^\s*([a-zA-Z0-9_-]*).*/\1/
-        tp
-        d
-        :p
-        p
-        q 
+        p;q 
       ' <<< "$message")"
   fi
 
@@ -77,12 +73,11 @@ main() {
     echo "$snippet" \
       | sed -E -n '
         s/^\s+"title":\s+"//
-        tp
-        d
-        :p
+
+        # if title line print and quit
+        T
         s/",$//
-        p
-        q' \
+        p;q' \
       | jsondecode \
       | privmsg "$channel"
   else
