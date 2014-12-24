@@ -62,8 +62,33 @@ getMarkov() {
     line="$( getMarkovLine "$line" "$markovFile" )"
   done \
     | sed -E '
+      # replace trailing space with period
       s/ $/./
+
+      # capitalize first character
       s/.*/\u&/'
+}
+
+# Get search results from the grouphug database.
+#
+# 1.regex
+# 2.hugFile
+searchHugs() {
+  local -r regex="$1"
+  local -r hugFile="$2"
+
+  local -a gflags=( -i -E -m 100 )
+  grep "${gflags[@]}" -- "$regex" "$hugFile" \
+    | sed -E '
+      # remove IDs
+      s/^[^	]+\s+//
+      
+      # add separators between each entry
+      $!s/$/\n----------/
+
+      # expand carriage returns into newlines
+      s//\n/g' \
+    | ifEmpty "No one has ever felt the need to confess something like that."
 }
 
 main() {
@@ -84,15 +109,7 @@ main() {
     [[ ! -e "$hugFile" ]] && exit 2
 
     if (( ${#vargs[@]} > 0 )); then
-      local -a gflags=( -i -E -m 100 )
-      grep "${gflags[@]}" -- "${vargs[*]}" "$hugFile" \
-        | sed -E '
-          s/^[0-9]+	//
-          s/$/\n----------/
-          s//\n/g' \
-        | sed '$d' \
-        | ifEmpty "No one has ever felt the need to confess something like that." \
-        | privorpaste "$channel"
+        searchHugs "${vargs[*]}" "$hugFile" | privorpaste "$channel"
     else
       shuf -n 1 "$hugFile" \
         | sed -E 's/^[0-9]+	//' \
