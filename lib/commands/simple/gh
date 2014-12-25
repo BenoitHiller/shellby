@@ -3,12 +3,10 @@
 # given the current line in the markov file get the next
 #
 # 1.line the current line
-# 2.markovFile the file with markov data
-getMarkovLine() {
+getNextMarkovLine() {
   local -r line="$1"
-  local -r markovFile="$2"
   
-  local -i lineNumber="$(gawk '
+  gawk '
     BEGIN {
       srand(systime() + PROCINFO["pid"] * 31) 
     }
@@ -24,18 +22,19 @@ getMarkovLine() {
         split($i, parts, ":");
         soFar = soFar + parts[2];
         if (selected < soFar) {
-          print parts[1];
+          print parts[1] - 1;
           exit 0;
         }
       }
-    }' <<< "$line")"
-
-  sed -n "$lineNumber{p;q}" "$markovFile"
+    }' <<< "$line"
 }
 
 # get a full markov grouphug
+#
+# @.startToken optional starting token
 getMarkov() {
   local -r markovFile="$botShare/hugs.markov"
+  mapfile -t markovLines < "$markovFile"
   local line
   if (( $# > 0 )); then
     echo "$@" >&2
@@ -50,16 +49,20 @@ getMarkov() {
       return 1
     fi
   else
-    line="$(head -n 1 "$markovFile" )"
+    line="${markovLines[0]}"
   fi
 
+  local -i lineNumber
+
   while grep -qE "^[{}]" <<< "$line"; do
-    line="$( getMarkovLine "$line" "$markovFile" )"
+    lineNumber="$( getNextMarkovLine "$line" )"
+    line="${markovLines[$lineNumber]}"
   done
     
   while ! grep -qE "^}" <<< "$line"; do
     printf "%s " "${line%%:*}"
-    line="$( getMarkovLine "$line" "$markovFile" )"
+    lineNumber="$( getNextMarkovLine "$line" )"
+    line="${markovLines[$lineNumber]}"
   done \
     | sed -E '
       # replace trailing space with period
