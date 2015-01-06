@@ -2,30 +2,51 @@
 
 set -f
 
-declare -r user="$1"
-declare -r logDir="$2"
+main() {
+  local -r user="$1"
+  local -r logDir="$2"
 
-declare -r expression="$3"
-declare -r targetUser="${4:-$user}"
-declare -r targetLine="${5:-0}"
+  local -r expression="$3"
+  local -r targetUser="${4:-$user}"
+  local -r targetLine="${5:-0}"
 
-find $logDir -name "*_message" -type f -print0 \
-  | sort -rz \
-  | sed -n -z "1,2p" \
-  | xargs -0 tac \
-  | gawk -F "\r" '
-    BEGIN {
-      count = 0
-    }
+  local -r cacheDir="$bufferDir/cache/errors"
 
-    $2 == nick {
-      if ( ! ($6 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s/)) {
-        if (count == targetLine) {
-          print $6
-          exit 0
-        } else {
-          count += 1
-        }
+  if [[ ! -d "$cacheDir" ]]; then
+    mkdir -p "$cacheDir"
+  fi
+
+  local -r tmpFile="$(mktemp -p "$cacheDir" tmp.XXXXXX)"
+
+  find $logDir -name "*_message" -type f -print0 \
+    | sort -rz \
+    | sed -n -z "1,2p" \
+    | xargs -0 tac \
+    | gawk -F "\r" '
+      BEGIN {
+        count = 0
       }
-    }' nick="$targetUser" targetLine="$targetLine" \
-  | sed -E "$expression"
+
+      $2 == nick {
+        if ( ! ($6 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s/)) {
+          if (count == targetLine) {
+            print $6
+            exit 0
+          } else {
+            count += 1
+          }
+        }
+      }' nick="$targetUser" targetLine="$targetLine" \
+    | sed -E "$expression" 2>"$tmpFile"
+
+  if (( $? != 0 )); then
+    local -r sedError="$(head -n 1 "$tmpFile")"
+    if [[ -n "$sedError" ]]; then
+      sed 's/sed: -e expression #1,/Error at/' <<< "$sedError"
+    fi
+  fi
+
+  rm "$tmpFile"
+}
+
+main "$@"
