@@ -141,8 +141,17 @@ parseArgs() {
             getNext=false
             # the following code is safe due to the invariant that i is [a-zA-Z]{1}
             for i in $(grep -o . <<< "${arg#-}"); do
-              # add empty key
-              argMap[$i]=
+              if [[ -n "$previous" ]]; then
+                argMap["$previous"]=
+              fi
+              if [[ -n "${!parameterSet[@]}" ]] && [[ "${parameterSet[$i]+_}" ]]; then
+                previous="$i"
+                getNext=true
+              else
+                argMap["$i"]=
+                previous=
+                getNext=false
+              fi
             done
           fi
           ;;
