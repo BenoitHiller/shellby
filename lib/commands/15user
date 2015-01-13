@@ -94,10 +94,22 @@ updateUserInfo() {
   fi
 }
 
+bufferWho() {
+  local -r userPipe="$1"
+  while true; do
+    sed 's/.*/WHO & %nuhcaf/' < "$userPipe"
+    sleep 1
+  done
+}
+
 monitorUsers() {
   local -r channelRegex="^#"
   local -r botName="$( < "$bufferDir/etc/nickname")" 
-  local -r userDir="$bufferDir/etc/users" 
+  local -r userDir="$bufferDir/etc/users"
+  local -r userPipe="$(mktemp -u "$bufferDir/user.XXXX")"
+
+  mkfifo "$userPipe"
+  bufferWho "$userPipe" &
 
   mkdir -p "$userDir"
 
@@ -124,12 +136,12 @@ monitorUsers() {
             local newNick="$( getFields "$line" 2 )"
             rm "$currentUser/nickserv"
             mv "$currentUser" "$userDir/${newNick#:}"
-            echo WHO "${newNick#:}" %nuhcaf &
+            echo "${newNick#:}" >> "$userPipe"
             ;;
         join)
             local channel="${data[1]}"
             updateUserInfo "$currentUser" "${data[3]}" "${data[4]}"
-            echo WHO "$nick" %nuhcaf &
+            echo "$nick" >> "$userPipe"
             mkdir -p "$currentUser/channels/$channel"
             ;;
         mode)
