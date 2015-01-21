@@ -1,6 +1,8 @@
 #!/bin/bash
 set -f
 
+source "$botLib/utility.sh"
+
 # Checks the local meme file for a query
 #
 # 1.query the query string
@@ -61,7 +63,12 @@ main() {
       result="$( checkKnowYourMeme "$message" )"
     fi 
 
-    echo "$result" | privmsg "$channel"
+    if [[ -z "$result" ]]; then
+        privmsg "$channel" "Not cool enough to be a meme."
+    else
+      echo "$result" | privmsg "$channel"
+    fi 
+
   else
     if [[ ! -e "$memeFile" ]]; then
       exit 2
