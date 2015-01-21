@@ -1,6 +1,14 @@
 #!/bin/bash
 
+source "$botLib/utility.sh"
+
 declare -r channel="$2"
 declare -r message="$6"
 
-man -M "$botShare/man/" "$message" 2>&1 | col -b | privorpaste "$channel" 
+if [[ -z "$message" ]]; then
+  privmsg "$channel" "What did you expect that to do?"
+else
+  man -M "$botShare/man/" "$message" 2>&1 \
+    | col -b \
+    | privorpaste "$channel" 
+fi
