@@ -18,6 +18,6 @@ Eval the provided string, but don't privmsg the output back to the channel.
 .IP -e
 Place the code to be evaled inside a string which is echoed.
 
-e.g. ./eval $RANDOM -> eval echo "$RANDOM"
+e.g. ./eval -e $RANDOM -> eval echo "$RANDOM"
 .IP -m
 Eval the provided string using the bash $(( )) builtin. Note that this uses unquoted expansion on the provided arguments.
