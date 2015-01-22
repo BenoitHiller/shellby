@@ -74,6 +74,16 @@ checkType() {
   return $?
 }
 
+# Gets a random message from a message file
+#
+# 1.file the name of the message file to get from
+# @:1. the parameters to pass to printf
+getMessage() {
+  local -r file="$1"
+  shift
+  printf "$(shuf -n 1 "$botShare/messages/$file")" "$@"
+}
+
 # resplit the passed parameters taking into account quoting
 #
 # @. parameters to split

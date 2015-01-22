@@ -2,31 +2,6 @@
 
 set -f
 
-# generate an error message for invalid permissions
-#
-# 1.nickname the nick of the triggering user
-invalidPermissionsMessage() {
-  local -r nickname="$1"
-
-  local -ra replies=( 
-    "$nickname, has anyone really been far even as decided to use even go want to do look more like?"
-    "lol"
-    "Maybe someday we will be friends $nickname. Then maybe we could talk about it."
-    "Meddle not in forces beyond your comprehension."
-    "Not cool $nickname."
-    "$nickname, that command is for grownups."
-    "$nickname, mhm"
-    "Um wow\nno."
-    "Don't you have a terminal to try that in?"
-    "So how about instead we don't do that?"
-    "Seriously though eval is an admin command."
-    ":("
-  )
-
-  local -ri selection="$(( $RANDOM % ${#replies[@]} ))"
-  echo -e "${replies[$selection]}" 
-}
-
 main() {
 
   local -r nickname="$1"
@@ -41,7 +16,7 @@ main() {
   resplitAndParse "$message"
 
   if ! verify "$nickname" "$username" "$hostname"; then
-    invalidPermissionsMessage "$nickname" | privmsg "$channel" 
+    getMessage evalpermissionserror "$nickname" | privmsg "$channel" 
     exit 0
 
   elif [[ "${argMap[r]+_}" ]]; then

@@ -3,6 +3,7 @@
 set -f 
 
 main() {
+  source "$botLib/utility.sh"
 
   local -r nick="$1"
   local -r channel="$2"
@@ -11,12 +12,6 @@ main() {
   local -r apiKey="$(cat "$botConfig/etc/wolframKey")"
 
   [[ -z $apiKey ]] && exit 2;
-
-  local -ra errorMessages=(
-    "Wolfram could not make heads or tails of your query. For more info give them a call at 1-800-WOLFRAM and mention this error code: $RANDOM."
-    "So wolfram doesn't seem to be able to solve that one. Wait while I check mycourses to see if anyone else has figured it out."
-    "Sorry $nick the query came back empty."
-  )
 
   local result
 
@@ -29,8 +24,7 @@ main() {
   if [[ -n "$result" ]]; then
     privmsg "$channel" "$result"
   else
-    local -ri selectedMessage="$(( $RANDOM % ${#errorMessages[@]} ))"
-    privmsg "$channel" "${errorMessages[$selectedMessage]}"
+    getMessage wolframerror1 "$nick" "$RANDOM" | privmsg "$channel"
   fi
 }
 
