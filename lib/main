@@ -84,14 +84,25 @@ stdbuf -oL netcat -i 1 $TARGETSERVER $PORT < "$bufferDir/toNetcat" \
   | sed -u 's/$//' \
   | tee "$bufferDir/fromNetcat" \
   | grep --line-buffered "^"  & 
-declare -ri pipelinePid=$!
+declare -i pipelinePid=$!
 
 echo started
 
 trap reloadAllConfig SIGHUP
 
+{
+  while ! ps -p $pipelinePid >/dev/null 2>&1; do
+    sleep 5
+  done 
+
+  while ps -p $pipelinePid >/dev/null 2>&1; do
+    sleep 5
+  done 
+
+  echo "!!! Netcat died. Reloading Main."
+
+  kill -USR1 $thisPid
+} &
+
 watchFiles "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 
-wait $pipelinePid 
-
-kill -USR1 $thisPid

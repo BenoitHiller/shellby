@@ -55,6 +55,7 @@ startBot() {
 
 reload() {
   exitp=false
+  echo "!!! Recieved SIGUSR1. Doing main reload."
   kill -TERM -$thisPid
   sleep 10
   startBot &
@@ -64,6 +65,7 @@ trap "reload" SIGUSR1
 
 replace() {
   exitp=false
+  echo "!!! Recieved SIGUSR2. Doing full replace."
   kill -TERM -$thisPid
   wait
   exec "${BASH_SOURCE[0]}"
