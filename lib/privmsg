@@ -10,7 +10,14 @@ if [[ -z "$channel" ]]; then
   exit 1;
 fi
 
-declare -r shellbyHostname="$(< "$bufferDir/etc/nickname")!$(< "$bufferDir/etc/username")@$(< "$bufferDir/etc/hostname")"
+declare shellbyHostname
+
+if [[ -f "$bufferDir/etc/username" && -f "$bufferDir/etc/hostname" ]]; then
+  shellbyHostname="$(< "$bufferDir/etc/nickname")!$(< "$bufferDir/etc/username")@$(< "$bufferDir/etc/hostname")"
+else
+  source "$botConfig/etc/config"
+  shellbyHostname="$NICK!$USER@$HOSTNAME"
+fi
 
 if [[ -n "$message" ]]; then
   printf "%s\n" "$message"

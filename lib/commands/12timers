@@ -52,11 +52,13 @@ thirtyLoop() {
     updateUptimeStats
 
     local botName="$(cat "$bufferDir/etc/nickname")" 
-    while read -r channel; do
-      if [[ ! -d "$bufferDir/etc/users/$botName/channels/$channel" ]]; then
-        echo JOIN "$channel" &
-      fi
-    done < "$bufferDir/etc/channels"
+    if [[ -f "$bufferDir/etc/channels" ]]; then
+      while read -r channel; do
+        if [[ ! -d "$bufferDir/etc/users/$botName/channels/$channel" ]]; then
+          echo JOIN "$channel" &
+        fi
+      done < "$bufferDir/etc/channels"
+    fi
     sleep 30
   done
 }

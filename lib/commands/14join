@@ -7,7 +7,8 @@ watchJoins() {
   grep --line-buffered -iE "^:$botName!\S+\s+JOIN\s+" \
     | while read -r line; do
         local channel="$(getFields "$line" 2)"
-        if ! grep -Fqx "$channel" "$bufferDir/etc/channels"; then
+        if [[ ! -f "$bufferDir/etc/channels" ]] \
+          || ! grep -Fqx "$channel" "$bufferDir/etc/channels"; then
           echo "$channel" >> "$bufferDir/etc/channels" 
         fi
         echo WHO "$channel" %nuhacf &

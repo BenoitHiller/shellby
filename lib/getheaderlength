@@ -1,7 +1,16 @@
 #!/bin/bash
 
-declare -r nickname="$(cat "$bufferDir/etc/nickname")"
-declare -r username="$(cat "$bufferDir/etc/username")"
-declare -r hostname="$(cat "$bufferDir/etc/hostname")"
+declare nickname="$(cat "$bufferDir/etc/nickname")"
+
+declare username
+declare hostname
+
+if [[ -f "$bufferDir/etc/username" && -f "$bufferDir/etc/hostname" ]]; then
+  username="$(cat "$bufferDir/etc/username")"
+  hostname="$(cat "$bufferDir/etc/hostname")"
+else
+  username="$USER"
+  hostname="$HOSTNAME"
+fi
 
 printf ":%s!%s@%s  " "$nickname" "$username" "$hostname" | wc -c
