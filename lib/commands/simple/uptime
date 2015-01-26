@@ -35,7 +35,8 @@ main() {
   fi
 
   local -ri started="$(stat -c %Z "$bufferDir")"
-  local -ri current="$(date +%s)"
+  local -i current
+  printf -v current "%(%s)T"
 
   local -ri elapsed=$((current - started))
 

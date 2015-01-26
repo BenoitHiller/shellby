@@ -36,9 +36,9 @@ updateChannelInfo() {
   rm "$channelDir/voice" 2>/dev/null
 
   if [[ "$flags" =~ @ ]]; then
-    date +%s > "$channelDir/op"
+    printf "%(%s)T\n" > "$channelDir/op"
   elif [[ "$flags" =~ \+ ]]; then
-    date +%s > "$channelDir/voice"
+    printf "%(%s)T\n" > "$channelDir/voice"
   fi 
 }
 
@@ -64,10 +64,10 @@ updateMode() {
     fi
   else
     if [[ "$mode" =~ o ]]; then
-      date +%s > "$channelDir/op"
+      printf "%(%s)T\n" > "$channelDir/op"
     fi
     if [[ "$mode" =~ v ]]; then
-      date +%s > "$channelDir/voice"
+      printf "%(%s)T\n" > "$channelDir/voice"
     fi
   fi
 }

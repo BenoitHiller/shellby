@@ -21,7 +21,8 @@ main() {
     local channel="${data[1]}"
     local key="$nick $channel ${data[*]:3:2}"
     
-    local -i current="$(date +%s)" 
+    local -i current
+    printf -v current "%(%s)T" 
     local -i previous="${lastTime[$key]}"
     local -i elapsed=$((current - previous))
     lastTime["$key"]="$current"

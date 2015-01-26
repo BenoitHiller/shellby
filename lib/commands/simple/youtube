@@ -13,9 +13,9 @@ source "$botLib/utility.sh"
 # 1.searchChannel the channel to search in
 getLastId() {
   local -r searchChannel="$1"
-  local -r date="$(date +%Y/%m/%d)"
 
-  local -r logFile="$botConfig/logs/$searchChannel/${date}_message"
+  local logFile
+  printf -v logFile "%s/logs/%s/%(%Y/%m/%d)T_message" "$botConfig" "$searchChannel"
 
   tac "$logFile" \
     | awk -F "\r" '{print $6}' \

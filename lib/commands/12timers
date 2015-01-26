@@ -3,7 +3,8 @@
 updateUptime() {
   local -ri started="$(stat -c %Z "$bufferDir")"
   if (($? == 0)); then
-    local -ri current="$(date +%s)"
+    local -i current
+    printf -v current "%(%s)T"
 
     local -ri elapsed=$((current - started))
     if [[ ! -f "$botLogs/uptime" ]]; then
@@ -34,15 +35,14 @@ updateUptimeStats() {
 
     echo "$newData" > "$botLogs/uptimeStats"
   else
-    local -r date="$(date +%s)"
-    echo "1 $date $date" > "$botLogs/uptimeStats"
+    printf "1 %(%s)T %(%s)T\n" > "$botLogs/uptimeStats"
   fi
 }
 
 thirtyLoop() {
   while true; do
     if (($(date +%s) - $(< "$bufferDir/etc/lastContact") > 300)); then
-      echo "Restarted at: $(date +%s) after no contact since $(< "$bufferDir/etc/lastContact")" >&2
+      printf "Restarted at: %(%s)T after no contact since %s\n" "$(< "$bufferDir/etc/lastContact")" >&2
       kill -USR1 $thisPid
     fi
 

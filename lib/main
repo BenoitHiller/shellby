@@ -56,7 +56,7 @@ done
 # update uptime #
 #################
 
-date +%s > "$bufferDir/etc/lastContact"
+printf "%(%s)T" > "$bufferDir/etc/lastContact"
 
 if [[ -f "$botLogs/uptimeStats" ]]; then
   declare uptimeStats="$(gawk '

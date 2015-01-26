@@ -3,5 +3,5 @@
 trap '' SIGHUP
 
 while read -r line; do
-  date +%s > "$bufferDir/etc/lastContact"
+  printf "%(%s)T\n" > "$bufferDir/etc/lastContact"
 done
