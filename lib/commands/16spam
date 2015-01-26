@@ -14,7 +14,7 @@ main() {
   )
   local -A tokens=()
   local -A lastTime=()
-  local botName="$(cat "$bufferDir/etc/nickname")" 
+  local botName="$(< "$bufferDir/etc/nickname")" 
   while read -r line; do
     local -a data=( $(getIRCInfo "$line") ) 
     local nick="${data[0]}"

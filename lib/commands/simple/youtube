@@ -37,7 +37,7 @@ main() {
   # Main #
   ########
 
-  local -r apiKey="$(cat "$botConfig/etc/youtubeKey")"
+  local -r apiKey="$(< "$botConfig/etc/youtubeKey")"
 
   [[ -z $apiKey ]] && exit 2;
 

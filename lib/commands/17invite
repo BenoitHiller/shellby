@@ -4,7 +4,7 @@ source "$botLib/utility.sh"
 source "$botLib/users.sh"
 
 main() {
-  local botName="$(cat "$bufferDir/etc/nickname")" 
+  local botName="$(< "$bufferDir/etc/nickname")" 
   grep --line-buffered -iE ":?\S+\s+invite\s+" \
     | while read -r line; do
       local -a data=( $(getIRCInfo "$line") ) 

@@ -3,7 +3,7 @@
 source "$botLib/utility.sh"
 
 watchJoins() {
-  local botName="$( cat "$bufferDir/etc/nickname" )" 
+  local botName="$(< "$bufferDir/etc/nickname" )" 
   grep --line-buffered -iE "^:$botName!\S+\s+JOIN\s+" \
     | while read -r line; do
         local channel="$(getFields "$line" 2)"

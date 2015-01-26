@@ -9,7 +9,7 @@ main() {
   local -r channel="$2"
   local -r message="$6"
 
-  local -r apiKey="$(cat "$botConfig/etc/wolframKey")"
+  local -r apiKey="$(< "$botConfig/etc/wolframKey")"
 
   [[ -z $apiKey ]] && exit 2;
 

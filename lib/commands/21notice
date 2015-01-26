@@ -3,7 +3,7 @@
 source "$botConfig/etc/config"
 declare password
 if [[ -f "$botConfig/etc/password" ]]; then
-  password="$(cat "$botConfig/etc/password")"
+  password="$(< "$botConfig/etc/password")"
 fi
 export password
 trap '' SIGHUP

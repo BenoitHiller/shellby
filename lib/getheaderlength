@@ -1,13 +1,13 @@
 #!/bin/bash
 
-declare nickname="$(cat "$bufferDir/etc/nickname")"
+declare nickname="$(< "$bufferDir/etc/nickname")"
 
 declare username
 declare hostname
 
 if [[ -f "$bufferDir/etc/username" && -f "$bufferDir/etc/hostname" ]]; then
-  username="$(cat "$bufferDir/etc/username")"
-  hostname="$(cat "$bufferDir/etc/hostname")"
+  username="$(< "$bufferDir/etc/username")"
+  hostname="$(< "$bufferDir/etc/hostname")"
 else
   username="$USER"
   hostname="$HOSTNAME"

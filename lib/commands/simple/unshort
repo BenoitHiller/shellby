@@ -32,7 +32,7 @@ main() {
   # Main #
   ########
 
-  local -r apiKey="$(cat "$botConfig/etc/unshortenKey")"
+  local -r apiKey="$(< "$botConfig/etc/unshortenKey")"
 
   [[ -z $apiKey ]] && exit 2;
 

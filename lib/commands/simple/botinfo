@@ -3,4 +3,4 @@ set -f
 
 declare -r channel="$2"
 
-cat "$botShare/botInfo/$channel" | privmsg "$channel"
+privmsg "$channel" < "$botShare/botInfo/$channel"

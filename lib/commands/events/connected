@@ -8,4 +8,4 @@ if [[ ! -z "$CHANNELS" ]] && [ "${#CHANNELS[@]}" -gt 0 ]; then
   done
 fi
 
-echo WHOIS $(cat "$bufferDir/etc/nickname") &
+echo WHOIS $(< "$bufferDir/etc/nickname") &

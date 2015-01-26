@@ -29,7 +29,7 @@ main() {
   local -r channel="$2"
 
   local -i previous
-  previous="$(cat "$botLogs/uptime")"
+  previous="$(< "$botLogs/uptime")"
   if (($?)); then
     previous=0
   fi

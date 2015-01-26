@@ -4,7 +4,7 @@ declare -r nick="$1"
 declare -r username="$2"
 declare -r host="$3"
 
-declare -r currentNick="$(cat "$bufferDir/etc/nickname")"
+declare -r currentNick="$(< "$bufferDir/etc/nickname")"
 
 if [[ "$nick" == "$currentNick" ]]; then
   echo "$username" > "$bufferDir/etc/username"

@@ -9,7 +9,7 @@ updateUptime() {
     if [[ ! -f "$botLogs/uptime" ]]; then
       echo "$elapsed" > "$botLogs/uptime"
     else
-      local -ri previous=$(cat "$botLogs/uptime")
+      local -ri previous=$(< "$botLogs/uptime")
       if ((previous < elapsed)); then
         echo "$elapsed" > "$botLogs/uptime"
       fi
@@ -41,8 +41,8 @@ updateUptimeStats() {
 
 thirtyLoop() {
   while true; do
-    if (( $(date +%s) - $(cat "$bufferDir/etc/lastContact") > 300 )); then
-      echo "Restarted at: $(date +%s) after no contact since $(cat "$bufferDir/etc/lastContact")" >&2
+    if (( $(date +%s) - $(< "$bufferDir/etc/lastContact") > 300 )); then
+      echo "Restarted at: $(date +%s) after no contact since $(< "$bufferDir/etc/lastContact")" >&2
       kill -USR1 $thisPid
     fi
 
@@ -51,7 +51,7 @@ thirtyLoop() {
     updateUptime
     updateUptimeStats
 
-    local botName="$(cat "$bufferDir/etc/nickname")" 
+    local botName="$(< "$bufferDir/etc/nickname")" 
     if [[ -f "$bufferDir/etc/channels" ]]; then
       while read -r channel; do
         if [[ ! -d "$bufferDir/etc/users/$botName/channels/$channel" ]]; then
@@ -65,7 +65,7 @@ thirtyLoop() {
 
 oneTwentyLoop() {
   while true; do
-    echo WHOIS $(cat "$bufferDir/etc/nickname") &
+    echo WHOIS $(< "$bufferDir/etc/nickname") &
     if [[ -f "$bufferDir/etc/channels" ]]; then
       while read -r channel; do
         echo WHO "$channel" %nuhacf &

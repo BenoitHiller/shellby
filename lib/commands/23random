@@ -31,7 +31,7 @@ checkSilence() {
     local -i hour="$( date +%H | sed 's/^0//' )"
     
     if (( hour >= 9 )); then
-      local botName="$( cat "$bufferDir/etc/nickname" )" 
+      local botName="$(< "$bufferDir/etc/nickname" )" 
       while read -r channel; do
         local -a info=( $( getLast "$channel" ) )
         local -i lastTime="${info[0]}"

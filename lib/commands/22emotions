@@ -3,7 +3,7 @@
 source "$botLib/utility.sh"
 
 unKarma() {
-  local botName="$(cat "$bufferDir/etc/nickname")" 
+  local botName="$(< "$bufferDir/etc/nickname")" 
   local -a reactions
 
   grep --line-buffered -iE "^\S+\s+privmsg\s+#\S+\s+:(($botName[:,] --(\b|$))|(.*\b$botName--(\b|$)))" \
