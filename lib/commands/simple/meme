@@ -25,7 +25,7 @@ checkMemeFile() {
 checkKnowYourMeme() {
   local -r query="$1"
   local -ar sortTypes=( views relevance ) 
-  local -r sortType="${sortTypes[$(( $RANDOM % 2))]}"
+  local -r sortType="${sortTypes[$(($RANDOM % 2))]}"
 
   curl -s -G --data "context=images&sort=$sortType" --data-urlencode "q=$query" http://knowyourmeme.com/search/ \
     | sed -nE "
@@ -57,10 +57,10 @@ main() {
   local -r filteredMemeString="$(tr A-Z a-z <<< "$message" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
 
   if [[ -n "$message" ]]; then
-    local result="$( checkMemeFile "$message" )"
+    local result="$(checkMemeFile "$message")"
 
     if [[ -z "$result" ]]; then
-      result="$( checkKnowYourMeme "$message" )"
+      result="$(checkKnowYourMeme "$message")"
     fi 
 
     if [[ -z "$result" ]]; then

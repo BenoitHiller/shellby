@@ -33,7 +33,7 @@ fi
 declare -r botConfig="$HOME/.shellby"
 export botConfig
 
-declare -r parentDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
+declare -r parentDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
 declare botLib
 declare botShare
 

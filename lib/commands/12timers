@@ -41,7 +41,7 @@ updateUptimeStats() {
 
 thirtyLoop() {
   while true; do
-    if (( $(date +%s) - $(< "$bufferDir/etc/lastContact") > 300 )); then
+    if (($(date +%s) - $(< "$bufferDir/etc/lastContact") > 300)); then
       echo "Restarted at: $(date +%s) after no contact since $(< "$bufferDir/etc/lastContact")" >&2
       kill -USR1 $thisPid
     fi
@@ -80,7 +80,7 @@ oneHourLoop() {
     if [[ -d "$bufferDir/cache/pastebin/" ]]; then
       find "$bufferDir/cache/pastebin/" -name "md5.*" -mtime +6 -exec rm {} \;
     fi
-    sleep $(( 60 * 60 ))
+    sleep $((60 * 60))
   done
 }
 

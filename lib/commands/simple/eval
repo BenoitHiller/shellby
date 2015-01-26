@@ -24,7 +24,7 @@ main() {
   elif [[ "${argMap[e]+_}" ]]; then 
     ( eval echo "${vargs[@]}" 2>&1 | privorpaste "$channel" ) &
   elif [[ "${argMap[m]+_}" ]]; then 
-    ( eval echo "$(( ${vargs[@]} ))" 2>&1 | privorpaste "$channel" ) &
+    ( eval echo "$((${vargs[@]}))" 2>&1 | privorpaste "$channel" ) &
   else
     ( eval "${vargs[@]}" 2>&1 | privorpaste "$channel" ) &
   fi

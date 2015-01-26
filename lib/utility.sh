@@ -19,11 +19,11 @@ declare -r urlRegex='\b((?:https?:(?:/{1,3}|[a-z0-9%]))(?:[^\s()<>{}[]]+|([^\s()
 killtree() {
   local -a safePids=()
   for arg in "$@"; do
-    if (( $arg > 0 )); then
+    if (($arg > 0)); then
       safePids+=( "$arg" )
     fi
   done
-  if (( ${#safePids[@]} > 0 )); then
+  if ((${#safePids[@]} > 0)); then
     local joinedPids=$(sed -E 's/\s+/,/g' <<< "${safePids[@]}")
 
     local -ra children=( $(pgrep -P "$joinedPids") )
@@ -41,7 +41,7 @@ ifEmpty() {
   local -r message="$1"
 
   if read -r line; then
-    cat <( echo "$line" ) -
+    cat <(echo "$line") -
   else
     echo "$message"
   fi
@@ -126,7 +126,7 @@ parseArgs() {
     argMap=()
     vargs=()
 
-    while (( $# > 0 )); do
+    while (($# > 0)); do
       arg="$1"
       shift
       
@@ -136,7 +136,7 @@ parseArgs() {
             argMap["$previous"]=
           fi
 
-          if (( ${#arg} == 2 )); then
+          if ((${#arg} == 2)); then
             local char="${arg:1:1}"
             if [[ -n "${!parameterSet[@]}" ]] && [[ "${parameterSet[$char]+_}" ]]; then
               previous="$char"
@@ -219,9 +219,9 @@ parseArgs() {
 getIRCInfo() {
   local -r inputString="$1"
 
-  local -a infoArray=( $( sed -E 's/^:?([^![:space:]]+)(!([^@[:space:]]+)@(\S+))?\s+(\S+)\s+(\S+)(\s+.*)?/\1 \6 \5 \3 \4/' <<< "$inputString" ) )
+  local -a infoArray=( $(sed -E 's/^:?([^![:space:]]+)(!([^@[:space:]]+)@(\S+))?\s+(\S+)\s+(\S+)(\s+.*)?/\1 \6 \5 \3 \4/' <<< "$inputString") )
 
-  if (( ${#infoArray[@]} < 2 )); then
+  if ((${#infoArray[@]} < 2)); then
     return 1
   fi
 
@@ -284,7 +284,7 @@ startAndWatch() {
   while true; do
     if [[ -n "$watchedFunctionPid" ]]; then
       wait $watchedFunctionPid
-      if (( $? != 0 )); then
+      if (($? != 0)); then
         return
       fi
     fi

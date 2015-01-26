@@ -8,23 +8,23 @@ BEGIN {
 
 $1 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s$/ && length($2) == 1 {
   flags = ""
-  if($NF ~ /[giI0-9]+\s*/) {
-    if($NF ~ /[iI]/) {
+  if ($NF ~ /[giI0-9]+\s*/) {
+    if ($NF ~ /[iI]/) {
       flags = flags "I"
     }
-    if($NF ~ /g/) {
+    if ($NF ~ /g/) {
       flags = flags "g"
     }
-    if($NF ~ /[0-9]+/) {
+    if ($NF ~ /[0-9]+/) {
       match($NF, /[0-9]+/, countMatch)
-      if(countMatch[0] > 0)
+      if (countMatch[0] > 0)
       {
         flags = flags countMatch[0]
       }
     }
     end = NF - 1
   }
-  else if($NF == $2) {
+  else if ($NF == $2) {
     # we therefore can't have any flags
     end = NF
   }
@@ -39,10 +39,10 @@ $1 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s$/ && length($2) == 1 {
 
   for(i = 3; i <= end; i++) {
     # If this token has preceeding backslashes
-    if(length($i) > 1)
+    if (length($i) > 1)
     {
       # If there is an even number of backslashes
-      if(length($i) % 2 == 1) {
+      if (length($i) % 2 == 1) {
         expression = expression substr($i,1,length($i) - 1)
         c = substr($i,length($i)) 
       }
@@ -50,7 +50,7 @@ $1 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s$/ && length($2) == 1 {
       {
         lastChar = substr($i,length($i)) 
         # if we want to double escape the sequence to prevent issues
-        if(lastChar ~ illegalEscapes)
+        if (lastChar ~ illegalEscapes)
         {
           expression = expression substr($i,1,length($i) - 1) "\\"
           c = lastChar
@@ -58,7 +58,7 @@ $1 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s$/ && length($2) == 1 {
         # if we want to include the escape sequence
         else {
           c = substr($i,length($i) - 1)
-          if(length($i) > 2) {
+          if (length($i) > 2) {
             expression = expression substr($i,1,length($i) - 2)
           }
         }
@@ -69,11 +69,11 @@ $1 ~ /^[^:[:space:]+]*(\+[1-9][0-9]*)?:s$/ && length($2) == 1 {
     }
 
     # on reading the delimiter character
-    if(c == $2) {
+    if (c == $2) {
       # check if we are in the search or the replacement
-      if(searchDone) {
+      if (searchDone) {
         # if we are in the replcaement check if we terminated correctly
-        if(i == end) {
+        if (i == end) {
           print expression c flags
           break
         }

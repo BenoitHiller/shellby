@@ -8,7 +8,7 @@ function logLine(user,action,message,channel,type) {
   sub(/\r/,"",message)
   split(user, userParts, "[!@]")
 
-  if(length(channel) == 0) {
+  if (length(channel) == 0) {
     dir=logDir "/" strftime("%Y/%m")
   }
   else {
@@ -29,7 +29,7 @@ function logLine(user,action,message,channel,type) {
 
 /^\S+\s+privmsg\s/ {
   message=substr($4,3)
-  if(message ~ /ACTION.*$/) {
+  if (message ~ /ACTION.*$/) {
     action = "action"
     sub(/^ACTION\s/,"",message)
     sub(/$/,"",message)

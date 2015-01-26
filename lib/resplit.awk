@@ -15,8 +15,8 @@ BEGIN {
   currentIndex = 0
   items[0] = ""
   for(i = 1; i <= NF; i++) {
-    if($i == "\\") {
-      if(escaped) {
+    if ($i == "\\") {
+      if (escaped) {
         items[currentIndex] = items[currentIndex] $i
         escaped = false
       }
@@ -24,7 +24,7 @@ BEGIN {
         escaped = true
       }
     }
-    else if($i == "'") {
+    else if ($i == "'") {
       if (escaped) {
         if (doubleQuoted) {
           items[currentIndex] = items[currentIndex] "\\"
@@ -32,14 +32,14 @@ BEGIN {
         items[currentIndex] = items[currentIndex] $i
         escaped = false
       }
-      else if(doubleQuoted) {
+      else if (doubleQuoted) {
         items[currentIndex] = items[currentIndex] $i
       }
       else {
         singleQuoted = ! singleQuoted
       }
     }
-    else if($i == "\"" ) {
+    else if ($i == "\"") {
       if (escaped) {
         if (singleQuoted) {
           items[currentIndex] = items[currentIndex] "\\"
@@ -47,29 +47,29 @@ BEGIN {
         items[currentIndex] = items[currentIndex] $i
         escaped = false
       }
-      else if(singleQuoted) {
+      else if (singleQuoted) {
         items[currentIndex] = items[currentIndex] $i
       }
       else {
         doubleQuoted = ! doubleQuoted
       }
-    } else if($i ~ /[[:space:]]/) {
-      if(escaped) {
+    } else if ($i ~ /[[:space:]]/) {
+      if (escaped) {
         items[currentIndex] = items[currentIndex] $i
         escaped = false
       }
-      else if(singleQuoted || doubleQuoted) {
+      else if (singleQuoted || doubleQuoted) {
         items[currentIndex] = items[currentIndex] $i
       }
       else {
         currentIndex++
-        while(i < NF && $(i+1) ~ /[[:space:]]/) {
+        while (i < NF && $(i+1) ~ /[[:space:]]/) {
           i++
         }
       }
     }
     else {
-      if(escaped) {
+      if (escaped) {
         items[currentIndex] = items[currentIndex] "\\"
         escaped = false
       }

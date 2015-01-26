@@ -22,7 +22,7 @@ verify() {
         return 1
       fi
     else
-      username="$( < "$userDir/username")"
+      username="$(< "$userDir/username")"
     fi
   fi
 
@@ -32,7 +32,7 @@ verify() {
         return 1
       fi
     else
-      hostname="$( < "$userDir/hostname")"
+      hostname="$(< "$userDir/hostname")"
     fi
   fi
 
@@ -42,7 +42,7 @@ verify() {
         return 1
       fi
     else
-      nickserv="$( < "$userDir/nickserv")"
+      nickserv="$(< "$userDir/nickserv")"
     fi
   fi
 

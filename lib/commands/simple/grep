@@ -127,7 +127,7 @@ main() {
 
   resplitAndParse "$message"
 
-  if (( ${#vargs[@]} > 0 )); then
+  if ((${#vargs[@]} > 0)); then
 
     ###########################
     # Process Time parameters #
@@ -151,7 +151,7 @@ main() {
     # Process other parameters #
     ############################
 
-    local gargs="$( printf "%s " "${vargs[@]}" | sed 's/ $//;s/\\r/\r/g')"
+    local gargs="$(printf "%s " "${vargs[@]}" | sed 's/ $//;s/\\r/\r/g')"
 
     local -a gflags=( )
 
@@ -190,7 +190,7 @@ main() {
     local -ir perlRegex="${argMap[P]+1}"
     local -ir fixedMatch="${argMap[F]+1}"
 
-    if (( extendedRegex + perlRegex + fixedMatch > 1 )); then
+    if ((extendedRegex + perlRegex + fixedMatch > 1)); then
       privmsg "$channel" "Um, that is more than one regex engine at once. Want to try again?"
       exit 0
     fi
@@ -210,7 +210,7 @@ main() {
       "Error: your query was dumb"
     )
 
-    local -ri selection="$(( RANDOM % ${#emptyMessages[@]} ))"
+    local -ri selection="$((RANDOM % ${#emptyMessages[@]}))"
 
     find "$botLogs/$targetChannel" -type f -name '*_message' -print0 \
       | filterDateRange "${startTime[@]}" "${endTime[@]}" \

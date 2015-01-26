@@ -19,7 +19,7 @@ main() {
     | grep -oaPz "((?<=title=')[^']+)|((?<=<plaintext>)[^<]+)" \
     | sed '1{N;s/\n/ = /}' \
     | tr '\n' ' ' \
-    | decodehtml.awk )"
+    | decodehtml.awk)"
 
   if [[ -n "$result" ]]; then
     privmsg "$channel" "$result"

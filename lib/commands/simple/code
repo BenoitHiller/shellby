@@ -65,7 +65,7 @@ main() {
     local length="$(wc -c <<< "$reply")"
     local lines="$(wc -l <<< "$reply")"
 
-    if (( length + headerLength < 510 && lines <= 1 )); then
+    if ((length + headerLength < 510 && lines <= 1)); then
       echo "$reply"| privmsg "$channel" 
     else
       echo "$url" | privmsg "$channel"

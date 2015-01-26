@@ -39,7 +39,7 @@ main() {
       }' nick="$targetUser" targetLine="$targetLine" \
     | sed -E "$expression" 2>"$tmpFile"
 
-  if (( $? != 0 )); then
+  if (($? != 0)); then
     local -r sedError="$(head -n 1 "$tmpFile")"
     if [[ -n "$sedError" ]]; then
       sed 's/sed: -e expression #1,/Error at/' <<< "$sedError"

@@ -19,20 +19,20 @@ BEGIN {
 
 {
   inEntity = 0
-  for(i = 1; i <= NF ; i++ ) {
-    if(length($i) > 0) {
-      if(!inEntity && $i ~ /&$/) {
+  for(i = 1; i <= NF ; i++) {
+    if (length($i) > 0) {
+      if (!inEntity && $i ~ /&$/) {
         inEntity = 1
         printf("%s", substr($i, 1, length($i) - 1))
       }
-      else if(inEntity && $i ~ /;$/) {
+      else if (inEntity && $i ~ /;$/) {
         inEntity = 0
         entityString = "&" $i
-        if(entityString in entities) {
+        if (entityString in entities) {
           printf("%s", entities[entityString])
         }
       }
-      else if(!inEntity) {
+      else if (!inEntity) {
         printf("%s", $i)
       }
     }

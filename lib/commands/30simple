@@ -8,12 +8,12 @@ parseCommands() {
   grep --line-buffered -iE "^\S+\s+privmsg\s+((#\S+\s+:(($botName\>)|(\./)))|([^#[:space:]]+\s+:))" \
     | while read -r line; do
       local -a data=( $(getIRCInfo "$line") ) 
-      local message="$(getMessageNoNick "$line" "$botName" )"
+      local message="$(getMessageNoNick "$line" "$botName")"
 
       local command="${message%%[[:space:]]*}"
       local commandName="${command##./}"
       if [[ ! $commandName =~ [^a-zA-Z0-9] ]]; then
-        local justMessage="$( sed -E 's/^\s+//' <<< "${message##$command}")"
+        local justMessage="$(sed -E 's/^\s+//' <<< "${message##$command}")"
         if [[ -e "$botLib/commands/simple/$commandName" ]]; then
           # run command with the following params
           # FROMNICK FROMNICK/CHANNEL CMD USERNAME HOSTNAME MESSAGE

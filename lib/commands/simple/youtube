@@ -68,8 +68,8 @@ main() {
 
   local snippet
   
-  snippet="$( curl -G -s -m 10 "https://www.googleapis.com/youtube/v3/videos" --data "part=snippet&id=$videoId&key=$apiKey")"
-  if (( $? == 0 )); then
+  snippet="$(curl -G -s -m 10 "https://www.googleapis.com/youtube/v3/videos" --data "part=snippet&id=$videoId&key=$apiKey")"
+  if (($? == 0)); then
     echo "$snippet" \
       | sed -E -n '
         s/^\s+"title":\s+"//

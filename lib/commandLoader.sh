@@ -39,7 +39,7 @@ replacePipe() {
 
   local -r pName="${pipes[$file]}"
   local -r commandName="$(basename "$file")"
-  local checksum="$( md5sum "$coreFile")"
+  local checksum="$(md5sum "$coreFile")"
   md5s["$coreFile"]="$checksum"
 
   exec {IN}<"$bufferDir/$pName.i"
@@ -58,8 +58,8 @@ startCommand() {
   local -r coreFile="$1"
   local -r output="$2"
 
-  local pName="$( md5sum <<< "$coreFile" | cut -d " " -f 1 )"
-  local checksum="$( md5sum "$coreFile")"
+  local pName="$(md5sum <<< "$coreFile" | cut -d " " -f 1)"
+  local checksum="$(md5sum "$coreFile")"
   local commandName="$(basename "$coreFile")"
 
   pipes["$coreFile"]="$pName"

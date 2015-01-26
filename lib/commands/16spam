@@ -21,13 +21,13 @@ main() {
     local channel="${data[1]}"
     local key="$nick $channel ${data[*]:3:2}"
     
-    local -i current="$( date +%s )" 
+    local -i current="$(date +%s)" 
     local -i previous="${lastTime[$key]}"
     local -i elapsed=$((current - previous))
     lastTime["$key"]="$current"
     
     local -i currentTokens="${tokens[$key]}"
-    local -i addTokens=$(( elapsed / 10 ))
+    local -i addTokens=$((elapsed / 10))
     currentTokens=$((
       addTokens + currentTokens > 6
         ? 5
@@ -35,9 +35,9 @@ main() {
     ))
     tokens["$key"]="$currentTokens"
 
-    if (( currentTokens <= 0 )) && [[ "$nick" != "$botName" ]]; then
+    if ((currentTokens <= 0)) && [[ "$nick" != "$botName" ]]; then
       if isOp "$botName" "${data[1]}"; then
-        local selection=$(( RANDOM % ${#messages[@]} ))
+        local selection=$((RANDOM % ${#messages[@]}))
         echo "KICK $channel $nick :${messages[$selection]}"
       else
         echo "kick $nick from $channel" >&2

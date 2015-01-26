@@ -7,9 +7,9 @@ printDate() {
   local -ri totalSeconds="$1"
 
   local -ri seconds=$((totalSeconds % 60))
-  local -ri minutes=$(( (totalSeconds / 60 ) % 60))
-  local -ri hours=$(( (totalSeconds / 60 / 60) % 24 ))
-  local -ri days=$(( totalSeconds / 60 / 60 / 24 ))
+  local -ri minutes=$(((totalSeconds / 60) % 60))
+  local -ri hours=$(((totalSeconds / 60 / 60) % 24))
+  local -ri days=$((totalSeconds / 60 / 60 / 24))
 
   printf "%d days, %d hours, %d minutes and %d seconds" $days $hours $minutes $seconds 
 }

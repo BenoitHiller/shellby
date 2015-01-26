@@ -56,8 +56,8 @@ main() {
 
   local url
 
-  url="$( curl -G -s -m 10 http://api.unshorten.it/ --data "apiKey=$apiKey" --data-urlencode "shortURL=$searchUrl")"
-  if (( $? == 0 )); then
+  url="$(curl -G -s -m 10 http://api.unshorten.it/ --data "apiKey=$apiKey" --data-urlencode "shortURL=$searchUrl")"
+  if (($? == 0)); then
     if [[ "$url" =~ ^error ]]; then
       privmsg "$channel" "Their server is very rude. I was saying \"Hello, could you unshorten $searchUrl please?\" and it just said \"ERROR (0)\"."
     else

@@ -17,7 +17,7 @@ gawk '
 }
 
 /^:?NickServ!NickServ@services\.\s+NOTICE\s+\S+\s+:This nickname is registered./{
-  if(ENVIRON["password"] != "") {
+  if (ENVIRON["password"] != "") {
     print "NS identify " ENVIRON["password"]
   }
 }' user=$USER nick=$NICK realname="$REALNAME" hostname=$HOSTNAME servername=$SERVERNAME

@@ -34,8 +34,8 @@ getMarkov() {
   local -r markovFile="$botShare/hugs.markov"
   mapfile -t markovLines < "$markovFile"
   local -i lineNumber=0
-  if (( $# > 0 )); then
-    local startToken="$( sed "s/[^a-zA-Z0-9'-]//g" <<< "$1" )"
+  if (($# > 0)); then
+    local startToken="$(sed "s/[^a-zA-Z0-9'-]//g" <<< "$1")"
     if [[ -z "$startToken" ]]; then
       echo "I can't work with that."
       return 1
@@ -50,13 +50,13 @@ getMarkov() {
   fi
 
 
-  while (( lineNumber <= 1 )); do
-    lineNumber="$( getNextMarkovLine <<< "${markovLines[$lineNumber]}")"
+  while ((lineNumber <= 1)); do
+    lineNumber="$(getNextMarkovLine <<< "${markovLines[$lineNumber]}")"
   done
     
-  while (( lineNumber > 1 )); do
+  while ((lineNumber > 1)); do
     printf "%s " "${markovLines[$lineNumber]%%:*}"
-    lineNumber="$( getNextMarkovLine <<< "${markovLines[$lineNumber]}")"
+    lineNumber="$(getNextMarkovLine <<< "${markovLines[$lineNumber]}")"
   done \
     | sed -E '
       # replace trailing space with period
@@ -105,7 +105,7 @@ main() {
 
     [[ ! -e "$hugFile" ]] && exit 2
 
-    if (( ${#vargs[@]} > 0 )); then
+    if ((${#vargs[@]} > 0)); then
         searchHugs "${vargs[*]}" "$hugFile" | privorpaste "$channel"
     else
       shuf -n 1 "$hugFile" \
