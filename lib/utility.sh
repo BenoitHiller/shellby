@@ -47,16 +47,6 @@ ifEmpty() {
   fi
 }
 
-
-# Checks if the type of a variable matches the specified type
-checkType() {
-  local -r variable="$1"
-  local -r type="$2"
-
-  declare -p "$variable" 2>/dev/null | grep -qE "^declare -$type"
-  return $?
-}
-
 # Gets a random message from a message file
 #
 # 1.file the name of the message file to get from

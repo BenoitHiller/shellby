@@ -1,3 +1,12 @@
+# Checks if the type of a variable matches the specified type
+checkType() {
+  local -r variable="$1"
+  local -r type="$2"
+
+  declare -p "$variable" 2>/dev/null | grep -qE "^declare -$type"
+  return $?
+}
+
 # parseArgs.sh
 #
 # This is an argument parser that dumps the results into two arrays.
