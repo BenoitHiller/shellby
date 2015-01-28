@@ -1,6 +1,9 @@
 #!/bin/bash
 
-source "$botLib/utility.sh"
+set -f
+
+source "$botLib/irc.sh"
+source "$botLib/functionUtils.sh"
 source "$botLib/users.sh"
 
 main() {

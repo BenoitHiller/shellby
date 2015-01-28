@@ -1,9 +1,11 @@
 #!/bin/bash
 
-source "$botLib/utility.sh"
+set -f
+
+source "$botLib/functionUtils.sh"
+source "$botLib/irc.sh"
 
 parseCommands() {
-  set -f
   local botName="$(< "$bufferDir/etc/nickname")" 
   grep --line-buffered -iE "^\S+\s+privmsg\s+((#\S+\s+:(($botName\>)|(\./)))|([^#[:space:]]+\s+:))" \
     | while read -r line; do

@@ -1,9 +1,10 @@
 #!/bin/bash
 
-source "$botLib/utility.sh"
-
-# WARNING: disabling globbing. This is probably a good idea almost everywhere.
 set -f 
+
+source "$botLib/utility.sh"
+source "$botLib/parseArgs.sh"
+
 
 ####################
 # Helper Functions #

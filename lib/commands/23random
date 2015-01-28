@@ -1,6 +1,8 @@
 #!/bin/bash
 
-source "$botLib/utility.sh"
+set -f
+
+source "$botLib/functionUtils.sh"
 
 # 32767 / 4
 declare -ri THRESHOLD=8192
@@ -22,8 +24,6 @@ getLast() {
 }
 
 checkSilence() {
-  set -f
-
   # consume the input to the command so that the pipe does not fill
   grep --line-buffered "^" <&0 > /dev/null &
 

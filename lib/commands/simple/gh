@@ -1,5 +1,10 @@
 #!/bin/bash
 
+set -f
+
+source "$botLib/utility.sh"
+source "$botLib/parseArgs.sh"
+
 # given the current line in the markov file get the next
 #
 # 1.line the current line
@@ -89,12 +94,8 @@ searchHugs() {
 }
 
 main() {
-  set -f
-
   local -r channel="$2"
   local -r message="$6"
-
-  source "$botLib/utility.sh"
 
   resplitAndParse "$message"
 

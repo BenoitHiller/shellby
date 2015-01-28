@@ -2,6 +2,8 @@
 set -f
 
 source "$botLib/utility.sh"
+source "$botLib/irc.sh"
+source "$botLib/functionUtils.sh"
 source "$botLib/users.sh"
 
 main() {

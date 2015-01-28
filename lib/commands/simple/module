@@ -25,7 +25,7 @@ main() {
   local -r hostname="$5"
   local -r message="$6"
 
-  source "$botLib/utility.sh"
+  source "$botLib/parseArgs.sh"
   source "$botLib/users.sh"
 
   if ! verify "$nickname" "$username" "$hostname"; then

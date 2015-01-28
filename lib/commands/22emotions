@@ -1,6 +1,8 @@
 #!/bin/bash
 
 source "$botLib/utility.sh"
+source "$botLib/functionUtils.sh"
+source "$botLib/irc.sh"
 
 unKarma() {
   local botName="$(< "$bufferDir/etc/nickname")" 

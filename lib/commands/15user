@@ -2,7 +2,8 @@
 
 set -f
 
-source "$botLib/utility.sh"
+source "$botLib/functionUtils.sh"
+source "$botLib/irc.sh"
 
 # remove a user from a channel
 #
