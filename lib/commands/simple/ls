@@ -1,6 +1,13 @@
 #!/bin/bash
 
-declare -r channel="$2"
+main() {
+  local -r channel="$2"
 
-echo PRIVMSG "$channel" :Available Commands:
-find "$botLib/commands/simple" -type f -printf "%f\n" | sort |tr "\n" " " | privmsg "$channel"
+  echo PRIVMSG "$channel" :Available Commands:
+  find "$botLib/commands/simple" -type f -printf "%f\n" \
+    | sort \
+    | tr "\n" " " \
+    | privmsg "$channel"
+}
+
+main "$@"
