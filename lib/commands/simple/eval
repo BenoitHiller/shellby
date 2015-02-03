@@ -17,7 +17,7 @@ main() {
   resplitAndParse "$message"
 
   if ! verify "$nickname" "$username" "$hostname"; then
-    getMessage evalpermissionserror "$nickname" | privmsg "$channel" 
+    getMessage evalpermissionserror1 "$nickname" | privmsg "$channel" 
     exit 0
 
   elif [[ "${argMap[r]+_}" ]]; then
