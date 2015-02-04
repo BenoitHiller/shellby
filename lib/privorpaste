@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source "$botLib/utility.sh"
+set -x
+
 # Take the contents of stdin and get a pastebin link for them
 #
 # This caches paste links for 6 days.
@@ -31,6 +34,10 @@ pastebin() {
         p
         q' \
       | tee "$cachedFile"
+
+    if [[ ! -s "$cachedFile" ]]; then
+      rm "$cachedFile"
+    fi
   fi
   
   rm "$tmpFile"
@@ -49,6 +56,7 @@ main() {
   else
     cat <(echo "$line1") <(echo "$line2") - \
       | pastebin \
+      | ifEmpty "Error pastebinning. Please hold while I contact tech support." \
       | privmsg "$channel"
   fi
 }
