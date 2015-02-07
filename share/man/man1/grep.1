@@ -42,3 +42,51 @@ Only return matches from log files dated after yyyy-MM-dd. The first two numbers
 Only return matches from log files dated before yyyy-MM-dd. The first two numbers of the year can be ommited and any of the year, month or date can be replaced with a "*" to match any year, month or date respectively.
 .IP search_string
 All of the remaining text is passed as the regex to grep. Note that it does not handle or need quotes at this point(this will be fixed eventually).
+.SH EXAMPLES
+To search for every line containing Wednesday from the current channel's logs, case insensitive:
+.PP
+.nf
+.RS
+\&./grep -i Wednesday
+.RE
+.fi
+.PP
+If you also want the line before and two lines afterwards you can do:
+.PP
+.nf
+.RS
+\&./grep -i -B 1 -A 2 Wednesday
+.RE
+.fi
+.PP
+To only get the lines from a specific user you can do something of the form:
+.PP
+.nf
+.RS
+\&./grep -i -B 1 -A 2 ^[0-9]\\+\\rnickname\\r.*Wednesday
+.RE
+.fi
+.PP
+There is a lot going on above. First and foremost \\r searches for the record separator in the data. So we have used this to specify that we want the nickname field to contain nickname.
+.PP
+Secondly note how + needed to be escaped. The default matching mode requires you to escape the following characters unless you want them to match literally:
+.PP
+.nf
+.RS
+? + { | ( )
+.RE
+.fi
+.PP
+If you don't want to have to escape special characters use the -E option, which enables egrep style matching.
+.PP
+Finally grep does not have a \\d expression for digits so you have to do something like [0-9].
+.SS Searching for Numbers
+To search for a specific number in the logs you will probably have to use something like the following:
+.PP
+.nf
+.RS
+\&./grep message\\r.*1234
+.RE
+.fi
+.PP
+If you don't specify that you want the number in the last field, you will get all sorts of random messages in the results because of matches in the timestamp field.

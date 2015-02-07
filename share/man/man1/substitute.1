@@ -8,7 +8,7 @@ This command supports vim like notation to perform substitutions on your past me
 .LP
 If your provided substitution passes validation it is passed "directly" to sed. Note that some parts of your input are actually modified so that they will behave as though you had provided the same input to sed on the command line (this involves escaping certain characters and has the consequence that you can't use a number of metacharacters).
 .LP
-The first character following the :s acts as the delimeter. In the synopsis this is "/" however any character can be used instead. The specified character needs to be escaped if you wish to use it literally within either the REGEX or the REPLACEMENT string.
+The first character following the :s acts as the delimiter. In the synopsis this is "/" however any character can be used instead. The specified character needs to be escaped if you wish to use it literally within either the REGEX or the REPLACEMENT string.
 .SH OPTIONS
 .IP NICK
 If NICK is specified it will do substitutions based on that user's backlog.
@@ -20,3 +20,47 @@ Perform the substitution on all matches in the target message.
 Use case insensitive matching.
 .IP [0-9]+
 Replace only the nth match, where n is the specified number.
+.SH EXAMPLES
+To replace the first instance of the word "form" in your last message with the word "from":
+.PP
+.nf
+.RS
+:s/form/from/
+.RE
+.fi
+.PP
+To replace every letter in your last message with the word "cat":
+.PP
+.nf
+.RS
+:s/\\w/cat /g
+.RE
+.fi
+.PP
+To surround your last message with quotes:
+.PP
+.nf
+.RS
+:s/.*/"\\0"/
+.RE
+.fi
+.PP
+To replace all of the words in Orez's second to last message with "blah":
+.PP
+.nf
+.RS
+Orez+1:s/\\w+/blah/g
+.RE
+.fi
+.PP
+Note that the commands are not prefixed in any way. So a chat log of the last example would look like:
+.PP
+.nf
+.RS
+Orez: something really important or funny
+Orez: something else
+stephenr: Orez+1:s/\\w+/blah/g
+shellby: => blah blah blah blah blah
+.RE
+.fi
+.PP
