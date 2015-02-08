@@ -21,6 +21,36 @@ export botLogs
 
 source "$botConfig/etc/config"
 
+if [[ -z "$NICK" ]]; then
+  echo "Nick missing from $botConfig/etc/config." >&2
+  kill -INT "$thisPid"
+  exit 1
+fi
+
+if [[ ! -s "$botConfig/etc/admins" ]]; then
+  printf "\033[0;33m%s\033[0m\n" "Warning: You don't have any admins configured in $botConfig/etc/admins" >&2
+fi
+
+if [[ ! -f "$botConfig/etc/wolframKey" ]]; then
+  printf "\033[0;33m%s\033[0m\n" "Warning: There is no API key in $botConfig/etc/wolframKey. The wolfram command will not work." >&2
+fi
+
+if [[ ! -f "$botConfig/etc/unshortenKey" ]]; then
+  printf "\033[0;33m%s\033[0m\n" "Warning: There is no API key in $botConfig/etc/unshortenKey. Without an unshorten.it key the unshort command will not work." >&2
+fi
+
+if [[ ! -f "$botConfig/etc/youtubeKey" ]]; then
+  printf "\033[0;33m%s\033[0m\n" "Warning: There is no API key in $botConfig/etc/youtubeKey. The youtube command will not work." >&2
+fi
+
+if [[ ! -f "$botConfig/etc/password" ]]; then
+  printf "\033[0;34m%s\033[0m\n" "Info: It is strongly recommended that you register a nick for the bot with nickserv then place the password in $botConfig/etc/password" >&2
+fi
+
+#####################
+# Set up buffer dir #
+#####################
+
 declare -r bufferDir="$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)"
 export bufferDir
 

@@ -26,12 +26,14 @@ trap "handleTerm" SIGTERM
 ####################
 
 if [[ ! -d "$HOME/.shellby" ]]; then
+  echo "shellby home directory not found. Creating in ~/.shellby" >&2
   mkdir "$HOME/.shellby"
   mkdir "$HOME/.shellby/etc"
 fi
 
 declare -r botConfig="$HOME/.shellby"
 export botConfig
+
 
 declare -r parentDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
 declare botLib
@@ -43,6 +45,19 @@ if [[ "$parentDir" == "/usr/bin" ]]; then
 else
   botLib="$parentDir/lib"
   botShare="$parentDir/share"
+fi
+
+####################
+# Check for config #
+####################
+
+if [[ ! -f "$botConfig/etc/config" ]]; then
+
+  cp "$botShare/sample.config" "$botConfig/etc/config"
+
+  echo "No config file found. A default config file has been placed in $botConfig/etc/config" >&2
+  echo "Please modify the config file then relaunch shellby" >&2
+  exit 1
 fi
 
 ###################
