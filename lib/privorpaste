@@ -1,7 +1,6 @@
 #!/bin/bash
 
 source "$botLib/utility.sh"
-set -x
 
 # Take the contents of stdin and get a pastebin link for them
 #
