@@ -27,6 +27,7 @@ main() {
   local -A languages=()
 
   source "$botLib/utility.sh"
+  source "$botLib/parseArgs.sh"
 
   languages[python]="python/cpython-2.7.8"
   languages[py]="python/cpython-2.7.8"
@@ -60,7 +61,7 @@ main() {
   local url="$(echo "${vargs[@]}" | sendCode "$lang")"
   if [[ -n "$url" ]]; then 
     local json="$(curl -s "$url.json" | getOutput)"
-    local reply="=> $json (${url})"
+    local reply="$json (${url})"
 
     local length="$(wc -c <<< "$reply")"
     local lines="$(wc -l <<< "$reply")"
