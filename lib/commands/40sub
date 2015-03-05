@@ -5,7 +5,7 @@ set -f
 source "$botLib/irc.sh"
 source "$botLib/functionUtils.sh"
 
-declare -r subRegex='^\S+\s+privmsg\s+#\S+\s+:([^:[:space:]+]*)(\+[1-9][0-9]*)?:s.*$'
+declare -r subRegex='^\S+\s+privmsg\s+#\S+\s+:([^:[:space:]+]*)(\+([1-9][0-9]*))?:s.*$'
 
 substitute() {
   local -ri maxLength="$((510 - $(getheaderlength) - 50))"
@@ -15,8 +15,8 @@ substitute() {
       if [[ -n "$expression" ]]; then
 
         read -r nick channel cmd username hostname <<<"$(getIRCInfo "$line")"
-        read -r targetUser targetLine \
-          <<<"$(sed -E "s/$subRegex/\\1 \\2/i" <<< "$line")"
+        local targetUser="$(sed -E "s/$subRegex/\\1/i" <<< "$line")"
+        local targetLine="$(sed -E "s/$subRegex/\\3/i" <<< "$line")"
 
         sub "$nick" "$botLogs/$channel" "$expression" "$targetUser" "$targetLine" \
           | sed -E 's/^/=> /' \
