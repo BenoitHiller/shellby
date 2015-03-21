@@ -4,20 +4,16 @@
 # load config #
 ###############
 
-export botPid="$$"
-
-declare -r botDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
-export botDir
-
-PATH="$botLib:$PATH"
-export PATH
+export PATH="$botLib:$PATH"
 
 export botConfig
 export botLib
 export botShare
 
-declare -r botLogs="$botConfig/logs"
-export botLogs
+declare -rx botPid="$$"
+declare -rx botDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
+
+declare -rx botLogs="$botConfig/logs"
 
 source "$botConfig/etc/config"
 
@@ -51,8 +47,7 @@ fi
 # Set up buffer dir #
 #####################
 
-declare -r bufferDir="$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)"
-export bufferDir
+declare -rx bufferDir="$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)"
 
 source "$botLib/loadConfig.sh"
 

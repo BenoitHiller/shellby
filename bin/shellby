@@ -15,7 +15,7 @@ handleTerm() {
 }
 
 declare -r thisPid=$$
-export thisPid
+
 # when the parent is killed, clean up all of the subprocesses(maybe not -9...)
 trap "kill -TERM -$thisPid;" SIGINT EXIT
 
@@ -32,8 +32,6 @@ if [[ ! -d "$HOME/.shellby" ]]; then
 fi
 
 declare -r botConfig="$HOME/.shellby"
-export botConfig
-
 
 declare -r parentDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
 declare botLib
