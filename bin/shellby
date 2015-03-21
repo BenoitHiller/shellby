@@ -14,6 +14,16 @@ handleTerm() {
   fi
 }
 
+stampLog() {
+  local -r log="$1"
+  gawk '{
+      printf("%s %s\n",strftime("[%Y-%m-%d %H:%M:%S]"),$0) >> logFile;
+      fflush(logFile)
+      print $0 > "/dev/stderr";
+      fflush("/dev/stderr")
+    }' logFile="$log"
+}
+
 declare -r thisPid=$$
 
 # when the parent is killed, clean up all of the subprocesses(maybe not -9...)
@@ -26,9 +36,10 @@ trap "handleTerm" SIGTERM
 ####################
 
 if [[ ! -d "$HOME/.shellby" ]]; then
-  echo "shellby home directory not found. Creating in ~/.shellby" >&2
+  echo "shellby home directory not found. Creating in ~/.shellby" | stampLog "$botConfig/logs/debug.log"
   mkdir "$HOME/.shellby"
   mkdir "$HOME/.shellby/etc"
+  mkdir "$HOME/.shellby/logs"
 fi
 
 declare -r botConfig="$HOME/.shellby"
@@ -53,7 +64,7 @@ if [[ ! -f "$botConfig/etc/config" ]]; then
 
   cp "$botShare/sample.config" "$botConfig/etc/config"
 
-  echo "No config file found. A default config file has been placed in $botConfig/etc/config" >&2
+  echo "No config file found. A default config file has been placed in $botConfig/etc/config" | stampLog "$botConfig/logs/debug.log"
   echo "Please modify the config file then relaunch shellby" >&2
   exit 1
 fi
@@ -63,12 +74,12 @@ fi
 ###################
 
 startBot() {
-  env -i thisPid=$thisPid DEBUG=$DEBUG botConfig="$botConfig" botLib="$botLib" botShare="$botShare" $botLib/main "$@"
+  env -i thisPid=$thisPid DEBUG=$DEBUG botConfig="$botConfig" botLib="$botLib" botShare="$botShare" $botLib/main "$@" 2> >( stampLog "$botConfig/logs/debug.log"  ) 
 }
 
 reload() {
   exitp=false
-  echo "!!! Recieved SIGUSR1. Doing main reload."
+  echo "!!! Recieved SIGUSR1. Doing main reload." | stampLog "$botConfig/logs/debug.log"
   kill -TERM -$thisPid
   sleep 10
   startBot &
@@ -78,7 +89,7 @@ trap "reload" SIGUSR1
 
 replace() {
   exitp=false
-  echo "!!! Recieved SIGUSR2. Doing full replace."
+  echo "!!! Recieved SIGUSR2. Doing full replace." | stampLog "$botConfig/logs/debug.log"
   kill -TERM -$thisPid
   wait
   exec "${BASH_SOURCE[0]}"
