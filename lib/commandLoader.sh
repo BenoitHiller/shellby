@@ -159,7 +159,7 @@ watchFiles() {
       # check to see if we want to reload
       elif ! md5sum -c <<< "$savedChecksum" >/dev/null 2>&1; then
         replacePipe "$coreFile" "$output"
-      elif [[ -f "$moduleDir/reload" ]] && grep -q -f "$moduleDir/reload" <<< "$coreFile"; then
+      elif [[ -s "$moduleDir/reload" ]] && grep -q -f "$moduleDir/reload" <<< "$coreFile"; then
         replacePipe "$coreFile" "$output"
       elif [[ -z "$corePid" ]]; then
         replacePipe "$coreFile" "$output"
@@ -167,7 +167,7 @@ watchFiles() {
 
     done < <(find -L "$dir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
 
-    rm "$moduleDir/reload" 2>/dev/null
+    >"$moduleDir/reload"
 
     # plumb the array of new input pipes if it isn't empty
     if [[ ${#newInputs[@]} -ne 0 ]]; then

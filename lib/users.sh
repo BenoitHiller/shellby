@@ -16,7 +16,7 @@ verify() {
 
   local userDir="$bufferDir/etc/users/$nickname"
 
-  if [[ -f "$userDir/username" ]]; then
+  if [[ -s "$userDir/username" ]]; then
     if [[ -n "$username" ]]; then
       if ! grep -Fqx "$username" "$userDir/username"; then
         return 1
@@ -26,7 +26,7 @@ verify() {
     fi
   fi
 
-  if [[ -f "$userDir/hostname" ]]; then
+  if [[ -s "$userDir/hostname" ]]; then
     if [[ -n "$hostname" ]]; then
       if ! grep -Fqx "$hostname" "$userDir/hostname"; then
         return 1
@@ -36,7 +36,7 @@ verify() {
     fi
   fi
 
-  if [[ -f "$userDir/nickserv" ]]; then
+  if [[ -s "$userDir/nickserv" ]]; then
     if [[ -n "$nickserv" ]]; then
       if ! grep -Fqx "$nickserv" "$userDir/nickserv"; then
         return 1
@@ -80,7 +80,7 @@ isOp() {
     fi
   fi
 
-  if [[ -f "$userDir/channels/$channel/op" ]]; then
+  if [[ -s "$userDir/channels/$channel/op" ]]; then
     return 0
   else
     return 1

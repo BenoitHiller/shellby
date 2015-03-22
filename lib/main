@@ -111,7 +111,7 @@ stdbuf -oL netcat -i 1 $TARGETSERVER $PORT < "$bufferDir/toNetcat" \
   | grep --line-buffered "^"  & 
 declare -i pipelinePid=$!
 
-echo started
+echo started netcat >&2
 
 trap reloadAllConfig SIGHUP
 
@@ -124,7 +124,7 @@ trap reloadAllConfig SIGHUP
     sleep 5
   done 
 
-  echo "!!! Netcat died. Reloading Main."
+  echo "!!! Netcat died. Reloading Main." >&2
 
   kill -USR1 $thisPid
 } &

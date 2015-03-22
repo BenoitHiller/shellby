@@ -33,8 +33,8 @@ updateChannelInfo() {
   local -r channelDir="$userDir/channels/$channel"
   mkdir -p "$channelDir"
 
-  rm "$channelDir/op" 2>/dev/null
-  rm "$channelDir/voice" 2>/dev/null
+  >"$channelDir/op"
+  >"$channelDir/voice"
 
   if [[ "$flags" =~ @ ]]; then
     printf "%(%s)T\n" > "$channelDir/op"
@@ -58,10 +58,10 @@ updateMode() {
 
   if [[ "$mode" =~ ^\+ ]]; then
     if [[ "$mode" =~ o ]]; then
-      rm "$channelDir/op" 2>/dev/null
+      >"$channelDir/op"
     fi
     if [[ "$mode" =~ v ]]; then
-      rm "$channelDir/voice" 2>/dev/null
+      >"$channelDir/voice"
     fi
   else
     if [[ "$mode" =~ o ]]; then
@@ -89,7 +89,7 @@ updateUserInfo() {
   echo "$username" > "$userDir/username"
   echo "$hostname" > "$userDir/hostname"
   if [[ -z "$nickserv" || "$nickserv" == 0 ]]; then
-    rm "$userDir/nickserv" 2>/dev/null
+    >"$userDir/nickserv"
   else
     echo "$nickserv" > "$userDir/nickserv"
   fi

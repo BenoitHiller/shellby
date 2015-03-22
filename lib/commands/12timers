@@ -41,7 +41,8 @@ updateUptimeStats() {
 
 thirtyLoop() {
   while true; do
-    if (($(date +%s) - $(< "$bufferDir/etc/lastContact") > 300)); then
+    if [[ -s "$bufferDir/etc/lastContact" ]] && (($(date +%s) - $(< "$bufferDir/etc/lastContact") > 300)); then
+      rm "$bufferDir/etc/lastContact"
       printf "Restarted at: %(%s)T after no contact since %s\n" "$(< "$bufferDir/etc/lastContact")" >&2
       kill -USR1 $thisPid
     fi
