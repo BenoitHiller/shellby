@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -f
+
+source "$botLib/users.sh"
+source "$botLib/parseArgs.sh"
+
+main() {
+  local -r nickname="$1"
+  local -r channel="$2"
+  local -r username="$4"
+  local -r hostname="$5"
+  local -r message="$6"
+
+  resplitAndParse "$message"
+
+  if verify "$nickname" "$username" "$hostname"; then
+    if [[ "${argMap[f]+_}" ]]; then
+      kill -9 -$thisPid
+    else
+      kill -INT $thisPid
+    fi
+  else
+    notice "$nickname" "Actually I think I'm going to stick around."
+  fi
+}
+
+main "$@"
