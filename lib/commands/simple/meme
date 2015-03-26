@@ -32,9 +32,9 @@ checkKnowYourMeme() {
       /<div class='item/{
         # grab just the line two after the match
         N;g;N
-
+        
         # extract the src url
-        s/.*\ssrc=\"(\S+)\".*/\1/
+        s/.*\sdata-src=\"(\S+)\".*/\1/
 
         # if the link is a NSFW cover, move on to the next match
         /image-covers/{
