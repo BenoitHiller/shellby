@@ -118,7 +118,7 @@ main() {
   # Variable Setup #
   ##################
 
-  local -a assignableParameters=( m e f A B C t T )
+  local -a assignableParameters=( m e f A B C t T s )
   local -a passThroughFlags=( c i E P F )
 
   local targetChannel
@@ -129,6 +129,12 @@ main() {
   resplitAndParse "$message"
 
   if ((${#vargs[@]} > 0)); then
+
+    local userCares=true
+
+    if [[ -n "${argMap[dontcare]+_}" ]]; then
+      userCares=false
+    fi
 
     ###########################
     # Process Time parameters #
@@ -156,7 +162,7 @@ main() {
 
     local -a gflags=( )
 
-    local re='^[0-9]+$'
+    local re='^[1-9][0-9]*$'
 
     for f in "${passThroughFlags[@]}"; do
       if [[ "${argMap[$f]+_}" ]]; then
@@ -164,19 +170,34 @@ main() {
       fi
     done
 
+    local hasContext=false
+
     if [[ "${argMap[C]+_}" && "${argMap[C]}" =~ $re ]]; then
       gflags+=( -C "${argMap[C]}" )
+      hasContext=true
     else 
       if [[ "${argMap[B]+_}" && "${argMap[B]}" =~ $re ]]; then
         gflags+=( -A "${argMap[B]}" )
+        hasContext=true
       fi
       if [[ "${argMap[A]+_}" && "${argMap[A]}" =~ $re ]]; then
         gflags+=( -B "${argMap[A]}" )
+        hasContext=true
+      fi
+    fi
+
+    local -i skip=1
+
+    if [[ "${argMap[s]+_}" && "${argMap[s]}" =~ $re ]]; then
+      skip+="${argMap[s]}"
+      if "$hasContext" && "$userCares"; then
+        privmsg "$channel" "Warning: The skip flag(-s) works by lines, not by results. So using it with one of the context flags (-[ABC]) is probably not going to behave as expected. You can use --dontcare to suppress this warning."
       fi
     fi
 
     if [[ "${argMap[m]+_}" && "${argMap[m]}" =~ $re ]]; then
-      gflags+=( -m "${argMap[m]}" )
+      local -i limit="${argMap[m]}"+"$skip"-1
+      gflags+=( -m "$limit" )
     fi
 
     local -r channelRegex="^#[^/]+$"
@@ -220,6 +241,7 @@ main() {
       | grep -vF "$fullMessage" \
       | grep "${gflags[@]}" -- "$gargs" \
       | formatLogLines \
+      | tail -n +$skip \
       | head -n 500 \
       | tac \
       | ifEmpty "${emptyMessages[$selection]}" \
