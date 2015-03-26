@@ -7,6 +7,8 @@ source "$botLib/functionUtils.sh"
 source "$botLib/users.sh"
 
 main() {
+  local -r MAX_TOKENS=8
+
   local -A tokens=()
   local -A lastTime=()
   local botName="$(< "$bufferDir/etc/nickname")" 
@@ -23,10 +25,10 @@ main() {
     lastTime["$key"]="$current"
     
     local -i currentTokens="${tokens[$key]}"
-    local -i addTokens=$((elapsed / 10))
+    local -i addTokens=$(((elapsed * (MAX_TOKENS + 1)) / 60))
     currentTokens=$((
-      addTokens + currentTokens > 6
-        ? 5
+      addTokens + currentTokens > MAX_TOKENS
+        ? MAX_TOKENS
         : addTokens + currentTokens - 1
     ))
     tokens["$key"]="$currentTokens"
