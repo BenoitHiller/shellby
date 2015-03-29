@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -f
+set -x
+
+source "$botLib/utility.sh"
+source "$botLib/parseArgs.sh"
+
+main() {
+  local -r channel="$2"
+  local -r message="$6"
+
+  local -a assignableParameters=( n )
+
+  resplitAndParse "$message"
+
+  local -r search="${vargs[@]}"
+
+  local re='^[1-9][0-9]*$'
+
+  local -i count=0
+
+  if [[ "${argMap[n]+_}" && "${argMap[n]}" =~ $re ]]; then
+    count="${argMap[n]}"
+  fi
+
+  local -i example=0
+
+  if [[ "${argMap[e]+_}" ]]; then
+    example=1
+  fi
+
+  curl -GL -s "http://www.urbandictionary.com/define.php" --data-urlencode "term=$search" \
+    | awk -F "\n" "
+      BEGIN {
+        m=0;
+      }
+      function printResult(format) {
+        if (m == count) {
+          getline;
+          gsub(/<[^>]*>/, \"\");
+          gsub(/\r/, \" \"); 
+          printf(format, search, \$0);
+          exit 1;
+        } else {
+          m+=1;
+        }
+      }
+
+      /<div class='meaning'>/ && !example {
+        printResult(\"=> %s: %s\n\");
+      }
+      /<div class='example'>/ && example {
+        printResult(\"=> %s e.g. %s\n\");
+      }" search="$search" count="$count" example="$example" \
+    | decodehtml.awk \
+    | ifEmpty "That's not a real word." \
+    | privmsg "$channel"
+}
+
+main "$@"
