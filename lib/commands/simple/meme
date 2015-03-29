@@ -2,6 +2,7 @@
 set -f
 
 source "$botLib/utility.sh"
+source "$botLib/parseArgs.sh"
 
 # Checks the local meme file for a query
 #
@@ -24,8 +25,11 @@ checkMemeFile() {
 # 1.query the query string
 checkKnowYourMeme() {
   local -r query="$1"
+  local sortType=$2
   local -ar sortTypes=( views relevance ) 
-  local -r sortType="${sortTypes[$(($RANDOM % 2))]}"
+  if [[ -z "$sortType" ]]; then
+    sortType="${sortTypes[$(($RANDOM % 2))]}"
+  fi
 
   curl -s -G --data "context=images&sort=$sortType" --data-urlencode "q=$query" http://knowyourmeme.com/search/ \
     | sed -nE "
@@ -54,13 +58,25 @@ main() {
   local -r message="$6"
   local -r memeFile="$botConfig/memes"
 
-  local -r filteredMemeString="$(tr A-Z a-z <<< "$message" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
+  resplitAndParse "$message"
 
-  if [[ -n "$message" ]]; then
-    local result="$(checkMemeFile "$message")"
+  local sortType
+
+  if [[ "${argMap[r]+_}" ]]; then
+    sortType=relevance
+  elif [[ "${argMap[v]+_}" ]]; then
+    sortType=views
+  fi
+
+  local -r query="${vargs[@]}"
+
+  local -r filteredMemeString="$(tr A-Z a-z <<< "$query" | sed -E 's/[^a-z0-9 ]//;s/^\s+//')"
+
+  if [[ -n "$query" ]]; then
+    local result="$(checkMemeFile "$query")"
 
     if [[ -z "$result" ]]; then
-      result="$(checkKnowYourMeme "$message")"
+      result="$(checkKnowYourMeme "$query" "$sortType")"
     fi 
 
     if [[ -z "$result" ]]; then
