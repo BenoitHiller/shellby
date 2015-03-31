@@ -27,19 +27,21 @@ checkSilence() {
   # consume the input to the command so that the pipe does not fill
   grep --line-buffered "^" <&0 > /dev/null &
 
+  local -i hour
+  local botName
+  local -i waitTime
+
   while true; do
-    local -i hour="$(printf "%(%H)T" | sed 's/^0//')"
+    hour="$(printf "%(%H)T" | sed 's/^0//')"
     
     if ((hour >= 9)); then
-      local botName="$(< "$bufferDir/etc/nickname")" 
+      botName="$(< "$bufferDir/etc/nickname")" 
       while read -r channel; do
         local -a info=( $(getLast "$channel") )
         local -i lastTime="${info[0]}"
         local lastUser="${info[1]}"
         local -i now
         printf -v now "%(%s)T"
-
-        local -i waitTime
 
         if [[ "$lastUser" == "$botName" ]]; then
           waitTime=$((12 * 60 * 60)) 

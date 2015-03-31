@@ -41,6 +41,9 @@ parseArgs() {
   local -A parameterSet=()
   shopt -s extglob
 
+  local char
+  local parameterName
+
   if checkType assignableParameters a; then
     for parameter in "${assignableParameters[@]}"; do
       parameterSet["$parameter"]=
@@ -66,7 +69,7 @@ parseArgs() {
           fi
 
           if ((${#arg} == 2)); then
-            local char="${arg:1:1}"
+            char="${arg:1:1}"
             if [[ -n "${!parameterSet[@]}" ]] && [[ "${parameterSet[$char]+_}" ]]; then
               previous="$char"
               getNext=true
@@ -107,7 +110,7 @@ parseArgs() {
           if "$getNext"; then
             argMap["$previous"]=
           fi
-          local parameterName="${arg#--}"
+          parameterName="${arg#--}"
           if [[ -n "${parameterSet[@]}" ]] && [[ "${parameterSet[$char]+_}" ]]; then
             previous="$parameterName"
             getNext=true 

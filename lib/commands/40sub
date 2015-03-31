@@ -13,6 +13,8 @@ substitute() {
   local targetLine
   local expression
 
+  local nick channel cmd username hostname
+
   grep --line-buffered -iE "$subRegex" \
     | while read -r line; do
       expression="$(cut -d : -f 3- <<< "$line" | regex.awk)"
