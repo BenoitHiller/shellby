@@ -241,8 +241,10 @@ main() {
       | grep -vF "$fullMessage" \
       | grep "${gflags[@]}" -- "$gargs" \
       | formatLogLines \
-      | tail -n +$skip \
-      | head -n 500 \
+      | awk '
+        NR > skip + 499 { exit 0 }
+        NR >= skip { print $0 }
+      ' skip="$skip" \
       | tac \
       | ifEmpty "${emptyMessages[$selection]}" \
       | privorpaste "$channel"
