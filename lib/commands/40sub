@@ -9,14 +9,18 @@ declare -r subRegex='^\S+\s+privmsg\s+#\S+\s+:([^:[:space:]+]*)(\+([1-9][0-9]*))
 
 substitute() {
   local -ri maxLength="$((510 - $(getheaderlength) - 50))"
+  local targetUser
+  local targetLine
+  local expression
+
   grep --line-buffered -iE "$subRegex" \
     | while read -r line; do
       expression="$(cut -d : -f 3- <<< "$line" | regex.awk)"
       if [[ -n "$expression" ]]; then
 
         read -r nick channel cmd username hostname <<<"$(getIRCInfo "$line")"
-        local targetUser="$(sed -E "s/$subRegex/\\1/i" <<< "$line")"
-        local targetLine="$(sed -E "s/$subRegex/\\3/i" <<< "$line")"
+        targetUser="$(sed -E "s/$subRegex/\\1/i" <<< "$line")"
+        targetLine="$(sed -E "s/$subRegex/\\3/i" <<< "$line")"
 
         sub "$nick" "$botLogs/$channel" "$expression" "$targetUser" "$targetLine" \
           | sed -E 's/^/=> /' \

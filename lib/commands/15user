@@ -114,46 +114,55 @@ monitorUsers() {
 
   mkdir -p "$userDir"
 
+  local -a data
+  local -a fields
+
+  local cmd
+  local nick
+  local currentUser
+  local channel
+  local newNick
+  local mode
+
   while read -r line; do
-    local -a data
     data=( $(getIRCInfo "$line") ) 
     if (($? == 0)); then
-      local cmd="${data[2],,}"
-      local nick="${data[0]}"
-      local currentUser="$userDir/$nick"
+      cmd="${data[2],,}"
+      nick="${data[0]}"
+      currentUser="$userDir/$nick"
       case "$cmd" in
         quit)
             rm -r "$currentUser"
             ;;
         part)
-            local channel="${data[1]}"
+            channel="${data[1]}"
             leaveChannel "$currentUser" "$channel"
             ;;
         kick)
-            local channel="${data[1]}"
+            channel="${data[1]}"
             leaveChannel "$userDir/$target" "$channel"
             ;;
         nick)
-            local newNick="$(getFields "$line" 2)"
+            newNick="$(getFields "$line" 2)"
             rm "$currentUser/nickserv"
             mv "$currentUser" "$userDir/${newNick#:}"
             echo "${newNick#:}" >> "$userPipe"
             ;;
         join)
-            local channel="${data[1]}"
+            channel="${data[1]}"
             updateUserInfo "$currentUser" "${data[3]}" "${data[4]}"
             echo "$nick" >> "$userPipe"
             mkdir -p "$currentUser/channels/$channel"
             ;;
         mode)
-            local channel="${data[1]}"
+            channel="${data[1]}"
             if [[ "$channel" =~ $channelRegex ]]; then
               # mode nick
-              local -a fields=( $(getFields "$line" 3 4) )
+              fields=( $(getFields "$line" 3 4) )
               nick="${fields[1]}"
               currentUser="$userDir/$nick"
               
-              local mode="${fields[0]}"
+              mode="${fields[0]}"
               if [[ ! "$mode" =~ b ]]; then
                 updateMode "$currentUser" "$channel" "$mode"
               fi
@@ -161,8 +170,8 @@ monitorUsers() {
             ;;
         354)
             # channel username hostname nick flag nickserv
-            local -a fields=( $(getFields "$line" 3 4 5 6 7 8) )
-            local channel="${fields[0]}"
+            fields=( $(getFields "$line" 3 4 5 6 7 8) )
+            channel="${fields[0]}"
             nick="${fields[3]}"
             currentUser="$userDir/$nick"
             updateUserInfo "$currentUser" "${fields[1]}" "${fields[2]}" "${fields[5]}"

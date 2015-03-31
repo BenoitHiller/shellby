@@ -40,6 +40,8 @@ updateUptimeStats() {
 }
 
 thirtyLoop() {
+  local botName
+
   while true; do
     if [[ -s "$bufferDir/etc/lastContact" ]] && (($(date +%s) - $(< "$bufferDir/etc/lastContact") > 300)); then
       rm "$bufferDir/etc/lastContact"
@@ -52,7 +54,7 @@ thirtyLoop() {
     updateUptime
     updateUptimeStats
 
-    local botName="$(< "$bufferDir/etc/nickname")" 
+    botName="$(< "$bufferDir/etc/nickname")" 
     if [[ -f "$bufferDir/etc/channels" ]]; then
       while read -r channel; do
         if [[ ! -d "$bufferDir/etc/users/$botName/channels/$channel" ]]; then

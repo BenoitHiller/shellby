@@ -93,9 +93,12 @@ pipeInput() {
 
 # function to send SIGHUP to each running command
 reloadAllConfig() {
+  local commandName
+  local pid
+
   for file in "${!md5s[@]}"; do
-    local commandName="$(basename "$file")"
-    local pid=$(pgrep -P $this -x "$commandName")
+    commandName="$(basename "$file")"
+    pid=$(pgrep -P $this -x "$commandName")
     if [[ -n "$pid" ]]; then
       kill -HUP $pid
     fi
@@ -141,15 +144,22 @@ watchFiles() {
   local -r moduleDir="$bufferDir/modules"
   mkdir "$moduleDir"
 
+  local -a newInputs
+
+  local savedChecksum
+  local base
+  local corePid
+  local oldPipe
+
   while true; do
-    local -a newInputs=()
+    newInputs=()
     sleep 10
 
     while read coreFile; do
-      local savedChecksum="${md5s[$coreFile]}"
-      local base="$(basename "$coreFile")"
+      savedChecksum="${md5s[$coreFile]}"
+      base="$(basename "$coreFile")"
 
-      local corePid=$(pgrep -P $this -x "$base")
+      corePid=$(pgrep -P $this -x "$base")
       # no checksum. Start a new command
       if [[ -z "$savedChecksum" ]]; then
         startCommand "$coreFile" "$output"
@@ -171,7 +181,7 @@ watchFiles() {
 
     # plumb the array of new input pipes if it isn't empty
     if [[ ${#newInputs[@]} -ne 0 ]]; then
-      local oldPipe="$capPipe"
+      oldPipe="$capPipe"
       exec {CAP}< "$oldPipe"
 
       killtree $capPid
