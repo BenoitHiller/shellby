@@ -21,5 +21,6 @@ BEGIN {
       printf("%s", $i)
     }
   }
+  printf("%s", RT)
 }
 

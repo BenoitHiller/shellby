@@ -68,18 +68,34 @@ main() {
 
   local snippet
   
-  snippet="$(curl -G -s -m 10 "https://www.googleapis.com/youtube/v3/videos" --data "part=snippet&id=$videoId&key=$apiKey")"
+  snippet="$(curl -G -s -m 10 "https://www.googleapis.com/youtube/v3/videos" --data "part=snippet,statistics&id=$videoId&key=$apiKey")"
   if (($? == 0)); then
-    echo "$snippet" \
-      | sed -E -n '
-        s/^\s+"title":\s+"//
+    local title=$(
+      echo "$snippet" \
+        | sed -E -n '
+          s/^\s+"title":\s+"//
 
-        # if title line print and quit
-        T
-        s/",$//
-        p;q' \
-      | jsondecode \
-      | privmsg "$channel"
+          # if title line print and quit
+          T
+          s/",$//
+          p;q' \
+        | jsondecode)
+    local -ia rating=($(
+      echo "$snippet" \
+        | sed -E -n '
+          s/^\s+"likeCount":\s+"//
+          s/^\s+"dislikeCount":\s+"//
+
+          # if title line print and quit
+          T
+          s/",$//
+          p' \
+        | jsondecode ))
+    if ((${rating[0]} + ${rating[1]} > 0)); then
+      privmsg "$channel" "$title ($((100*${rating[0]} / (${rating[0]} + ${rating[1]})))%)"
+    else
+      privmsg "$channel" "$title"
+    fi
   else
     privmsg "$channel" "That didn't work."
   fi
