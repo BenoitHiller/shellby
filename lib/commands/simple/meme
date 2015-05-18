@@ -62,11 +62,6 @@ main() {
 
   local sortType
 
-  if [[ "${argMap[r]+_}" ]]; then
-    sortType=relevance
-  elif [[ "${argMap[v]+_}" ]]; then
-    sortType=views
-  fi
 
   local -r query="${vargs[@]}"
 
@@ -75,11 +70,20 @@ main() {
   if [[ -n "$query" ]]; then
     local result="$(checkMemeFile "$query")"
 
+    # Not in the file, try searching online
     if [[ -z "$result" ]]; then
-      result="$(checkKnowYourMeme "$query" "$sortType")"
+      if [[ "${argMap[b]+_}" ]]; then
+        result="$(checkKnowYourMeme "$query" relevance) $(checkKnowYourMeme "$query" views)"
+      elif [[ "${argMap[r]+_}" ]]; then
+        result="$(checkKnowYourMeme "$query" relevance)"
+      elif [[ "${argMap[v]+_}" ]]; then
+        result="$(checkKnowYourMeme "$query" views)"
+      else
+        result="$(checkKnowYourMeme "$query")"
+      fi
     fi 
 
-    if [[ -z "$result" ]]; then
+    if [[ -z "$result" && "$result" == " " ]]; then
         privmsg "$channel" "Not cool enough to be a meme."
     else
       echo "$result" | privmsg "$channel"

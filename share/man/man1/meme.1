@@ -3,7 +3,7 @@
 meme \- post meme images by name
 .SH SYNOPSIS
 .B meme
-[ -r | -v ]
+[ -r | -v | -b ]
 [search_string...]
 .SH DESCRIPTION
 Checks in a file for the provided string. If the string is listed as a matcher for a meme that meme will be sent to channel. Thus each meme can have multiple strings that match.
@@ -18,3 +18,5 @@ The memes file is located at ~/.shellby/memes.
 Pick the most relevant search result.
 .IP -v
 Pick the search result with the most views.
+.IP -b
+Print the results of both -r and -v side by side
