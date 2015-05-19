@@ -3,7 +3,7 @@
 eval \- evals the provided strings in bash
 .SH SYNOPSIS
 .B eval
-[-r|-e|-m]
+[-e|-m] [-r]
 .IR code...
 .SH DESCRIPTION
 .B eval
@@ -14,7 +14,7 @@ The evaled code will be killed after 60 seconds if it has not finished running.
 Warning, you probably want to quote the whole string to eval as otherwise shellby is going to try and process flags.
 .SH OPTIONS
 .IP -r
-Eval the provided string, but don't privmsg the output back to the channel.
+Eval the provided string, but send stdout directly to the server instead of sending a privmsg to the sending channel.
 .IP -e
 Place the code to be evaled inside a string which is echoed.
 

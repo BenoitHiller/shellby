@@ -18,32 +18,43 @@ main() {
 
   if ! verify "$nickname" "$username" "$hostname"; then
     getMessage evalpermissionserror1 "$nickname" | privmsg "$channel" 
-    exit 0
+    return 0
 
-  elif [[ "${argMap[r]+_}" ]]; then
-    ( eval "${vargs[@]}" 2>&1 ) &
-  elif [[ "${argMap[e]+_}" ]]; then 
-    ( eval echo "${vargs[@]}" 2>&1 | privorpaste "$channel" ) &
-  elif [[ "${argMap[m]+_}" ]]; then 
-    ( eval echo "$((${vargs[@]}))" 2>&1 | privorpaste "$channel" ) &
   else
-    ( eval "${vargs[@]}" 2>&1 | privorpaste "$channel" ) &
-  fi
-  local evalPid="$!"
+    local argString="${vargs[@]}"
+    local evalString
 
-  for ((i=1; i<60; i++)); do
-    if ! kill -0 $evalPid; then
-      break
+    if [[ "${argMap[e]+_}" ]]; then 
+      printf -v evalString "echo %s" "$argString"
+    elif [[ "${argMap[m]+_}" ]]; then 
+      printf -v evalString "echo \$((%s))" "$argString"
+    else
+      evalString="$argString"
     fi
-    sleep 1
-  done
 
-  if kill -0 $evalPid; then
-    killtree $evalPid
+    (
+      eval "$evalString" 2>&1 \
+        | if [[ "${argMap[r]+_}" ]]; then
+            cat
+          else
+            privorpaste "$channel"
+          fi
+    ) &
+    local evalPid="$!"
+
+    for ((i=1; i<60; i++)); do
+      if ! kill -0 $evalPid 2>/dev/null; then
+        break
+      fi
+      sleep 1
+    done
+
+    if kill -0 $evalPid 2>/dev/null; then
+      killtree $evalPid
+    fi
+
+    wait
   fi
-
-  wait
-
 }
 
 main "$@"
