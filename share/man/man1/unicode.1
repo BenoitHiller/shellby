@@ -1,0 +1,27 @@
+.TH unicode 1
+.SH NAME
+unicode \- get unicode info
+.SH SYNOPSIS
+.B unicode
+[ -v | -u ]
+
+.B unicode
+[ -a ]
+search_terms...
+.SH DESCRIPTION
+Queries the unicode character database for character info.
+
+You can search the data 3 ways:
+.IP 1.
+You can provide the code point number as either hex or decimal. e.g. 0x61, 85, U+0061. 
+.IP 2.
+You can provide a single unicode character to search for.
+.IP 3.
+You can provide a number of terms which are combined into a regex that is used to search the codepoint descriptions.
+.SH OPTIONS
+.IP -v
+Print when the database was last updated.
+.IP -u
+Download the latest unicode data from the unicode consortium's site.
+.IP -a
+Print up to 500 results instead of just 1.
