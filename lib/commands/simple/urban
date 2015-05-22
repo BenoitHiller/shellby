@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -f
-set -x
 
 source "$botLib/utility.sh"
 source "$botLib/parseArgs.sh"
