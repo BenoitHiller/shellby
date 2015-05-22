@@ -170,6 +170,12 @@ main() {
 
   resplitAndParse "$message"
 
+  local -i returnCount=1
+
+  if [[ -n "${argMap[a]+_}" ]]; then
+    returnCount=500
+  fi
+
   if [[ -n "${argMap[v]+_}" ]]; then
 
     if [[ -f "$UNICODE_DIR/data" ]]; then
@@ -191,18 +197,11 @@ main() {
       privmsg "$channel" "I don't have any unicode data yet."
     fi
 
-    local -i returnCount=1
-
-    if [[ -n "${argMap[a]+_}" ]]; then
-      returnCount=500
-    fi
-
     if (( ${#vargs[@]} == 1 )); then
       local char="${vargs[0]}"
 
       local unicodeRegex='^(0x|\\[uU]|[uU]\+?)[a-fA-F0-9]{,6}$'
       local decimal='^([1-9][0-9]*|0)$'
-      local hexRegex='^[a-fA-F0-9]{,6}$'
 
       local -a entities=( $(textToUnicode <<< "$char") )
 
@@ -212,8 +211,6 @@ main() {
         query="${char##@(0x|\\[uU]|[uU]?(+))}"
       elif [[ "$char" =~ $decimal ]]; then
         printf -v query "%x" "$char"
-      elif [[ "$char" =~ $hexRegex ]]; then
-        query="$char"
       fi
       
       if [[ -n "$query" ]]; then
