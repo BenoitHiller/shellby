@@ -17,6 +17,7 @@ watchJoins() {
           echo "$channel" >> "$bufferDir/etc/channels" 
         fi
         echo WHO "$channel" %nuhacf &
+        privmsg chanserv "op $channel" &
       done
 }
 
