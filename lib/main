@@ -17,9 +17,10 @@ declare -rx botDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 
 declare -rx botLogs="$botConfig/logs"
 
-source "$botConfig/etc/config"
+source "$botLib/readprop.sh"
+readProperties "$botConfig/etc/config"
 
-if [[ -z "$NICK" ]]; then
+if [[ ! "${properties[nick]+_}" ]]; then
   echo "Nick missing from $botConfig/etc/config." >&2
   kill -INT "$thisPid"
   exit 1
@@ -49,9 +50,15 @@ fi
 # Set up buffer dir #
 #####################
 
+if [[ "${properties[tmpdir]+_}" ]]; then
+  TMPDIR="${properties[tmpdir]}"
+fi
+
 declare -rx bufferDir="$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)"
 
-source "$botLib/loadConfig.sh"
+mkdir "$bufferDir/etc"
+
+echo "${properties[nick]}" > "$bufferDir/etc/nickname"
 
 ################
 # toggle debug #
@@ -75,7 +82,7 @@ source "$botLib/commandLoader.sh"
 # Test Connection #
 ###################
 
-while ! netcat -z -w 5 $TARGETSERVER $PORT; do
+while ! netcat -z -w 5 "${properties[server]}" "${properties[port]}"; do
   sleep 1
 done
 
@@ -107,7 +114,7 @@ fi
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 managePipes "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 
-stdbuf -oL netcat -i 1 $TARGETSERVER $PORT < "$bufferDir/toNetcat" \
+stdbuf -oL netcat -i 1 "${properties[server]}" "${properties[port]}" < "$bufferDir/toNetcat" \
   | sed -u 's/$//' \
   | tee "$bufferDir/fromNetcat" \
   | grep --line-buffered "^"  & 

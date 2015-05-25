@@ -7,6 +7,11 @@ source "$botLib/irc.sh"
 
 parseCommands() {
   local botName="$(< "$bufferDir/etc/nickname")" 
+  if [[ -z "$botName" ]]; then
+    source "$botLib/readprop.sh"
+    readProperties "$botConfig/etc/config"
+    botName="${properties[nick]}"
+  fi
 
   local -a data
   local message

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source "$botLib/readprop.sh"
+
 updateUptime() {
   local -ri started="$(stat -c %Z "$bufferDir")"
   if (($? == 0)); then
@@ -49,7 +51,7 @@ thirtyLoop() {
       kill -USR1 $thisPid
     fi
 
-    echo PING "$TARGETSERVER"
+    echo PING "${properties[server]}"
 
     updateUptime
     updateUptimeStats
@@ -90,7 +92,7 @@ oneHourLoop() {
 main() {
   trap '' SIGHUP
 
-  source "$botConfig/etc/config"
+  readProperties "$botConfig/etc/config"
 
   # consume the input to the command so that the pipe does not fill
   grep --line-buffered "^" <&0 > /dev/null &

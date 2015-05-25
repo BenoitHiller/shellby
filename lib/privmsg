@@ -15,8 +15,9 @@ declare shellbyHostname
 if [[ -f "$bufferDir/etc/username" && -f "$bufferDir/etc/hostname" ]]; then
   shellbyHostname="$(< "$bufferDir/etc/nickname")!$(< "$bufferDir/etc/username")@$(< "$bufferDir/etc/hostname")"
 else
-  source "$botConfig/etc/config"
-  shellbyHostname="$NICK!$USER@$HOSTNAME"
+  source "$botLib/readprop.sh"
+  readProperties "$botConfig/etc/config"
+  shellbyHostname="${properties[nick]}!${properties[user]}@${properties[hostname]}"
 fi
 
 if [[ -n "$message" ]]; then

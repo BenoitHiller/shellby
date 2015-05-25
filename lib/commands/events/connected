@@ -1,11 +1,10 @@
 #!/bin/bash
 
-source "$botConfig/etc/config"
+source "$botLib/readprop.sh"
+readProperties "$botConfig/etc/config"
 
-if [[ ! -z "$CHANNELS" ]] && [ "${#CHANNELS[@]}" -gt 0 ]; then 
-  for channel in "${CHANNELS[@]}"; do
-    echo "JOIN $channel"
-  done
+if [[ "${properties[channels]}" ]]; then 
+  xargs -n 1 echo "JOIN" <<< "${properties[channels]}"
 fi
 
 echo WHOIS $(< "$bufferDir/etc/nickname") &

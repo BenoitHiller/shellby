@@ -1,6 +1,7 @@
 #!/bin/bash
 
-source "$botConfig/etc/config"
+source "$botLib/readprop.sh"
+readProperties "$botConfig/etc/config"
 declare password
 if [[ -f "$botConfig/etc/password" ]]; then
   password="$(< "$botConfig/etc/password")"
@@ -24,4 +25,4 @@ gawk '
       print "NS identify " ENVIRON["password"]
     }
   }
-}' user="$USER" nick="$NICK" realname="$REALNAME" hostname="$HOSTNAME" servername="$SERVERNAME" account="$ACCOUNT"
+}' user="${properties[user]}" nick="${properties[nick]}" realname="${properties[realname]}" hostname="${properties[hostname]}" servername="${properties[server]}" account="${properties[account]}"
