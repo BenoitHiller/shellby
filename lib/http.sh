@@ -1,4 +1,5 @@
 shopt -s extglob
+
 set -f
 
 ###################
@@ -427,7 +428,8 @@ runServer() {
         getRequest "$requestLine" GET
       ;;
       HEAD)
-        getRequest "$requestLine" GET | sed '/^\r?$/q'
+        getRequest "$requestLine" GET \
+          | sed -E '/^\r?$/q'
       ;;
       *)
         sendResponseShort 405
