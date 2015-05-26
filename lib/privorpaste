@@ -65,6 +65,7 @@ localPaste() {
       s/</\&lt;/g
       s/"/\&quot;/g
       s/'"'"'/\&#39;/g
+      s% {2,}%<pre>&</pre>%g
 
       #s (http://)?'"$HOSTPORT$ABS_PATH#?($PCHAR|[/?])*"' <a\ href="&">&</a> g
       s/$/<br>/
