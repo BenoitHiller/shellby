@@ -1,0 +1,21 @@
+#!/bin/bash
+sed -En '
+s%_(.)%<u>\1</u>%g
+s%(.)\1%<strong>\1</strong>%g
+s%\s+%<pre>\0</pre>%g
+H
+$!d
+# finalizing steps
+x
+s%\n%<br>%g
+i \
+<style>\
+  * {\
+    font-family: monospace;\
+  }\
+  body * {\
+    display:inline;\
+  }\
+</style>\
+<meta charset="UTF-8">
+p' > "$1"

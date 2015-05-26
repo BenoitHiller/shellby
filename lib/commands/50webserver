@@ -1,0 +1,49 @@
+#!/bin/bash
+set -f
+
+source "$botLib/functionUtils.sh"
+source "$botLib/readprop.sh"
+source "$botLib/irc.sh"
+
+main() {
+  grep --line-buffered "^" <&0 > /dev/null &
+  local -i capPid=$!
+  readProperties "$botConfig/etc/webserver"
+
+  # If the webservice isn't enabled just wait until we get restarted
+  if [[ "${properties[enabled]}" != "true" ]]; then
+    wait $capPid
+    exit 0
+  fi
+
+  local -i pid
+
+  local -r webDir="$bufferDir/web"
+  mkdir -p "$bufferDir/web" &>/dev/null
+  while true; do
+    if [[ -s "$webDir/server.pid" ]]; then
+      pid="$(< "$webDir/server.pid")"
+    else
+      pid=0
+    fi
+
+    if ((pid > 1)); then
+      if ! kill -0 "$pid" &>/dev/null; then
+        rm "$webDir/server.pid"
+        pid=0
+      fi
+    fi
+    
+    if ((pid <= 1)); then 
+      # Orphan the process so that it doesn't get killed
+      (
+        env -i thisPid=$thisPid DEBUG="${properties[debug]}" botConfig="$botConfig" botLib="$botLib" botShare="$botShare" bufferDir="$bufferDir" ncat -lk -p "${properties[port]}" -e "$botLib/web/server" &
+        echo $! > "$webDir/server.pid"
+      )
+    fi 
+    sleep 10
+  done
+  
+}
+
+startAndWatch main
