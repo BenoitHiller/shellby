@@ -23,6 +23,7 @@ main() {
   local -i elapsed
   local -i currentTokens
   local -i addTokens
+  local -i spentTokens
 
   while read -r line; do
     data=( $(getIRCInfo "$line") ) 
@@ -35,13 +36,15 @@ main() {
     previous="${lastTime[$key]}"
     elapsed=$((current - previous))
     lastTime["$key"]="$current"
+
+    spentTokens="$(( ${#line} / 200 + 1 ))"
     
     currentTokens="${tokens[$key]}"
     addTokens=$(((elapsed * (MAX_TOKENS + 1)) / 60))
     currentTokens=$((
       addTokens + currentTokens > MAX_TOKENS
         ? MAX_TOKENS
-        : addTokens + currentTokens - 1
+        : addTokens + currentTokens - spentTokens
     ))
     tokens["$key"]="$currentTokens"
 
