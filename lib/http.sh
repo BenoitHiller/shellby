@@ -249,6 +249,36 @@ sendResponse() {
   return 0
 }
 
+sendResponsePipe() {
+  local -ri statusCode="$1"
+  local -ri contentLength="$2"
+
+  local -i sentBytes=0
+
+  local -r reason="${REASONS[$statusCode]}"
+
+  if ! declare -p responseHeaders &>/dev/null; then
+    local -A responseHeaders=()
+  fi
+
+  responseHeaders["Content-Length"]="$contentLength"
+
+  echorn "HTTP/1.1 $statusCode $reason"
+  for header in "${!responseHeaders[@]}"; do
+    echorn "$header: ${responseHeaders[$header]}"
+  done
+  echorn
+
+  cat -
+
+  sentBytes+="$contentLength"
+
+  logStatus "$requestLine" "$statusCode" "$sentBytes"
+
+  return 0
+
+}
+
 # find a matching route handler and call it
 #
 # depSet

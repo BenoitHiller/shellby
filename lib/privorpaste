@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source "$botLib/utility.sh"
+source "$botLib/readprop.sh"
 
 # Take the contents of stdin and get a pastebin link for them
 #
@@ -42,16 +43,45 @@ pastebin() {
   rm "$tmpFile"
 }
 
+# put a paste in the folder for the local paste provider
+localPaste() {
+  if [[ ! -d "$cacheDir" ]]; then
+    mkdir -p "$cacheDir"
+  fi
+
+  if [[ ! -d "$pasteDir" ]]; then
+    mkdir -p "$pasteDir"
+  fi
+
+  trimCache "$pasteDir" "$((5 * 1024 * 1024))"
+
+  local -r tmpFile="$(mktemp -p "$cacheDir" tmp.XXXXXX)"
+  cat - > "$tmpFile"
+
+  local -r checksum="$(md5sum "$tmpFile" | head -c 10)"
+
+  mv "$tmpFile" "$pasteDir/$checksum"
+
+  printf "http://%s:%d/paste/%s\n" "${properties[domain]}" "${properties[port]}" "$checksum"
+}
+
 main() {
   local -r channel="$1"
 
+  readProperties "$botConfig/etc/webserver"
+
   local -r cacheDir="$bufferDir/cache/pastebin"
+  local -r pasteDir="$bufferDir/web/paste"
 
   read -r line1
   read -r line2
 
   if (($? != 0)); then
     privmsg "$channel" "$line1"
+  elif [[ "${properties[enabled]}" == "true" ]]; then
+    cat <(echo "$line1") <(echo "$line2") - \
+      | localPaste \
+      | privmsg "$channel"
   else
     cat <(echo "$line1") <(echo "$line2") - \
       | pastebin \

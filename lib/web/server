@@ -1,35 +1,13 @@
 #!/bin/bash
 
 source "$botLib/http.sh"
+source "$botLib/utility.sh"
  
 declare -r TMP_MAN_FOLDER="$bufferDir/web/man"
 declare -ri MAX_CACHE_SIZE="$((10*1024*1024))"
 declare -r MAN_REGEX='^[a-zA-Z0-9_-]+$'
 declare -r MAN_SECTION_REGEX='^[0-9]/[a-zA-Z0-9_-]+$'
 
-trimCache() {
-  local -r folder="$1"
-  local -ri max_size="$2"
-
-  find "$folder" -type f -printf "%T@/%s/%f\0" \
-    | sort -nr -z \
-    | gawk '
-      BEGIN {
-        FS="/"
-        RS="\0"
-        size=0
-        MAX_SIZE=strtonum(MAX_SIZE)
-      }
-
-      {
-        size+=strtonum($2)
-        if (size > MAX_SIZE) {
-          printf("%s/%s\0", folder, $3)
-        }
-      }
-      ' MAX_SIZE="$max_size" folder="$folder" \
-    | xargs -0 -r rm
-}
 
 serveMan() {
   local file="${3#/man/}"
@@ -72,8 +50,57 @@ serveMan() {
   return $?
 }
 
+declare -r PASTE_DIR="$bufferDir/web/paste"
+declare -r HEX='^[a-f0-9]+$'
+declare -r PASTE_HEADER='<html>
+<head>
+<style>
+  body {
+    max-width: 800px;
+    font-size: 14px;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>'
+declare -r PASTE_FOOTER='
+</body>
+</html>'
+
+servePastes() {
+  local file="${3#/paste/}"
+
+  if [[ "$file" =~ $HEX ]]; then
+    local -r target="$(find "$PASTE_DIR" -type f | grep -Fx "$PASTE_DIR/$file")"
+    if [[ -n "$target" && -f "$target" ]]; then
+      local -i length="$(stat -c %s "$target")"+"${#PASTE_HEADER}"+"${#PASTE_FOOTER}"
+      {
+        echo -n "$PASTE_HEADER"
+        sed -E '
+          # escaping
+          s/&/\&amp;/g
+          s/>/\&gt;/g
+          s/</\&lt;/g
+          #s/"/\&quot;/g
+          #s/'"'"'/\&#39;/g
+
+          #s (http://)?'"$HOSTPORT$ABS_PATH#?($PCHAR|[/?])*"' <a\ href="&">&</a> g
+          s/$/<br>/
+        ' "$target"
+        echo -n "$PASTE_FOOTER"
+      } | sendResponsePipe 200 "$length"
+    fi
+    return 0
+
+  else
+    return 1
+  fi
+  
+}
+
 main() {
   addRoute GET '^/man/' serveMan
+  addRoute GET '^/paste/' servePastes
 
   runServer
 }

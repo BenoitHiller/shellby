@@ -1,0 +1,27 @@
+#!/bin/bash
+
+main() {
+  local -r folder="$1"
+  local -ri max_size="$2"
+
+  find "$folder" -type f -printf "%T@/%s/%f\0" \
+    | sort -nr -z \
+    | gawk '
+      BEGIN {
+        FS="/"
+        RS="\0"
+        size=0
+        MAX_SIZE=strtonum(MAX_SIZE)
+      }
+
+      {
+        size+=strtonum($2)
+        if (size > MAX_SIZE) {
+          printf("%s/%s\0", folder, $3)
+        }
+      }
+      ' MAX_SIZE="$max_size" folder="$folder" \
+    | xargs -0 -r rm
+}
+
+main "$@"

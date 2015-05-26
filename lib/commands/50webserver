@@ -35,6 +35,7 @@ main() {
     fi
     
     if ((pid <= 1)); then 
+
       # Orphan the process so that it doesn't get killed
       (
         env -i thisPid=$thisPid DEBUG="${properties[debug]}" botConfig="$botConfig" botLib="$botLib" botShare="$botShare" bufferDir="$bufferDir" ncat -lk -p "${properties[port]}" -e "$botLib/web/server" &
