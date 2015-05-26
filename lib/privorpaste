@@ -56,7 +56,19 @@ localPaste() {
   trimCache "$pasteDir" "$((5 * 1024 * 1024))"
 
   local -r tmpFile="$(mktemp -p "$cacheDir" tmp.XXXXXX)"
-  cat - > "$tmpFile"
+        
+  cat - \
+    | sed -E '
+      # escaping
+      s/&/\&amp;/g
+      s/>/\&gt;/g
+      s/</\&lt;/g
+      s/"/\&quot;/g
+      s/'"'"'/\&#39;/g
+
+      #s (http://)?'"$HOSTPORT$ABS_PATH#?($PCHAR|[/?])*"' <a\ href="&">&</a> g
+      s/$/<br>/
+      ' > "$tmpFile"
 
   local -r checksum="$(md5sum "$tmpFile" | head -c 10)"
 

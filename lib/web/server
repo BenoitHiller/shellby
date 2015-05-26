@@ -76,17 +76,7 @@ servePastes() {
       local -i length="$(stat -c %s "$target")"+"${#PASTE_HEADER}"+"${#PASTE_FOOTER}"
       {
         echo -n "$PASTE_HEADER"
-        sed -E '
-          # escaping
-          s/&/\&amp;/g
-          s/>/\&gt;/g
-          s/</\&lt;/g
-          #s/"/\&quot;/g
-          #s/'"'"'/\&#39;/g
-
-          #s (http://)?'"$HOSTPORT$ABS_PATH#?($PCHAR|[/?])*"' <a\ href="&">&</a> g
-          s/$/<br>/
-        ' "$target"
+        cat "$target"
         echo -n "$PASTE_FOOTER"
       } | sendResponsePipe 200 "$length"
     fi
