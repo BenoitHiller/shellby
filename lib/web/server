@@ -77,18 +77,15 @@ servePastes() {
   if [[ "$file" =~ $HEX ]]; then
     local -r target="$(find "$PASTE_DIR" -type f | grep -Fx "$PASTE_DIR/$file")"
     if [[ -n "$target" && -f "$target" ]]; then
-      local -i length="$(stat -c %s "$target")"+"${#PASTE_HEADER}"+"${#PASTE_FOOTER}"
       {
         echo -n "$PASTE_HEADER"
         cat "$target"
         echo -n "$PASTE_FOOTER"
-      } | sendResponsePipe 200 "$length"
+      } | sendResponseChunked 200
+      return 0
     fi
-    return 0
-
-  else
-    return 1
   fi
+  return 1
   
 }
 

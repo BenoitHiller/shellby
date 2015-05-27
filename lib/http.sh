@@ -279,6 +279,44 @@ sendResponsePipe() {
 
 }
 
+sendResponseChunked() {
+  local -ri statusCode="$1"
+  local -r reason="${REASONS[$statusCode]}"
+
+  local -i sentBytes=0
+
+  if ! declare -p responseHeaders &>/dev/null; then
+    local -A responseHeaders=()
+  fi
+
+  responseHeaders["Transfer-Encoding"]="chunked"
+  echorn "HTTP/1.1 $statusCode $reason"
+  for header in "${!responseHeaders[@]}"; do
+    echorn "$header: ${responseHeaders[$header]}"
+  done
+  echorn
+
+  local line
+  while read -r -N 4096 line; do
+    echorn "1000"
+    echorn "$line"
+  done
+
+  local -i remainingLength="${#line}"
+
+  if (( remainingLength > 0 )); then
+    local hexLength
+    printf -v hexLength "%x" "$remainingLength"
+    echorn "$hexLength"
+    echorn "$line"
+  fi
+
+  echorn "0"
+  echorn
+  echorn
+
+}
+
 # find a matching route handler and call it
 #
 # depSet
