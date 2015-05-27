@@ -315,6 +315,9 @@ sendResponseChunked() {
   echorn
   echorn
 
+  logStatus "$requestLine" "$statusCode" "$sentBytes"
+
+  return 0
 }
 
 # find a matching route handler and call it

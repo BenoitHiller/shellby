@@ -89,7 +89,14 @@ servePastes() {
   
 }
 
+serveRootFiles() {
+  local -r file="${3#/}"
+  serveFile "$botShare" "$file"
+  return $?
+}
+
 main() {
+  addRoute GET '^/(robots.txt|favicon.ico)$' serveRootFiles
   addRoute GET '^/man/' serveMan
   addRoute GET '^/paste/' servePastes
 
