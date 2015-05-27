@@ -75,7 +75,7 @@ servePastes() {
   local file="${3#/paste/}"
 
   if [[ "$file" =~ $HEX ]]; then
-    local -r target="$(find "$PASTE_DIR" -type f | grep -Fx "$PASTE_DIR/$file")"
+    local -r target="$(find "$PASTE_DIR" -type f -print0 | grep -Fzx -m 1 "$PASTE_DIR/$file")"
     if [[ -n "$target" && -f "$target" ]]; then
       {
         echo -n "$PASTE_HEADER"

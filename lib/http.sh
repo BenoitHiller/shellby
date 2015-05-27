@@ -523,7 +523,7 @@ runServer() {
 serveFile() {
   local -r dir="$(readlink -m "$1")"
   local -r file="$2"
-  local -r target="$(find "$dir" -type f | grep -Fx "$dir/$file")"
+  local -r target="$(find "$dir" -type f -print0 | grep -Fxz -m 1 "$dir/$file")"
 
   if [[ -n "$target" && -f "$target" ]]; then
     sendResponse 200 "$target"
