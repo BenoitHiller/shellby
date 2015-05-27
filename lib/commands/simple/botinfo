@@ -3,4 +3,8 @@ set -f
 
 declare -r channel="$2"
 
-privmsg "$channel" < "$botShare/botInfo/$channel"
+declare -r target="$(find "$botConfig/botInfo/" -type f -print0 | grep -Fxz -m 1 "$botConfig/botInfo/$channel")"
+
+if [[ -n "$target" && -f "$target" ]]; then
+  privmsg "$channel" < "$target"
+fi
