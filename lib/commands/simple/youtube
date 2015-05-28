@@ -92,9 +92,9 @@ main() {
           p' \
         | jsondecode ))
     if ((${rating[0]} + ${rating[1]} > 0)); then
-      privmsg "$channel" "$title ($((100*${rating[0]} / (${rating[0]} + ${rating[1]})))%)"
+      privmsg "$channel" "=> $title ($((100*${rating[0]} / (${rating[0]} + ${rating[1]})))%)"
     else
-      privmsg "$channel" "$title"
+      privmsg "$channel" "=> $title"
     fi
   else
     privmsg "$channel" "That didn't work."
