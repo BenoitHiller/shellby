@@ -41,9 +41,9 @@ ifEmpty() {
   local -r message="$1"
 
   if read -r line; then
-    cat <(privmsg "%s\n" "$line") -
+    cat <(printf "%s\n" "$line") -
   else
-    privmsg "%s\n" "$message"
+    printf "%s\n" "$message"
   fi
 }
 

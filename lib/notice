@@ -14,7 +14,7 @@ fi
 declare -r shellbyHostname="$(< "$bufferDir/etc/nickname")!$(< "$bufferDir/etc/username")@$(< "$bufferDir/etc/hostname")"
 
 if [[ -n "$message" ]]; then
-  privmsg "%s\n" "$message" | wrap "NOTICE $channel :" "$headerLength" | tee >(logCommand "$shellbyHostname")
+  printf "%s\n" "$message" | wrap "NOTICE $channel :" "$headerLength" | tee >(logCommand "$shellbyHostname")
 else
   wrap "NOTICE $channel :" "$headerLength" | tee >(logCommand "$shellbyHostname")
 fi
