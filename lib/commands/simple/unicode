@@ -206,7 +206,7 @@ main() {
       local -a entities=( $(textToUnicode <<< "$char") )
 
       if (( ${#entities[@]} == 1)); then
-        query="$( echo "${entities[@]}" | tr -d "\n")"
+        query="$( printf "%s" "${entities[0]}" | tr -d "\n")"
       elif [[ "$char" =~ $unicodeRegex ]]; then
         query="${char##@(0x|\\[uU]|[uU]?(+))}"
       elif [[ "$char" =~ $decimal ]]; then

@@ -77,10 +77,10 @@ writeProperties() {
 
   {
     for key in "${!properties[@]}"; do
-      echo -n "${beforeProperty[$key]}"
-      echo "$key = ${properties[$key]}"
+      privmsg "%s" "${beforeProperty[$key]}"
+      privmsg "%s\n" "$key = ${properties[$key]}"
     done
-    echo -n "${beforeProperty["$NEWLINE"]}"
+    privmsg "%s" "${beforeProperty["$NEWLINE"]}"
   } > "$propertyFile"
 
   printf -v lastChange "%(%s)T"

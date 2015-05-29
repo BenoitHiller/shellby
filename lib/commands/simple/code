@@ -58,7 +58,7 @@ main() {
     lang="ruby/mri-2.1"
   fi
 
-  local url="$(echo "${vargs[@]}" | sendCode "$lang")"
+  local url="$(sendCode "$lang" <<< "${vargs[@]}")"
   if [[ -n "$url" ]]; then 
     local json="$(curl -s "$url.json" | getOutput)"
     local reply="$json (${url})"
@@ -67,9 +67,9 @@ main() {
     local lines="$(wc -l <<< "$reply")"
 
     if ((length + headerLength < 508 && lines <= 1)); then
-      echo "=> $reply"| privmsg "$channel" 
+      printf "=> %s\n" "$reply"| privmsg "$channel" 
     else
-      echo "$url" | privmsg "$channel"
+      printf "%s\n" "$url" | privmsg "$channel"
     fi
   fi
 }

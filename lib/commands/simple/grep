@@ -86,7 +86,7 @@ parseTime() {
   shift
   local -a timeParts=("$@")
 
-  local -a splitParams=( $(IFS="-"; echo $parameterInput) )
+  local -a splitParams=( $(IFS="-"; printf "%s" "$parameterInput") )
   if [[ "${splitParams[0]}" != "*" ]]; then
     if [[ "${splitParams[0]}" =~ ^[0-9]{2}$ ]]; then
       timeParts[0]="20${splitParams[0]}"

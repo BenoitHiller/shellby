@@ -45,7 +45,7 @@ replacePipe() {
   exec {IN}<"$bufferDir/$pName.i"
   killtree $(pgrep -P $this -x "$commandName")
   stdbuf -oL "$file" <&$IN | tee "$output" | sed -u "s/^/<</" &
-  echo reloading $file >&2
+  printf "reloading %s\n" "$file" >&2
 }
 
 # Start a single command for the first time
@@ -67,7 +67,7 @@ startCommand() {
 
   mkfifo "$bufferDir/$pName.i"
   stdbuf -oL "$coreFile" < "$bufferDir/$pName.i" | tee "$output" | sed -u "s/^/<</" &
-  echo starting $coreFile >&2
+  printf "starting %s\n" "$coreFile" >&2
 }
 
 # pipes the input into the outputs and caps the pipeline

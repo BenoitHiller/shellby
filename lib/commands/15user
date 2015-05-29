@@ -86,12 +86,12 @@ updateUserInfo() {
 
   mkdir -p "$userDir"
 
-  echo "$username" > "$userDir/username"
-  echo "$hostname" > "$userDir/hostname"
+  printf "%s\n" "$username" > "$userDir/username"
+  printf "%s\n" "$hostname" > "$userDir/hostname"
   if [[ -z "$nickserv" || "$nickserv" == 0 ]]; then
     >"$userDir/nickserv"
   else
-    echo "$nickserv" > "$userDir/nickserv"
+    printf "%s\n" "$nickserv" > "$userDir/nickserv"
   fi
 }
 
@@ -146,12 +146,12 @@ monitorUsers() {
             newNick="$(getFields "$line" 2)"
             rm "$currentUser/nickserv"
             mv "$currentUser" "$userDir/${newNick#:}"
-            echo "${newNick#:}" >> "$userPipe"
+            printf "%s\n" "${newNick#:}" >> "$userPipe"
             ;;
         join)
             channel="${data[1]}"
             updateUserInfo "$currentUser" "${data[3]}" "${data[4]}"
-            echo "$nick" >> "$userPipe"
+            printf "%s\n" "$nick" >> "$userPipe"
             mkdir -p "$currentUser/channels/$channel"
             ;;
         mode)

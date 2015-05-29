@@ -36,7 +36,7 @@ trap "handleTerm" SIGTERM
 ####################
 
 if [[ ! -d "$HOME/.shellby" ]]; then
-  echo "shellby home directory not found. Creating in ~/.shellby" | stampLog "$botConfig/logs/debug.log"
+  printf "%s\n" "shellby home directory not found. Creating in ~/.shellby" | stampLog "$botConfig/logs/debug.log"
   mkdir "$HOME/.shellby"
   mkdir "$HOME/.shellby/etc"
   mkdir "$HOME/.shellby/logs"
@@ -64,8 +64,8 @@ if [[ ! -f "$botConfig/etc/config" ]]; then
 
   cp "$botShare/sample.config" "$botConfig/etc/config"
 
-  echo "No config file found. A default config file has been placed in $botConfig/etc/config" | stampLog "$botConfig/logs/debug.log"
-  echo "Please modify the config file then relaunch shellby" >&2
+  printf "%s\n" "No config file found. A default config file has been placed in $botConfig/etc/config" | stampLog "$botConfig/logs/debug.log"
+  printf "%s\n" "Please modify the config file then relaunch shellby" >&2
   exit 1
 fi
 
@@ -79,7 +79,7 @@ startBot() {
 
 reload() {
   exitp=false
-  echo "!!! Recieved SIGUSR1. Doing main reload." | stampLog "$botConfig/logs/debug.log"
+  printf "%s\n" "!!! Recieved SIGUSR1. Doing main reload." | stampLog "$botConfig/logs/debug.log"
   kill -TERM -$thisPid
   sleep 10
   startBot &
@@ -89,7 +89,7 @@ trap "reload" SIGUSR1
 
 replace() {
   exitp=false
-  echo "!!! Recieved SIGUSR2. Doing full replace." | stampLog "$botConfig/logs/debug.log"
+  printf "%s\n" "!!! Recieved SIGUSR2. Doing full replace." | stampLog "$botConfig/logs/debug.log"
   kill -TERM -$thisPid
   wait
   exec "${BASH_SOURCE[0]}"

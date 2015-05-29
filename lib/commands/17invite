@@ -23,7 +23,7 @@ main() {
       if verify "$nick" "$username" "$hostname"; then
         fields=( $(getFields "$line" 2 3) )
         if [[ "${fields[0]}" == "$botName" ]]; then
-          echo JOIN "${fields[1]#:}"
+          printf "JOIN %s\n" "${fields[1]#:}"
         fi
       fi
     done

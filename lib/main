@@ -21,7 +21,7 @@ source "$botLib/readprop.sh"
 readProperties "$botConfig/etc/config"
 
 if [[ ! "${properties[nick]+_}" ]]; then
-  echo "Nick missing from $botConfig/etc/config." >&2
+  printf "%s\n" "Nick missing from $botConfig/etc/config." >&2
   kill -INT "$thisPid"
   exit 1
 fi
@@ -58,7 +58,7 @@ declare -rx bufferDir="$(mktemp -p "$TMPDIR" -d streambot.XXXXXX)"
 
 mkdir "$bufferDir/etc"
 
-echo "${properties[nick]}" > "$bufferDir/etc/nickname"
+printf "%s\n" "${properties[nick]}" > "$bufferDir/etc/nickname"
 
 ################
 # toggle debug #
@@ -104,7 +104,7 @@ if [[ -f "$botLogs/uptimeStats" ]]; then
     }
 
     ' < "$botLogs/uptimeStats")"
-  echo "$uptimeStats" > "$botLogs/uptimeStats"
+  printf "%s\n" "$uptimeStats" > "$botLogs/uptimeStats"
 fi
 
 #################
@@ -133,7 +133,7 @@ trap reloadAllConfig SIGHUP
     sleep 5
   done 
 
-  echo "!!! Netcat died. Reloading Main." >&2
+  printf "%s\n" "!!! Netcat died. Reloading Main." >&2
 
   kill -USR1 $thisPid
 } &

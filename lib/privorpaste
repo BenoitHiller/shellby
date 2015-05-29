@@ -92,11 +92,11 @@ main() {
   if (($? != 0)); then
     privmsg "$channel" "$line1"
   elif [[ "${properties[enabled]}" == "true" ]]; then
-    cat <(echo "$line1") <(echo "$line2") - \
+    cat <(printf "%s\n" "$line1") <(printf "%s\n" "$line2") - \
       | localPaste \
       | privmsg "$channel"
   else
-    cat <(echo "$line1") <(echo "$line2") - \
+    cat <(printf "%s\n" "$line1") <(printf "%s\n" "$line2") - \
       | pastebin \
       | ifEmpty "Error pastebinning. Please hold while I contact tech support." \
       | privmsg "$channel"

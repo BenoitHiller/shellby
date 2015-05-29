@@ -50,9 +50,9 @@ main() {
 
     if ((currentTokens <= 0)) && [[ "$nick" != "$botName" ]]; then
       if isOp "$botName" "${data[1]}"; then
-        echo "KICK $channel $nick :$(getMessage kickreasons)"
+        printf "KICK %s %s :%s\n" "$channel" "$nick" "$(getMessage kickreasons)"
       else
-        echo "kick $nick from $channel" >&2
+        printf "%s" "kick %s from %s\n" "$nick" "$channel" >&2
       fi
     fi
   done < <(grep --line-buffered -iE "^:?\S+\s+(privmsg|notice)\s+#")

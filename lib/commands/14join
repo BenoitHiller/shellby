@@ -14,9 +14,9 @@ watchJoins() {
         channel="$(getFields "$line" 2)"
         if [[ ! -f "$bufferDir/etc/channels" ]] \
           || ! grep -Fqx "$channel" "$bufferDir/etc/channels"; then
-          echo "$channel" >> "$bufferDir/etc/channels" 
+          printf "%s\n" "$channel" >> "$bufferDir/etc/channels" 
         fi
-        echo WHO "$channel" %nuhacf &
+        printf "WHO %s %%nuhacf\n" "$channel" &
         privmsg chanserv "op $channel" &
       done
 }

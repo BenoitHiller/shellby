@@ -86,7 +86,7 @@ main() {
     if [[ -z "$result" && "$result" == " " ]]; then
         privmsg "$channel" "Not cool enough to be a meme."
     else
-      echo "$result" | privmsg "$channel"
+      privmsg "$channel" "$result"
     fi 
 
   else

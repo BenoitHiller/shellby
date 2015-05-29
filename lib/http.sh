@@ -116,11 +116,11 @@ uriUnescape() {
 #
 # @.text the text to send
 echorn() {
-  local -r text="$@""\r\n"
+  local -r text="$@"
   if declare -p sentBytes &>/dev/null; then
     sentBytes+="${#text}"
   fi
-  echo -en "$text"
+  printf "%s\r\n" "$text"
 }
 
 # adds a route to the specified routing table

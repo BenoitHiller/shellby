@@ -10,11 +10,11 @@ updateUptime() {
 
     local -ri elapsed=$((current - started))
     if [[ ! -f "$botLogs/uptime" ]]; then
-      echo "$elapsed" > "$botLogs/uptime"
+      printf "%s\n" "$elapsed" > "$botLogs/uptime"
     else
       local -ri previous=$(< "$botLogs/uptime")
       if ((previous < elapsed)); then
-        echo "$elapsed" > "$botLogs/uptime"
+        printf "%s\n" "$elapsed" > "$botLogs/uptime"
       fi
     fi
   fi
@@ -35,7 +35,7 @@ updateUptimeStats() {
 
       ' < "$botLogs/uptimeStats")"
 
-    echo "$newData" > "$botLogs/uptimeStats"
+    printf "%s\n" "$newData" > "$botLogs/uptimeStats"
   else
     printf "1 %(%s)T %(%s)T\n" > "$botLogs/uptimeStats"
   fi
@@ -51,7 +51,7 @@ thirtyLoop() {
       kill -USR1 $thisPid
     fi
 
-    echo PING "${properties[server]}"
+    printf "PING %s\n" "${properties[server]}"
 
     updateUptime
     updateUptimeStats
@@ -60,7 +60,7 @@ thirtyLoop() {
     if [[ -f "$bufferDir/etc/channels" ]]; then
       while read -r channel; do
         if [[ ! -d "$bufferDir/etc/users/$botName/channels/$channel" ]]; then
-          echo JOIN "$channel" &
+          printf "JOIN %s\n" "$channel" &
         fi
       done < "$bufferDir/etc/channels"
     fi
@@ -70,10 +70,10 @@ thirtyLoop() {
 
 oneTwentyLoop() {
   while true; do
-    echo WHOIS $(< "$bufferDir/etc/nickname") &
+    printf "WHOIS %s\n" "$(< "$bufferDir/etc/nickname")" &
     if [[ -f "$bufferDir/etc/channels" ]]; then
       while read -r channel; do
-        echo WHO "$channel" %nuhacf &
+        printf "WHO %s %%nuhacf\n" "$channel" &
       done < "$bufferDir/etc/channels"
     fi
     sleep 120

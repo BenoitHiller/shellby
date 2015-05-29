@@ -42,14 +42,14 @@ getMarkov() {
   if (($# > 0)); then
     local startToken="$(sed "s/[^a-zA-Z0-9,;:?!'-]//g" <<< "$1")"
     if [[ -z "$startToken" ]]; then
-      echo "I can't work with that."
+      printf "I can't work with that.\n"
       return 1
     fi
     local match="$(grep -m 1 -n "^$startToken:" "$markovFile")"
     if [[ -z "$match" ]]; then
       local match="$(grep -m 1 -i -n "^$startToken:" "$markovFile")"
       if [[ -z "$match" ]]; then
-        echo "There is no $startToken in the database."
+        printf "There is no %s in the database.\n" "$startToken"
         return 1
       else
         lineNumber="${match%%:*}"-1

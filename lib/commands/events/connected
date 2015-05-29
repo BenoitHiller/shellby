@@ -4,7 +4,7 @@ source "$botLib/readprop.sh"
 readProperties "$botConfig/etc/config"
 
 if [[ "${properties[channels]}" ]]; then 
-  xargs -n 1 echo "JOIN" <<< "${properties[channels]}"
+  xargs -n 1 printf "JOIN %s\n" <<< "${properties[channels]}"
 fi
 
-echo WHOIS $(< "$bufferDir/etc/nickname") &
+printf "WHOIS %s\n" $(< "$bufferDir/etc/nickname") &

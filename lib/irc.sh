@@ -42,8 +42,9 @@ getIRCInfo() {
   if [[ ! ${infoArray[1]} =~ $channelRegex ]] ; then
     infoArray[1]="${infoArray[0]}"
   fi
+  local infoText="${infoArray[@]}"
 
-  echo "${infoArray[@]}"
+  printf "%s" "$infoText"
   return 0
 }
 
@@ -56,6 +57,6 @@ getFields() {
   shift 
   local -ra fields=( $line )
   for i in "$@"; do
-    echo "${fields[$i]}" 
+    printf "%s" "${fields[$i]}" 
   done
 }

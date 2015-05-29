@@ -7,7 +7,7 @@ declare -r host="$3"
 declare -r currentNick="$(< "$bufferDir/etc/nickname")"
 
 if [[ "$nick" == "$currentNick" ]]; then
-  echo "$username" > "$bufferDir/etc/username"
-  echo "$host" > "$bufferDir/etc/hostname"
+  printf "%s\n" "$username" > "$bufferDir/etc/username"
+  printf "%s\n" "$host" > "$bufferDir/etc/hostname"
 fi
 
