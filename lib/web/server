@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source "$botLib/http.sh"
+source "$botLib/blate.sh"
 source "$botLib/utility.sh"
  
 declare -r TMP_MAN_FOLDER="$bufferDir/web/man"
@@ -52,24 +53,6 @@ serveMan() {
 
 declare -r PASTE_DIR="$bufferDir/web/paste"
 declare -r HEX='^[a-f0-9]+$'
-declare -r PASTE_HEADER='<html>
-<head>
-<style>
-  body {
-    max-width: 800px;
-    font-size: 14px;
-    font-family: monospace;
-    line-height: 18px;
-  }
-  pre {
-    display: inline;
-  }
-</style>
-</head>
-<body>'
-declare -r PASTE_FOOTER='
-</body>
-</html>'
 
 servePastes() {
   local file="${3#/paste/}"
@@ -77,11 +60,7 @@ servePastes() {
   if [[ "$file" =~ $HEX ]]; then
     local -r target="$(find "$PASTE_DIR" -type f -print0 | grep -Fzx -m 1 "$PASTE_DIR/$file")"
     if [[ -n "$target" && -f "$target" ]]; then
-      {
-        echo -n "$PASTE_HEADER"
-        cat "$target"
-        echo -n "$PASTE_FOOTER"
-      } | sendResponseChunked 200
+      render "$botLib/web/paste.html" | sendResponseChunked 200
       return 0
     fi
   fi
