@@ -280,6 +280,7 @@ sendResponsePipe() {
 }
 
 sendResponseChunked() {
+  set -x
   local -ri statusCode="$1"
   local -r reason="${REASONS[$statusCode]}"
 
@@ -297,19 +298,19 @@ sendResponseChunked() {
   echorn
 
   local line
-  while read -r -N 4096 line; do
-    echorn "1000"
+  local -i len
+  while true; do
+    line="$(head -c 4096; echo "_")"
+    line="${line%_}"
+    if [[ -z "$line" ]]; then
+      break
+    fi
+    
+    printf -v len "%x" "$(printf "%s" "$line" | wc -c)"
+
+    echorn "$len"
     echorn "$line"
   done
-
-  local -i remainingLength="${#line}"
-
-  if (( remainingLength > 0 )); then
-    local hexLength
-    printf -v hexLength "%x" "$remainingLength"
-    echorn "$hexLength"
-    echorn "$line"
-  fi
 
   echorn "0"
   echorn
