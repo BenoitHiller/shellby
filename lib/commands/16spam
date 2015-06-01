@@ -52,7 +52,7 @@ main() {
       if isOp "$botName" "${data[1]}"; then
         printf "KICK %s %s :%s\n" "$channel" "$nick" "$(getMessage kickreasons)"
       else
-        printf "%s" "kick %s from %s\n" "$nick" "$channel" >&2
+        printf "kick %s from %s\n" "$nick" "$channel" >&2
       fi
     fi
   done < <(grep --line-buffered -iE "^:?\S+\s+(privmsg|notice)\s+#")
