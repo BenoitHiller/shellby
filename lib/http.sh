@@ -298,7 +298,7 @@ sendResponseChunked() {
   echorn
 
   local line
-  local -i len
+  local len
   while true; do
     line="$(head -c 4096; echo "_")"
     line="${line%_}"
@@ -313,7 +313,6 @@ sendResponseChunked() {
   done
 
   echorn "0"
-  echorn
   echorn
 
   logStatus "$requestLine" "$statusCode" "$sentBytes"
