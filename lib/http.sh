@@ -279,6 +279,26 @@ sendResponsePipe() {
 
 }
 
+_innerResponseChunked() {
+  local LANG="en_US"
+  local LC_CTYPE="en_US"
+
+  local line
+  local len
+  while true; do
+    IFS= read -N 4096 line
+    if [[ -z "$line" ]]; then
+      break
+    fi
+    
+    printf -v len "%x" "${#line}"
+
+    echorn "$len"
+    echorn "$line"
+  done
+
+}
+
 sendResponseChunked() {
   set -x
   local -ri statusCode="$1"
@@ -297,20 +317,7 @@ sendResponseChunked() {
   done
   echorn
 
-  local line
-  local len
-  while true; do
-    line="$(head -c 4096; echo "_")"
-    line="${line%_}"
-    if [[ -z "$line" ]]; then
-      break
-    fi
-    
-    printf -v len "%x" "$(printf "%s" "$line" | wc -c)"
-
-    echorn "$len"
-    echorn "$line"
-  done
+  _innerResponseChunked
 
   echorn "0"
   echorn
