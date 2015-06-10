@@ -6,11 +6,12 @@ module \- manage modules
 list
 
 .B module
-reload regex...
+reload
+.IR regex ...
 .SH DESCRIPTION
 Can list and reload the loaded modules(referred to as commands internally).
 .SH COMMANDS
 .IP list
 List all of the loaded modules and their current pids.
-.IP "reload regex..."
+.IP "reload \fIregex\fP ..."
 Reload all modules whose names match any of the provided regexes. Each argument after reload is interpreted as a regex.

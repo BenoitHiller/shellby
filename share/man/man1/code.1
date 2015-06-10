@@ -3,17 +3,21 @@
 code \- run code on eval.in
 .SH SYNOPSIS
 .B code
-[-l language | -p]
-.IR code...
+.RB [ -l
+.I language
+.RB | -p ]
+.IR code ...
 .SH DESCRIPTION
 .B code
 takes the provided code and submits it to eval.in. By default this is using ruby, however other languages can be specified.
 
 The output is returned along with a link, unless the output is too long in which case just a link is returned.
 .SH OPTIONS
-.IP -p
+.TP
+.B -p
 shortcut for selecting python as the language.
-.IP "-l language"
+.TP
+.B "-l \fIlanguage\fB"
 Specify the language you want to use. It accepts the strings supported by eval.in. There are also the following shortcuts provided for convenience:
 
 python

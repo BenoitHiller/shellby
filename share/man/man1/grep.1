@@ -3,48 +3,86 @@
 grep \- search the channel logs
 .SH SYNOPSIS
 .B grep
-[ -ci ] [ -E | -P | -F ] [ --dontcare ] [ -s count ] [ -m count ] [ -f channel ]
-[ -C context_lines | -A context_lines_after -B context_lines_before ]
-[ -t yyyy-MM-dd ] [ -T yyyy-MM-dd ]
-[--]
-.IR search_string...
+.RB [ -ci ]
+.RB [ -E | -P | -F ]
+.RB [ --dontcare ]
+.RB [ -s
+.I count
+]
+.RB [ -m
+.I count
+]
+.RB [ -f
+.I channel
+]
+.RB [ -C
+.I context_lines
+.RB | -A
+.I context_lines_after
+.B -B
+.I context_lines_before
+]
+.RB [ -t
+.I yyyy-MM-dd
+]
+.RB [ -T 
+.I yyyy-MM-dd
+]
+.RB [ -- ]
+.IR search_string ...
 .SH DESCRIPTION
 .B grep
 searches the logs for a channel or user based on the search string. It then returns up to the first 500 results in chronological order. If there is only one line of output it is returned inline, otherwise the contents are posted to dpaste.
 .SH DATA FORMAT
-UNIX_TIMESTAMP NICK USERNAME HOSTNAME ("message" | "action" | "notice") MESSAGE_CONTENT
+.I UNIX_TIMESTAMP NICK USERNAME HOSTNAME
+("message" | "action" | "notice")
+.I MESSAGE_CONTENT
 
 The fields are separated by a "\\r":
 .SH OPTIONS
-.IP -c
+.TP
+.BR -c
 Output the number of matching lines instead of the text found.
-.IP -i
+.TP
+.BR -i
 Makes the search case-insensitive
-.IP -E
+.TP
+.BR -E
 Extended regex mode. Makes special characters behave as you are used to. See the real grep man page for more details.
 .IP -P
 Perl regex mode for the lulz. See real grep for more info.
-.IP -F
+.TP
+.BR -F
 Search for literal matches of the provided string.
-.IP --dontcare
+.TP
+.BR --dontcare
 Suppress helpful warnings.
-.IP "-s count"
+.TP
+.BR "-s count"
 Skip the first count lines of output. The skipped lines are not counted towards the 500 line output limit.
-.IP "-m count"
+.TP
+.BR "-m count"
 Only return at most count results.
-.IP "-f channel"
+.TP
+.BR "-f channel"
 The channel to search the logs for. Does not support searching other users' logs.
-.IP "-C context_lines"
+.TP
+.BR "-C context_lines"
 Return context_lines number of lines before and after each match. The sections surrounding each match will be separated by lines of "---". If two context sections overlap they will merge together. -C takes precedence over -A and -B.
-.IP "-A context_lines_after"
+.TP
+.BR "-A context_lines_after"
 Return context_lines_after number of lines after each matched line.
-.IP "-B context_lines_before"
+.TP
+.BR "-B context_lines_before"
 Return context_lines_before number of lines before each matched line.
-.IP "-t yyyy-MM-dd"
+.TP
+.BR "-t yyyy-MM-dd"
 Only return matches from log files dated after yyyy-MM-dd. The first two numbers of the year can be ommited and any of the year, month or date can be replaced with a "*" to match any year, month or date respectively.
-.IP "-T yyyy-MM-dd"
+.TP
+.BR "-T yyyy-MM-dd"
 Only return matches from log files dated before yyyy-MM-dd. The first two numbers of the year can be ommited and any of the year, month or date can be replaced with a "*" to match any year, month or date respectively.
-.IP search_string
+.TP
+.BR search_string
 All of the remaining text is passed as the regex to grep. Note that it does not handle or need quotes at this point(this will be fixed eventually).
 .SH EXAMPLES
 To search for every line containing Wednesday from the current channel's logs, case insensitive:
