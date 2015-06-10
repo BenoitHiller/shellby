@@ -105,6 +105,17 @@ parseTime() {
 
 }
 
+filterCommand() {
+  local channel="$1"
+  local targetChannel="$2"
+
+  if [[ "$channel" == "$targetChannel" ]]; then
+    tail -n +2
+  else
+    cat -
+  fi
+}
+
 main() {
   ###################
   # Input Arguments #
@@ -195,8 +206,9 @@ main() {
       fi
     fi
 
+    local -i limit=0
     if [[ "${argMap[m]+_}" && "${argMap[m]}" =~ $re ]]; then
-      local -i limit="${argMap[m]}"+"$skip"-1
+      limit="${argMap[m]}"+"$skip"-1
       gflags+=( -m "$limit" )
     fi
 
@@ -238,7 +250,7 @@ main() {
       | filterDateRange "${startTime[@]}" "${endTime[@]}" \
       | sort -rz \
       | xargs -0 tac \
-      | grep -vF "$fullMessage" \
+      | filterCommand "$channel" "$targetChannel" \
       | grep "${gflags[@]}" -- "$gargs" \
       | formatLogLines \
       | awk '
@@ -247,7 +259,7 @@ main() {
       ' skip="$skip" \
       | tac \
       | ifEmpty "${emptyMessages[$selection]}" \
-      | privorpaste "$channel"
+      | privorpaste "$channel" 
   fi
 }
 
