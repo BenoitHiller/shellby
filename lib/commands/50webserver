@@ -38,7 +38,7 @@ main() {
 
       # Orphan the process so that it doesn't get killed
       (
-        env -i thisPid=$thisPid DEBUG="${properties[debug]}" botConfig="$botConfig" botLib="$botLib" botShare="$botShare" bufferDir="$bufferDir" ncat -lk -p "${properties[port]}" -e "$botLib/web/server" &
+        env -i thisPid=$thisPid DEBUG="${properties[debug]}" botConfig="$botConfig" botLib="$botLib" botShare="$botShare" bufferDir="$bufferDir" PATH="$PATH" ncat -lk -p "${properties[port]}" -e "$botLib/web/server" &
         printf "%d\n" "$!" > "$webDir/server.pid"
       )
     fi 
