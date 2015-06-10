@@ -300,7 +300,6 @@ _innerResponseChunked() {
 }
 
 sendResponseChunked() {
-  set -x
   local -ri statusCode="$1"
   local -r reason="${REASONS[$statusCode]}"
 
