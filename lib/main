@@ -114,13 +114,18 @@ fi
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 managePipes "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 
-stdbuf -oL netcat -i 1 "${properties[server]}" "${properties[port]}" < "$bufferDir/toNetcat" \
+declare -a additionalArgs=()
+if [[ "${properties[ssl]}" == "true" ]]; then
+  additionalArgs+="--ssl"
+fi
+
+stdbuf -oL ncat -d 1 "${additionalArgs[@]}" "${properties[server]}" "${properties[port]}" < "$bufferDir/toNetcat" \
   | sed -u 's/$//' \
   | tee "$bufferDir/fromNetcat" \
   | grep --line-buffered "^"  & 
 declare -i pipelinePid=$!
 
-echo started netcat >&2
+echo started ncat >&2
 
 trap reloadAllConfig SIGHUP
 
@@ -133,7 +138,7 @@ trap reloadAllConfig SIGHUP
     sleep 5
   done 
 
-  printf "%s\n" "!!! Netcat died. Reloading Main." >&2
+  printf "%s\n" "!!! Ncat died. Reloading Main." >&2
 
   kill -USR1 $thisPid
 } &
