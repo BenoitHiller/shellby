@@ -114,12 +114,47 @@ fi
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 managePipes "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
 
+throttle() {
+  local -r file="$1"
+
+  local -r MAX_TOKENS=5
+
+  local -i lastTime
+  local -i currentTokens
+
+  local -i current
+  local -i previous
+  local -i elapsed
+  local -i currentTokens
+  local -i addTokens
+  local -i spentTokens=1
+
+  while IFS= read -r line; do
+    printf -v current "%(%s)T" 
+
+    previous="$lastTime"
+    elapsed=$((current - previous))
+    lastTime="$current"
+    addTokens=$(((elapsed * (MAX_TOKENS + 1)) / 10))
+    currentTokens=$((
+      addTokens + currentTokens > MAX_TOKENS
+        ? MAX_TOKENS
+        : addTokens + currentTokens - spentTokens
+    ))
+    if ((currentTokens <= 0)); then
+      sleep "$(( (1 - currentTokens) * 10 / MAX_TOKENS ))"
+    fi
+
+    printf "%s\n" "$line"
+  done < <(grep --line-buffered "^" "$file")
+}
+
 declare -a additionalArgs=()
 if [[ "${properties[ssl]}" == "true" ]]; then
   additionalArgs+="--ssl"
 fi
 
-stdbuf -oL ncat -d 1 "${additionalArgs[@]}" "${properties[server]}" "${properties[port]}" < "$bufferDir/toNetcat" \
+stdbuf -oL ncat "${additionalArgs[@]}" "${properties[server]}" "${properties[port]}" < <(throttle "$bufferDir/toNetcat") \
   | sed -u 's/$//' \
   | tee "$bufferDir/fromNetcat" \
   | grep --line-buffered "^"  & 
