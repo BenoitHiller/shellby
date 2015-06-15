@@ -39,7 +39,13 @@ parseArgs() {
   local previous
   local i
   local -A parameterSet=()
-  shopt -s extglob
+
+  local hasExtGlob=false
+  if shopt -q extglob; then
+    hasExtGlob=true
+  else
+    shopt -s extglob
+  fi
 
   local char
   local parameterName
@@ -137,5 +143,7 @@ parseArgs() {
     fi
   fi
 
-  shopt -u extglob
+  if ! "$hasExtGlob"; then
+    shopt -u extglob
+  fi
 }
