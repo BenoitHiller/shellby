@@ -1,6 +1,6 @@
 #!/usr/bin/gawk -f
 
-@include "join"
+@include "join.awk"
 BEGIN {
   true = 1
   false = 0
