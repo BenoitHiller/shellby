@@ -70,7 +70,7 @@ main() {
   
   snippet="$(curl -G -s -m 10 "https://www.googleapis.com/youtube/v3/videos" --data "part=snippet,statistics&id=$videoId&key=$apiKey")"
   if (($? == 0)); then
-    local title=$(
+    local title="$(
       sed -E -n '
         s/^\s+"title":\s+"//
 
@@ -78,7 +78,8 @@ main() {
         T
         s/",$//
         p;q' <<< "$snippet" \
-      | jsondecode)
+      | jsondecode)"
+
     local -ia rating=($(
       sed -E -n '
         s/^\s+"likeCount":\s+"//
@@ -89,7 +90,7 @@ main() {
         s/",$//
         p' <<< "$snippet" \
       | jsondecode ))
-    if ((${rating[0]} + ${rating[1]} > 0)); then
+    if ((${#rating[@]} > 0 )) && (( ${rating[0]} + ${rating[1]} > 0)); then
       privmsg "$channel" "=> $title ($((100*${rating[0]} / (${rating[0]} + ${rating[1]})))%)"
     else
       privmsg "$channel" "=> $title"
