@@ -43,19 +43,17 @@ split() {
 # evaluates every second line and echos the rest
 evaluate() {
   local raw=true
-  local template="$(
-    while read -d $'\0' line; do
-      if $raw; then
-        raw=false
-        printf 'printf "%s" %q ;\n' "$line"
-      else
-        raw=true
-        if [[ -n "$line" ]]; then
-          printf '%s ;\n' "$line"
-        fi
+  while read -r -d $'\0' line; do
+    if $raw; then
+      raw=false
+      printf '%s' "$line"
+    else
+      raw=true
+      if [[ -n "$line" ]]; then
+        eval "$line"
       fi
-    done)"
-  eval "$template"
+    fi
+  done
 }
 
 # Render a template file

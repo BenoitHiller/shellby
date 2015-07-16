@@ -120,7 +120,7 @@ echorn() {
   if declare -p sentBytes &>/dev/null; then
     sentBytes+="${#text}"
   fi
-  printf "%s\r\n" "$text"
+  stdbuf -o0 printf "%s\r\n" "$text"
 }
 
 # adds a route to the specified routing table
@@ -226,7 +226,7 @@ sendResponse() {
   local -i contentLength
 
   if [[ -f "$tempFile" ]]; then
-    contentLength="$(stat --printf %s "$target")"
+    contentLength="$(wc -c <"$tempFile")"
     responseHeaders["Content-Length"]="$contentLength"
   else
     responseHeaders["Content-Length"]=0
@@ -251,7 +251,18 @@ sendResponse() {
 
 sendResponsePipe() {
   local -ri statusCode="$1"
-  local -ri contentLength="$2"
+  local -r contentLength="$2"
+
+  # use a tmpfile for pipes of unknown length
+  if [[ -z "$contentLength" ]]; then
+    set -x
+    local -r tmpFile="$(mktemp -p "$TMPDIR" webCache.XXXXXX)"
+    stdbuf -o1000 cat >"$tmpFile"
+    sendResponse "$statusCode" "$tmpFile"
+    rm -f "$tmpFile"
+
+    return 0
+  fi
 
   local -i sentBytes=0
 
@@ -279,26 +290,7 @@ sendResponsePipe() {
 
 }
 
-_innerResponseChunked() {
-  local LANG="en_US"
-  local LC_CTYPE="en_US"
-
-  local line
-  local len
-  while true; do
-    IFS= read -N 4096 line
-    if [[ -z "$line" ]]; then
-      break
-    fi
-    
-    printf -v len "%x" "${#line}"
-
-    echorn "$len"
-    echorn "$line"
-  done
-
-}
-
+# do not use, broken
 sendResponseChunked() {
   local -ri statusCode="$1"
   local -r reason="${REASONS[$statusCode]}"
@@ -316,7 +308,28 @@ sendResponseChunked() {
   done
   echorn
 
-  _innerResponseChunked
+  local -r chunkFile="$(mktemp -p "$TMPDIR" chunkcache.XXXXXX)"
+  head -c 4096 >"$chunkFile"
+  while true; do
+    head -c 4096 >"$chunkFile.next"
+    if [[ ! -s "$chunkFile.next" ]]; then
+      break;
+    fi
+
+    stdbuf -o0 printf "1000\r\n"
+    stdbuf -o0 cat "$chunkFile"
+    stdbuf -o0 printf "\r\n"
+    sentBytes+=4096+2+4+2
+    mv "$chunkFile.next" "$chunkFile"
+  done
+
+  local -i chunkLength="$(stat -c "%s" "$chunkFile")"
+  stdbuf -o0 printf "%x\r\n" "$chunkLength"
+  stdbuf -o0 cat "$chunkFile"
+  stdbuf -o0 printf "\r\n"
+  sentBytes+=4096+2+${#chunkLength}+2
+
+  rm -f "$chunkFile" "$chunkFile.next" &>/dev/null
 
   echorn "0"
   echorn
