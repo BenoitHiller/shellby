@@ -1,0 +1,56 @@
+#!/bin/bash
+
+set -f
+
+declare -r INTERPRETER_CODE="import sys;from code import InteractiveInterpreter;InteractiveInterpreter().runsource(sys.stdin.read())"
+declare -r PYTHON="python/cpython-2.7.8"
+
+getOutput() {
+  sed -E 's/"[:,]"/\n/g;s/^[[{]"/\n/g;s/"[]}$]/\n/g' | sed -n '9p' | jsondecode | tee /dev/stderr
+}
+
+sendCode() {
+  local -r lang="$1"
+
+  curl -is "https://eval.in/" -F "code=$INTERPRETER_CODE" -F "input=<-" -F "lang=$PYTHON" -F "utf8=%CE%BB" -F "execute=on" \
+    | tee /dev/stderr \
+    | sed -En '
+      s/^Location: //
+
+      # if location line print and quit
+      T
+      p;q'\
+    | tr -d "\n\r"
+}
+
+main() {
+  local -r channel="$2"
+  local -r message="$6"
+  local -ri headerLength="$(getheaderlength)"
+  local -A languages=()
+
+  source "$botLib/utility.sh"
+  source "$botLib/parseArgs.sh"
+
+  IFS=" "
+  local -a splitMessage=( $message )
+  unset IFS
+  parseArgs "${splitMessage[@]}"
+
+  local url="$(sendCode "$lang" <<< "${vargs[@]}")"
+  if [[ -n "$url" ]]; then 
+    local json="$(curl -s "$url.json" | getOutput)"
+    local reply="$json (${url})"
+
+    local length="$(wc -c <<< "$reply")"
+    local lines="$(wc -l <<< "$reply")"
+
+    if ((length + headerLength < 508 && lines <= 1)); then
+      printf "=> %s\n" "$reply"| privmsg "$channel" 
+    else
+      printf "%s\n" "$url" | privmsg "$channel"
+    fi
+  fi
+}
+
+main "$@"
