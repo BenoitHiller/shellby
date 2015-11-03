@@ -147,6 +147,12 @@ main() {
       userCares=false
     fi
 
+    local reverseOrder=false
+
+    if [[ -n "${argMap[r]+_}" ]]; then
+      reverseOrder=true
+    fi
+
     ###########################
     # Process Time parameters #
     ###########################
@@ -246,19 +252,32 @@ main() {
 
     local -ri selection="$((RANDOM % ${#emptyMessages[@]}))"
 
-    find "$botLogs/$targetChannel" -type f -name '*_message' -print0 \
-      | filterDateRange "${startTime[@]}" "${endTime[@]}" \
-      | sort -rz \
-      | xargs -0 tac \
-      | filterCommand "$channel" "$targetChannel" \
-      | grep "${gflags[@]}" -- "$gargs" \
-      | formatLogLines \
-      | awk '
-        NR > skip + 499 { exit 0 }
-        NR >= skip { print $0 }
-      ' skip="$skip" \
-      | tac \
-      | ifEmpty "${emptyMessages[$selection]}" \
+    if "$reverseOrder"; then
+      find "$botLogs/$targetChannel" -type f -name '*_message' -print0 \
+        | filterDateRange "${startTime[@]}" "${endTime[@]}" \
+        | sort -z \
+        | xargs -0 cat \
+        | filterCommand "$channel" "$targetChannel" \
+        | grep "${gflags[@]}" -- "$gargs" \
+        | formatLogLines \
+        | awk '
+          NR > skip + 499 { exit 0 }
+          NR >= skip { print $0 }
+        ' skip="$skip"
+    else
+      find "$botLogs/$targetChannel" -type f -name '*_message' -print0 \
+        | filterDateRange "${startTime[@]}" "${endTime[@]}" \
+        | sort -rz \
+        | xargs -0 tac \
+        | filterCommand "$channel" "$targetChannel" \
+        | grep "${gflags[@]}" -- "$gargs" \
+        | formatLogLines \
+        | awk '
+          NR > skip + 499 { exit 0 }
+          NR >= skip { print $0 }
+        ' skip="$skip" \
+        | tac
+    fi | ifEmpty "${emptyMessages[$selection]}" \
       | privorpaste "$channel" 
   fi
 }

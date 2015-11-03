@@ -3,7 +3,7 @@
 grep \- search the channel logs
 .SH SYNOPSIS
 .B grep
-.RB [ -ci ]
+.RB [ -cir ]
 .RB [ -E | -P | -F ]
 .RB [ --dontcare ]
 .RB [ -s
@@ -43,6 +43,9 @@ The fields are separated by a "\\r":
 .TP
 .BR -c
 Output the number of matching lines instead of the text found.
+.TP
+.BR -r
+Search results from oldest to newest instead of newest to oldest.
 .TP
 .BR -i
 Makes the search case-insensitive
