@@ -30,7 +30,7 @@ parseCommands() {
         justMessage="$(sed -E 's/^\s+//' <<< "${message##$command}")"
         if [[ -e "$botLib/commands/simple/$commandName" ]]; then
           # run command with the following params
-          # FROMNICK FROMNICK/CHANNEL CMD USERNAME HOSTNAME MESSAGE
+          # FROMNICK FROMNICK/CHANNEL CMD USERNAME HOSTNAME COMMAND_PARAMS RAW_MESSAGE
           "$botLib/commands/simple/$commandName" "${data[@]}" "$justMessage" "$message" &
         fi
       fi

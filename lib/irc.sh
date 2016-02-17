@@ -57,6 +57,6 @@ getFields() {
   shift 
   local -ra fields=( $line )
   for i in "$@"; do
-    printf "%s" "${fields[$i]}" 
+    printf "%s\n" "${fields[$i]}" 
   done
 }
