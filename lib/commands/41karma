@@ -17,7 +17,6 @@ recordKarma() {
   local -A plusNicks
   local -A minusNicks
   while read -r target; do
-    echo "$target" >&2
     if [[ "$target" =~ $KARMA_REGEX ]]; then
       targetNick="${BASH_REMATCH[1]}"
       targetAction="${BASH_REMATCH[3]}"
@@ -66,7 +65,6 @@ observeKarma() {
 
   grep --line-buffered -iE "^\S+\s+privmsg\s+#\S+\s+:((($IRC_NICK)[:,]\s*[+-]{2})|(.*\b($IRC_NICK)[+-]{2}))(\s|\$)" \
     | while read -r line; do
-      echo "$line" >&2
       if [[ ! -f "$userDir-building" ]]; then
         printf -v now "%(%s)T"
         data=( $(getIRCInfo "$line") )
