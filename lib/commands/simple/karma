@@ -38,30 +38,49 @@ main() {
     local stamp
     local targetNick
     local targetDir
+    local targetAction
+    local -A plusNicks
+    local -A minusNicks
     while read -r line; do
       stamp="$(awk -F "\r" '{ print $1, $2 }' <<< "$line")"
       nick="${stamp#* }"
+      plusNicks=()
+      minusNicks=()
       while read -r karma; do
         if [[ "$karma" =~ $KARMA_REGEX ]]; then
           targetNick="${BASH_REMATCH[1],,}"
+          targetAction="${BASH_REMATCH[3]}"
           if [[ "${validNick[$targetNick]+_}" && "${targetNick}" != "${nick,,}" ]]; then
-            targetDir="$userDir/$targetNick/karma"
-            if [[ ! -d "$targetDir" ]]; then
-              mkdir -p "$targetDir" &>/dev/null
-              touch "$targetDir/plus"
-              touch "$targetDir/minus"
-            fi
-
-            if [[ "${BASH_REMATCH[3]}" == "++" ]]; then
-              printf "%s\n" "$stamp" >> "$targetDir/plus"
+            if [[ "$targetAction" == "++" ]]; then
+              plusNicks["$targetNick"]=true
             else
-              printf "%s\n" "$stamp" >> "$targetDir/minus"
+              minusNicks["$targetNick"]=true
             fi
           fi
         else
           echo "$karma" >&2
         fi
-      done < <(grep -Eio "(^($IRC_NICK)([:,]\s*)?(\+\+|--))|(\b($IRC_NICK)(\+\+|--))(\b|\$)" <<< "${line##*}")
+      done < <(grep -Pio "((^($IRC_NICK)([:,]\s*)?[+-]{2})|((?<=\s)($IRC_NICK)[+-]{2}))(?=\s|\$)" <<< "${line##*}")
+
+      for targetNick in "${!plusNicks[@]}"; do
+        targetDir="$userDir/$targetNick/karma"
+        if [[ ! -d "$targetDir" ]]; then
+          mkdir -p "$targetDir" &>/dev/null
+          touch "$targetDir/plus"
+          touch "$targetDir/minus"
+        fi
+        printf "%s\n" "$stamp" >> "$targetDir/plus"
+      done
+      for targetNick in "${!minusNicks[@]}"; do
+        targetDir="$userDir/$targetNick/karma"
+        if [[ ! -d "$targetDir" ]]; then
+          mkdir -p "$targetDir" &>/dev/null
+          touch "$targetDir/plus"
+          touch "$targetDir/minus"
+        fi
+        printf "%s\n" "$stamp" >> "$targetDir/minus"
+      done
+
     done < <(find "$botLogs" -type f -path '*/#*_message' -print0 \
       | xargs -0 grep -ihE "^([^]*){5}(($IRC_NICK)([:,]\s*)?(\+\+|--)|.*($IRC_NICK)(\+\+|--))(\b|\$)")
 
