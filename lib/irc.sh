@@ -1,6 +1,14 @@
+#
 # irc.sh
 #
 # functions to help parsing the IRC protocol.
+
+declare -r IRC_NICK="[[:alpha:]][][[:alnum:]\\\`^{}]{0,15}"
+
+# lowercase nicks
+normalizeNicks() {
+  tr "[A-Z]]\\\[" "[a-z]}|{"
+}
 
 # get the message after the initial mention
 #
@@ -19,6 +27,7 @@ getMessageNoNick() {
 
   sed -E "s/^(\S+\s+){3}:(.*)/\2/I;s/^$nickPattern//" <<< "$inputString"
 }
+
 
 # parse out the metadata from a privmsg
 #

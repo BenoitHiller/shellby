@@ -1,3 +1,31 @@
+# populate the karma files for a user
+# 
+# 1.name the user to populate
+populateKarma() {
+  local -r name="$1"
+  local -r escapedName="$( sed -E 's/[{}|^[.[.]]]/\\\\\0/g' <<< "$name" )"
+
+  local -r userDir="$botConfig/users"
+  local -r targetDir="$userDir/$name/karma"
+
+  local searchStringPlus
+  local searchStringMinus
+
+  mkdir -p "$targetDir" &>/dev/null
+
+  printf -v searchStringPlus "%s" "^([^]*){5}($escapedName([:,]\s*)?\+\+|.*$escapedName\+\+)"
+  find "$botLogs/" -type f -path "*/#*_message" -print0 \
+    | xargs -0 grep -ihE "$searchStringPlus" \
+    | grep -iEv "^[^]*$escapedName" \
+    | awk -F "\r" '{print $1, $2}' >"$targetDir/plus"
+
+  printf -v searchStringMinus "%s" "^([^]*){5}($escapedName([:,]\s*)?--|.*$escapedName--)"
+  find "$botLogs/" -type f -path "*/#*_message" -print0 \
+    | xargs -0 grep -ihE "$searchStringMinus" \
+    | grep -iEv "^[^]*$escapedName" \
+    | awk -F "\r" '{print $1, $2}' >"$targetDir/minus"
+}
+
 # Verify that a user is in the admin list
 #
 # 1.nickname

@@ -1,0 +1,60 @@
+.TH TEMPFILES 7
+.SH NAME
+tempfiles \- temporary filesystem used for data storage
+.SH DESCRIPTION
+Shellby creates a temporary filesystem in 
+.IR /tmp
+when it starts. This is contained within a folder titled
+.IR streambot.XXXXXX
+
+This folder contains all of the pipe files for the core components as well as three subfolders:
+.B cache,
+.B etc,
+and
+.B modules
+
+.eo
+streambot
+ |-cache
+ |-etc
+ | |-users
+ |   |-user folders...
+ |     |-hostname
+ |     |-nickserv
+ |     |-username
+ |     |-channels
+ |       |-channel folders...
+ |         |-op
+ |         |-voice
+ |-modules
+ | |-list
+ | |-reload
+ |-pipe files...
+.ec
+
+.TP 10
+.B cache
+Contains all of the persistent state needed for the program that can't be stored in memory. e.g. the pastebin data.
+.TP
+.B etc
+Contains all of the shared configuration data for the program. This currently includes the
+.BR users
+data as well as the following data about the current shellby instance:
+.BR channels,
+.BR nickname,
+.BR hostname,
+.BR username,
+and
+.BR lastContact
+.TP
+.BR users
+The users subfolder has separate folders for each of the users. The folders are named after the user's nickname and contain files with the user's hostname, nickserv account, and username.
+
+They also have a subfolder of channel data which contains their voice/op status in each channel they are in. The voice and op status are contained in files which are empty iff the user is not voiced or opped respectively.
+.TP
+.B modules
+Contains the data and control files for the modules command. The
+.BR list
+file contains the list of loaded modules. To reload modules you write a pattern to the
+.BR reload
+file and it will reload any matching modules.

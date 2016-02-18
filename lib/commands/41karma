@@ -1,0 +1,81 @@
+#!/bin/bash
+
+set -f
+
+source "$botLib/functionUtils.sh"
+source "$botLib/irc.sh"
+source "$botLib/users.sh"
+
+recordKarma() {
+  local nick="${1,,}"
+
+
+  local target
+  local targetNick
+  local targetAction
+  local targetDir
+  local -A plusNicks
+  local -A minusNicks
+  while read -r target; do
+    echo "$target" >&2
+    if [[ "$target" =~ $KARMA_REGEX ]]; then
+      targetNick="${BASH_REMATCH[1]}"
+      targetAction="${BASH_REMATCH[3]}"
+
+      if [[ "${targetNick,,}" != "$nick" ]]; then
+        if [[ "$targetAction" == "++" ]]; then
+          plusNicks["$targetNick"]=true
+        elif [[ "$targetAction" == "--" ]]; then
+          minusNicks["$targetNick"]=true
+        fi
+      fi
+    fi
+  done < <( grep -Po "((^($IRC_NICK)([:,]\s*)?[+-]{2})|((?<=\s)($IRC_NICK)[+-]{2}))(?=\s|\$)" <&0 )
+
+  for targetNick in "${!plusNicks[@]}"; do
+    targetDir="$userDir/$targetNick/karma"
+    if [[ ! -d "$targetDir" ]]; then
+      mkdir -p "$targetDir" &>/dev/null
+      touch "$targetDir/plus"
+      touch "$targetDir/minus"
+    fi
+    printf "%s %s\n" "$now" "$nick" >> "$targetDir/plus"
+  done
+  for targetNick in "${!minusNicks[@]}"; do
+    targetDir="$userDir/$targetNick/karma"
+    if [[ ! -d "$targetDir" ]]; then
+      mkdir -p "$targetDir" &>/dev/null
+      touch "$targetDir/plus"
+      touch "$targetDir/minus"
+    fi
+    printf "%s %s\n" "$now" "$nick" >> "$targetDir/minus"
+  done
+}
+
+observeKarma() {
+
+  local -r userDir="$botConfig/users"
+  local -r KARMA_REGEX="($IRC_NICK)([;,]\s*)?(\+\+|--)"
+
+  local nick
+  local target
+  local targetNick
+  local now
+  local message
+  local -a data
+
+  grep --line-buffered -iE "^\S+\s+privmsg\s+#\S+\s+:((($IRC_NICK)[:,]\s*[+-]{2})|(.*\b($IRC_NICK)[+-]{2}))(\s|\$)" \
+    | while read -r line; do
+      echo "$line" >&2
+      if [[ ! -f "$userDir-building" ]]; then
+        printf -v now "%(%s)T"
+        data=( $(getIRCInfo "$line") )
+        nick="${data[0]}"
+        message="$(sed -E 's/^(\S+\s+){3}://' <<< "$line")"
+        
+        recordKarma "$nick" <<< "$message"
+      fi
+    done
+}
+
+startAndWatch observeKarma

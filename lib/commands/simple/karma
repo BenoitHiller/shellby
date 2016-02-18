@@ -1,0 +1,95 @@
+#!/bin/bash
+
+set -f 
+
+source "$botLib/utility.sh"
+source "$botLib/users.sh"
+source "$botLib/irc.sh"
+source "$botLib/parseArgs.sh"
+
+main() {
+  local -r nickname="$1"
+  local -r channel="$2"
+  local -r username="$4"
+  local -r hostname="$5"
+  local -r message="$6"
+
+  local -r userDir="$botConfig/users"
+  local -r KARMA_REGEX="($IRC_NICK)([:,]\s*)?(\+\+|--)"
+
+  resplitAndParse "$message"
+
+  if [[ "${argMap[b]+_}" ]] && verify "$nickname" "$username" "$hostname"; then
+    # build the karma database
+    touch "$userDir-building"
+
+    local -A validNick=()
+    local nick
+
+    while read -r nick; do
+      if [[ -n "$nick" ]]; then
+        validNick["${nick,,}"]=1
+      fi
+    done < <(find "$botLogs" -type f -path '*/#*_message' -print0 \
+      | xargs -0 awk -F "" '{print $2}' \
+      | sort -u)
+
+    local line
+    local stamp
+    local targetNick
+    local targetDir
+    while read -r line; do
+      stamp="$(awk -F "\r" '{ print $1, $2 }' <<< "$line")"
+      nick="${stamp#* }"
+      while read -r karma; do
+        if [[ "$karma" =~ $KARMA_REGEX ]]; then
+          targetNick="${BASH_REMATCH[1],,}"
+          if [[ "${validNick[$targetNick]+_}" && "${targetNick}" != "${nick,,}" ]]; then
+            targetDir="$userDir/$targetNick/karma"
+            if [[ ! -d "$targetDir" ]]; then
+              mkdir -p "$targetDir" &>/dev/null
+              touch "$targetDir/plus"
+              touch "$targetDir/minus"
+            fi
+
+            if [[ "${BASH_REMATCH[3]}" == "++" ]]; then
+              printf "%s\n" "$stamp" >> "$targetDir/plus"
+            else
+              printf "%s\n" "$stamp" >> "$targetDir/minus"
+            fi
+          fi
+        else
+          echo "$karma" >&2
+        fi
+      done < <(grep -Eio "(^($IRC_NICK)([:,]\s*)?(\+\+|--))|(\b($IRC_NICK)(\+\+|--))(\b|\$)" <<< "${line##*}")
+    done < <(find "$botLogs" -type f -path '*/#*_message' -print0 \
+      | xargs -0 grep -ihE "^([^]*){5}(($IRC_NICK)([:,]\s*)?(\+\+|--)|.*($IRC_NICK)(\+\+|--))(\b|\$)")
+
+    rm "$userDir-building"
+    privmsg "$channel" "building karma completed"
+  elif (( "${#vargs[@]}" > 0 )); then
+    local user="${vargs[0],,}"
+    if [[ "$user" =~ ^($IRC_NICK)$ ]]; then
+      if [[ -d "$userDir/$user/karma" ]]; then
+        karma="$(( $(wc -l "$userDir/$user/karma/plus" | awk '{print $1}') - $(wc -l "$userDir/$user/karma/minus" | awk '{print $1}') ))"
+        printf "%s: %d\n" "$user" "$karma" | privmsg "$channel"
+      fi
+    else
+      privmsg "$channel" "invlaid nick"
+    fi
+  else
+    local user
+    local -i karma
+    find "$userDir" -maxdepth 1 -type d \
+      | while read -r user; do
+        if [[ -d "$user/karma" ]]; then
+          karma="$(( $(wc -l "$user/karma/plus" | awk '{print $1}') - $(wc -l "$user/karma/minus" | awk '{print $1}') ))"
+          printf "%s: %d\n" "${user##*/}" "$karma"
+        fi
+      done \
+      | sort -k2 -rn \
+      | privorpaste "$channel"
+  fi
+
+}
+main "$@"

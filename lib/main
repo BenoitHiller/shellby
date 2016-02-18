@@ -154,7 +154,7 @@ if [[ "${properties[ssl]}" == "true" ]]; then
   additionalArgs+="--ssl"
 fi
 
-stdbuf -oL ncat "${additionalArgs[@]}" "${properties[server]}" "${properties[port]}" < <(throttle "$bufferDir/toNetcat") \
+stdbuf -oL ncat "${additionalArgs[@]}" -4 "${properties[server]}" "${properties[port]}" < <(throttle "$bufferDir/toNetcat") \
   | sed -u 's/$//' \
   | tee "$bufferDir/fromNetcat" \
   | grep --line-buffered "^"  & 
