@@ -5,7 +5,11 @@ set -f
 declare -A INTERPRETER
 INTERPRETER["py"]="import sys;from code import InteractiveInterpreter;InteractiveInterpreter().runsource(sys.stdin.read())"
 INTERPRETER["py3"]="import sys;from code import InteractiveInterpreter;InteractiveInterpreter().runsource(sys.stdin.read())"
-INTERPRETER["rb"]="print(eval(STDIN.read))"
+INTERPRETER["rb"]='begin
+  p eval(STDIN.read)
+rescue Exception => e
+  puts "#{$!.class}: #{$!}"
+end'
 
 declare -A LANGUAGE
 LANGUAGE["py"]="python/cpython-2.7.8"
@@ -35,8 +39,6 @@ sendCode() {
 main() {
   local -r channel="$2"
   local -r message="$6"
-  local -ri headerLength="$(getheaderlength)"
-  local -A languages=()
 
   local -r filename="$(basename "$0")"
 
@@ -51,16 +53,21 @@ main() {
   local url="$(sendCode "$filename" <<< "${vargs[@]}")"
   if [[ -n "$url" ]]; then 
     local json="$(curl -s "$url.json" | getOutput)"
-    local reply="$json (${url})"
 
-    local length="$(wc -c <<< "$reply")"
-    local lines="$(wc -l <<< "$reply")"
-
-    if ((length + headerLength < 508 && lines <= 1)); then
-      printf "=> %s\n" "$reply"| privmsg "$channel" 
-    else
-      printf "%s\n" "$url" | privmsg "$channel"
+    local lines="$(wc -l <<< "$json")"
+    if ((lines > 1)); then
+      json="$(head -n 1 <<< "$json") ..."
     fi
+
+    local reply="$json (${url})"
+    local length="$(wc -c <<< "$reply")"
+
+    # This is not a good way to do this.
+    # TODO Push down this code with fancier line breaking tools.
+    if ((length > 400)); then
+      reply="$(head -c 400 <<< "$json") ... ($url)"
+    fi
+    printf "=> %s\n" "$reply"| privmsg "$channel" 
   fi
 }
 
