@@ -86,7 +86,7 @@ parseTime() {
   shift
   local -a timeParts=("$@")
 
-  local -a splitParams=( $(IFS="-"; printf "%s" "$parameterInput") )
+  local -a splitParams=( $(IFS="-"; printf "%s\n" $parameterInput ) )
   if [[ "${splitParams[0]}" != "*" ]]; then
     if [[ "${splitParams[0]}" =~ ^[0-9]{2}$ ]]; then
       timeParts[0]="20${splitParams[0]}"
@@ -162,7 +162,6 @@ main() {
 
     local -r timeRegex="([0-9]{1,4}|\*)-([0-9]{1,2}|\*)-([0-9]{1,2}|\*)"
     
-
     if [[ "${argMap[t]+_}" && "${argMap[t]}" =~ $timeRegex ]]; then
       startTime=( $(parseTime "${argMap[t]}" "${startTime[@]}") )
     fi
