@@ -1,0 +1,81 @@
+#!/bin/bash
+
+source "$botLib/utility.sh"
+
+declare -ri CHECK_INTERVAL=5
+declare childPid
+declare stop=false
+
+handleInt() {
+  stop=true
+}
+
+startCommand() {
+  stdbuf -oL "$@" < "$inputPipe" &
+  childPid="$!" 
+}
+
+replaceCommand() {
+  exec {IN}<"$inputPipe"
+  killtree "$childPid"
+  stdbuf -oL "$@" < "$inputPipe" &
+  childPid="$!"
+}
+
+# Run the specified command, restarting it if the file changes.
+#
+# The command creates a pipe so that it can swap out the running process
+# without closing stdin.
+#
+# It checks the file on a timer loop every CHECK_INTERVAL.
+# 
+# Commands are killed using TERM on reload. It is up to the command to handle
+# this message appropriately(default handlers typically print to stderr).
+main() {
+  local file="$1"
+  if [[ ! -f "$1" ]]; then
+    file="$(which "$file")"
+    if (($? != 0)); then
+      printf "File not found: %s\n" "$1" >&2
+      exit 1
+    fi
+  fi
+
+  local inputPipe
+  local grepPid
+
+  local lastChecksum="$(md5sum "$file")"
+  local newChecksum
+  
+  # TODO change after testing
+  PIPE_DIR="${PIPE_DIR:-/tmp}" 
+
+  inputPipe="$(mktemp -u -p "$PIPE_DIR" pipe.XXXXXXXX.i)"
+
+  if mkfifo "$inputPipe"; then
+    startCommand "$@"
+    grep --line-buffered "^" > $inputPipe <&0 &
+    grepPid="$!"
+    while ! "$stop"; do
+      # TODO monitor if input closed
+      # or read from it synchronously and run this async
+      sleep "$CHECK_INTERVAL"
+      newChecksum="$(md5sum "$file")" 
+      if [[ "$lastChecksum" != "$newChecksum" ]]; then
+        printf "reloading %s\n" "$file" >&2
+        lastChecksum="$newChecksum"
+        replaceCommand "$@"
+      fi
+    done
+    killtree "$childPid"
+    kill -TERM "$grepPid"
+    rm "$inputPipe"
+  else
+    printf "Failed to create reloader pipe\n" >&2
+    exit 1
+  fi
+}
+
+trap handleInt INT TERM
+
+main "$@"

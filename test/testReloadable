@@ -1,0 +1,19 @@
+#!/bin/bash
+declare -r testDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd )" 
+source "$testDir/test.bash"
+declare -r TMPDIR="/tmp"
+
+testBasic() {
+  local tmpFile="$(mktemp -p "$TMPDIR" test.XXXXXX)"
+  cat >"$tmpFile" <<EOF
+#!/bin/bash
+read line;
+echo b
+EOF
+  chmod +x "$tmpFile"
+  assertDiff <(echo b) <(echo a | reloadable "$tmpFile")
+}
+
+setUpTests
+runTest testBasic
+getTestResults

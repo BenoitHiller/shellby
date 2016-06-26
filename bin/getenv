@@ -1,0 +1,19 @@
+#!/bin/bash
+declare -r botConfig="$HOME/.shellby"
+
+declare -r parentDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
+declare botLib
+declare botShare
+
+if [[ "$parentDir" == "/usr/bin" ]]; then
+  botLib="/usr/lib/shellby"
+  botShare="/user/share/shellby"
+else
+  botLib="$parentDir/lib"
+  botShare="$parentDir/share"
+fi
+
+printf "export botConfig=%q\n" "$botConfig"
+printf "export botLib=%q\n" "$botLib"
+printf "export botShare=%q\n" "$botShare"
+printf "export PATH=\"\$botLib:\$PATH\"\n"
