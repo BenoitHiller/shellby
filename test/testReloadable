@@ -4,40 +4,61 @@ source "$testDir/test.bash"
 declare -r TMPDIR="/tmp"
 
 testTrivial() {
-  cat >"$tmpFile" <<EOF
+  cat >"$tmpDir/1" <<EOF
 #!/bin/bash
 read line
 echo b
+sed 'd'
 EOF
-  assertDiff <(echo b) <(echo a | reloadable "$tmpFile")
+  chmod +x "$tmpDir/1"
+  echo a | reloadable "$tmpDir/1" > "$tmpDir/1.out" &
+  local process="$!"
+  for ((i=5; i > 0; i--)); do
+    if cmp -s <(echo b) "$tmpDir/1.out"; then
+      killtree "$process"
+      return 0
+    else
+      sleep 1
+    fi
+  done
+  killtree "$process"
+  assertFail
 }
 
 testSwitch() {
   echo "test 2"
-  cat >"$tmpFile" <<EOF
+  cat >"$tmpDir/2" <<EOF
 #!/bin/bash
 read line;
 echo b
-sleep 10
+while sleep 1; do :; done
 EOF
-  echo -e "a\na" | reloadable "$tmpFile" > "$tmpFile.out" &
-  local commandPid="$!"
+  chmod +x "$tmpDir/2"
+  while sleep 1; do echo a; done | reloadable "$tmpDir/2" > "$tmpDir/2.out" &
+  local process="$!"
   sleep 1
-  cat >"$tmpFile" <<EOF
+  cat >"$tmpDir/2" <<EOF
 #!/bin/bash
 read line;
 echo c
+sed 'd'
 EOF
 
-  wait "$commandPid"
-  assertDiff <( echo -e "b\nc") "$tmpFile.out"  
-  rm "$tmpFile.out"
+  for ((i=15; i > 0; i--)); do
+    if cmp -s <( echo -e "b\nc") "$tmpDir/2.out"; then
+      killtree "$process"
+      return 0
+    else
+      sleep 1
+    fi
+  done
+  killtree "$process"
+  assertFail
 }
 
 setUpTests
-declare tmpFile="$(mktemp -p "$TMPDIR" test.XXXXXX)"
-chmod +x "$tmpFile"
+declare tmpDir="$(mktemp -p "$TMPDIR" -d test.XXXXXX)"
 runTest testTrivial
 runTest testSwitch
-rm "$tmpFile"
+rm -r "$tmpDir"
 getTestResults

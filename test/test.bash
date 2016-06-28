@@ -22,6 +22,10 @@ fail() {
   exit 1
 }
 
+assertFail() {
+  fail
+}
+
 assertEquals() {
   local -r expected="$1"
   local -r actual="$2"

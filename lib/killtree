@@ -1,0 +1,25 @@
+#!/bin/bash
+# kill the specified process and all of its children
+#
+# The leaf processes are killed first, then it works up to the input
+#
+# @. a list of pid numbers. quoting does not matter
+killtree() {
+  local -a safePids=()
+  for arg in "$@"; do
+    if (($arg > 0)); then
+      safePids+=( "$arg" )
+    fi
+  done
+  if ((${#safePids[@]} > 0)); then
+    local joinedPids=$(sed -E 's/\s+/,/g' <<< "${safePids[@]}")
+
+    local -ra children=( $(pgrep -P "$joinedPids") )
+    if [[ ${#children[@]} != 0 ]]; then
+      killtree ${children[@]}
+    fi
+    kill -TERM ${safePids[@]}
+  fi
+}
+
+killtree "$@"

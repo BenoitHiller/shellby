@@ -11,14 +11,14 @@ handleInt() {
 }
 
 startCommand() {
-  stdbuf -oL "$@" < "$inputPipe" &
+  stdbuf -oL "$@" < "$pipeFile.i" &
   childPid="$!" 
 }
 
 replaceCommand() {
-  exec {IN}<"$inputPipe"
-  killtree "$childPid"
-  stdbuf -oL "$@" < "$inputPipe" &
+  exec {IN}<"$pipeFile.i"
+  killtree "$childPid" &>/dev/null
+  stdbuf -oL "$@" <&$IN &
   childPid="$!"
 }
 
@@ -31,6 +31,13 @@ replaceCommand() {
 # 
 # Commands are killed using TERM on reload. It is up to the command to handle
 # this message appropriately(default handlers typically print to stderr).
+#
+# Note that a command must consume all of the input from the parent then exit 
+# on recieving EOF.
+#
+# If the child dies on its own before the grep does the behaviour of the
+# program is undefined. Right now it should just sit there and wait for you
+# to fix the command triggering a reload.
 main() {
   local file="$1"
   if [[ ! -f "$1" ]]; then
@@ -41,8 +48,8 @@ main() {
     fi
   fi
 
-  local inputPipe
-  local grepPid
+  local pipeFile
+  local inputGrepPid
 
   local lastChecksum="$(md5sum "$file")"
   local newChecksum
@@ -50,30 +57,24 @@ main() {
   # TODO change after testing
   PIPE_DIR="${PIPE_DIR:-/tmp}" 
 
-  inputPipe="$(mktemp -u -p "$PIPE_DIR" pipe.XXXXXXXX.i)"
+  pipeFile="$(mktemp -u -p "$PIPE_DIR" pipe.XXXXXXXX)"
 
-  if mkfifo "$inputPipe"; then
+  if mkfifo "$pipeFile.i"; then
     startCommand "$@"
-    grep --line-buffered "^" <&0 | tee "$inputPipe" > /dev/null &
-    grepPid="$!"
-    set -x
-    while ! "$stop"; do
-      # TODO monitor if input closed
-      # or read from it synchronously and run this async
+    grep --line-buffered "^" <&0 | tee "$pipeFile.i" >/dev/null &
+    inputGrepPid="$!"
+    while ! "$stop" && kill -0 "$inputGrepPid" &>/dev/null; do
       sleep "$CHECK_INTERVAL"
-      if ! kill -0 "$childPid"; then
-        break
-      fi
-      newChecksum="$(md5sum "$file")" 
-      if [[ "$lastChecksum" != "$newChecksum" ]]; then
-        printf "reloading %s\n" "$file" >&2
+      newChecksum="$(md5sum "$file")"
+      # TODO handle file removed
+      if [[ "$lastChecksum" != "$newChecksum" ]]; then 
+        printf "reloading %s\n" "$1" >&2
         lastChecksum="$newChecksum"
         replaceCommand "$@"
       fi
     done
-    killtree "$childPid"
-    kill -TERM "$grepPid"
-    rm "$inputPipe"
+    wait "$childPid"
+    rm "$pipeFile.i"
   else
     printf "Failed to create reloader pipe\n" >&2
     exit 1
