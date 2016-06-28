@@ -54,12 +54,16 @@ main() {
 
   if mkfifo "$inputPipe"; then
     startCommand "$@"
-    grep --line-buffered "^" > $inputPipe <&0 &
+    grep --line-buffered "^" <&0 | tee "$inputPipe" > /dev/null &
     grepPid="$!"
+    set -x
     while ! "$stop"; do
       # TODO monitor if input closed
       # or read from it synchronously and run this async
       sleep "$CHECK_INTERVAL"
+      if ! kill -0 "$childPid"; then
+        break
+      fi
       newChecksum="$(md5sum "$file")" 
       if [[ "$lastChecksum" != "$newChecksum" ]]; then
         printf "reloading %s\n" "$file" >&2

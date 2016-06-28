@@ -3,17 +3,41 @@ declare -r testDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$testDir/test.bash"
 declare -r TMPDIR="/tmp"
 
-testBasic() {
-  local tmpFile="$(mktemp -p "$TMPDIR" test.XXXXXX)"
+testTrivial() {
+  cat >"$tmpFile" <<EOF
+#!/bin/bash
+read line
+echo b
+EOF
+  assertDiff <(echo b) <(echo a | reloadable "$tmpFile")
+}
+
+testSwitch() {
+  echo "test 2"
   cat >"$tmpFile" <<EOF
 #!/bin/bash
 read line;
 echo b
+sleep 10
 EOF
-  chmod +x "$tmpFile"
-  assertDiff <(echo b) <(echo a | reloadable "$tmpFile")
+  echo -e "a\na" | reloadable "$tmpFile" > "$tmpFile.out" &
+  local commandPid="$!"
+  sleep 1
+  cat >"$tmpFile" <<EOF
+#!/bin/bash
+read line;
+echo c
+EOF
+
+  wait "$commandPid"
+  assertDiff <( echo -e "b\nc") "$tmpFile.out"  
+  rm "$tmpFile.out"
 }
 
 setUpTests
-runTest testBasic
+declare tmpFile="$(mktemp -p "$TMPDIR" test.XXXXXX)"
+chmod +x "$tmpFile"
+runTest testTrivial
+runTest testSwitch
+rm "$tmpFile"
 getTestResults
