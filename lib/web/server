@@ -37,13 +37,10 @@ serveMan() {
   if ((cachedTime == 0 || cachedTime > changeTime )); then
     trimCache "$TMP_MAN_FOLDER" "$MAX_CACHE_SIZE"
 
-    local command
-    printf -v command "%q %q" "$botLib/convertPipe" "$cacheFile"
-
     if [[ -n "$section" ]]; then
-      MANWIDTH=80 man -M "$botShare/man/" -P "$command" "$section" "$file" > /dev/tty
+      MANWIDTH=80 man -M "$botShare/man/" "$section" "$file" > "$cacheFile"
     else
-      MANWIDTH=80 man -M "$botShare/man/" -P "$command" "$file" > /dev/tty
+      MANWIDTH=80 man -M "$botShare/man/" "$file" > "$cacheFile"
     fi
   fi
 
