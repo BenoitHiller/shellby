@@ -193,7 +193,7 @@ sendResponseShort() {
   local -i sentBytes=0
   local -i contentLength="${#message}"
 
-  echorn "HTTP/1.1 $statusCode $reason"
+  echorn "HTTP/1.0 $statusCode $reason"
   echorn "Content-Length: $contentLength"
   echorn 
   echorn "$message"
@@ -232,7 +232,7 @@ sendResponse() {
     responseHeaders["Content-Length"]=0
   fi
 
-  echorn "HTTP/1.1 $statusCode $reason"
+  echorn "HTTP/1.0 $statusCode $reason"
   for header in "${!responseHeaders[@]}"; do
     echorn "$header: ${responseHeaders[$header]}"
   done
@@ -274,7 +274,7 @@ sendResponsePipe() {
 
   responseHeaders["Content-Length"]="$contentLength"
 
-  echorn "HTTP/1.1 $statusCode $reason"
+  echorn "HTTP/1.0 $statusCode $reason"
   for header in "${!responseHeaders[@]}"; do
     echorn "$header: ${responseHeaders[$header]}"
   done
@@ -302,7 +302,7 @@ sendResponseChunked() {
   fi
 
   responseHeaders["Transfer-Encoding"]="chunked"
-  echorn "HTTP/1.1 $statusCode $reason"
+  echorn "HTTP/1.0 $statusCode $reason"
   for header in "${!responseHeaders[@]}"; do
     echorn "$header: ${responseHeaders[$header]}"
   done
