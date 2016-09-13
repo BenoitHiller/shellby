@@ -1,0 +1,36 @@
+#!/bin/bash
+
+[[ -z "$botTest" ]] && exit 1
+
+set -f
+
+source "$botLib/test.bash"
+
+declare -i timeStarted
+declare -i timeFinished
+# run all tests
+setUpTests
+if (( $# == 0 )); then
+  printf -v timeStarted "%(%s)T"
+  while read file; do
+    newSuite
+    source "$file"
+    runTests
+  done < <(find -L "$botTest" -mindepth 1 -maxdepth 1 -type f)
+  printf -v timeFinished "%(%s)T"
+else
+  printf -v timeStarted "%(%s)T"
+  for file in "$@"; do
+    if [[ -f "$botTest/$file" ]]; then
+      newSuite
+      source "$botTest/$file"
+      runTests
+    fi
+  done
+  
+  printf -v timeFinished "%(%s)T"
+fi
+
+getTestResults
+printf "time:\t%ds\n" "$((timeFinished - timeStarted))"
+exit "$?"

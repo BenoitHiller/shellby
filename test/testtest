@@ -1,7 +1,3 @@
-#!/bin/bash
-declare -r testDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd )" 
-source "$testDir/test.bash"
-
 testAssertPass() {
   (assertEquals "a" "a")
   assertSuccess
@@ -11,6 +7,7 @@ testAssertPass() {
   (assertDiff <(echo a) <(echo a))
   assertSuccess
 }
+addTest testAssertPass
 
 testAssertFail() {
   (assertEquals "a" "b") &>/dev/null
@@ -21,8 +18,4 @@ testAssertFail() {
   (assertDiff <(echo a) <(echo b)) &>/dev/null
   assertFailed
 }
-
-setUpTests
-runTest testAssertPass
-runTest testAssertFail
-getTestResults
+addTest testAssertFail

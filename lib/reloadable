@@ -1,7 +1,5 @@
 #!/bin/bash
 
-source "$botLib/utility.sh"
-
 declare -ri CHECK_INTERVAL=5
 declare childPid
 declare stop=false
@@ -17,7 +15,7 @@ startCommand() {
 
 replaceCommand() {
   exec {IN}<"$pipeFile.i"
-  killtree "$childPid" &>/dev/null
+  killtree "$childPid"
   stdbuf -oL "$@" <&$IN &
   childPid="$!"
 }
@@ -65,7 +63,7 @@ main() {
     inputGrepPid="$!"
     while ! "$stop" && kill -0 "$inputGrepPid" &>/dev/null; do
       sleep "$CHECK_INTERVAL"
-      newChecksum="$(md5sum "$file")"
+      newChecksum="$(md5sum "$file" 2>/dev/null)"
       # TODO handle file removed
       if [[ "$lastChecksum" != "$newChecksum" ]]; then 
         printf "reloading %s\n" "$1" >&2
@@ -73,6 +71,10 @@ main() {
         replaceCommand "$@"
       fi
     done
+    if "$stop"; then
+      killtree "$inputGrepPid"
+    fi
+
     wait "$childPid"
     rm "$pipeFile.i"
   else

@@ -1,4 +1,4 @@
-#!/bin/bash
+continue
 
 declare -r botDir="$1"
 
