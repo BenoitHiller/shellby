@@ -1,0 +1,13 @@
+#!/usr/bin/sed -Ef
+
+# remove prefix parameter
+s/^([^\r]*)\r[^\r]*/\1/
+
+# change last parameter into trailing
+s/\r([^\r]*)$/ :\1/
+
+# change other parameters
+s/\r/ /g
+
+# add trailing \r
+s/$/\r/
