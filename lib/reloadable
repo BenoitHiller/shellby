@@ -3,20 +3,21 @@
 declare -ri CHECK_INTERVAL=5
 declare childPid
 declare stop=false
+declare inFd
 
 handleInt() {
   stop=true
 }
 
 startCommand() {
-  stdbuf -oL "$@" < "$pipeFile.i" &
+  exec {inFd}<"$pipeFile.i"
+  stdbuf -oL "$@" <&$inFd  &
   childPid="$!" 
 }
 
 replaceCommand() {
-  exec {IN}<"$pipeFile.i"
   killtree "$childPid"
-  stdbuf -oL "$@" <&$IN &
+  stdbuf -oL "$@" <&$inFd &
   childPid="$!"
 }
 
@@ -58,8 +59,8 @@ main() {
   pipeFile="$(mktemp -u -p "$PIPE_DIR" pipe.XXXXXXXX)"
 
   if mkfifo "$pipeFile.i"; then
-    startCommand "$@"
     grep --line-buffered "^" <&0 | tee "$pipeFile.i" >/dev/null &
+    startCommand "$@"
     inputGrepPid="$!"
     while ! "$stop" && kill -0 "$inputGrepPid" &>/dev/null; do
       sleep "$CHECK_INTERVAL"
@@ -76,6 +77,7 @@ main() {
     fi
 
     wait "$childPid"
+    exec {inFd}<&-
     rm "$pipeFile.i"
   else
     printf "Failed to create reloader pipe\n" >&2
