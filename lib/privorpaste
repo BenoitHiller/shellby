@@ -75,7 +75,7 @@ localPaste() {
 
   mv "$tmpFile" "$pasteDir/$checksum"
 
-  printf "http://%s:%d/paste/%s\n" "${properties[domain]}" "${properties[port]}" "$checksum"
+  geturl "paste/$checksum"
 }
 
 main() {

@@ -7,7 +7,7 @@ set -f
 ###################
 
 declare -r REQUEST_LINE_REGEX='^\S+ \S+ \S+$'
-declare -r REQUEST_VERSION_REGEX='^\S+ \S+ HTTP\/1\.1$'
+declare -r REQUEST_VERSION_REGEX='^\S+ \S+ HTTP\/1\.[10]$'
 declare -r LWS='^[\t ]+'
 declare -r TOKEN='[^()<>@,;:\"\/[.[.][.].]?={} \t]+'
 declare -r TEXT='[[:print:]\t]'

@@ -13,7 +13,7 @@ if [[ -z "$message" ]]; then
 else
   if [[ "${properties[enabled]}" == "true" ]]; then
     if man -w -M "$botShare/man/" "$message" &>/dev/null; then
-      printf "http://%s:%d/man/%s\n" "${properties[domain]}" "${properties[port]}" "$message" | privmsg "$channel"
+      geturl "man/$message" | privmsg "$channel"
     else
       printf "No manual entry for %s" "$message" | privmsg "$channel"
     fi

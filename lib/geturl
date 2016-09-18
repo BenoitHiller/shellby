@@ -1,0 +1,18 @@
+#!/bin/bash
+
+main() {
+  if ! type readProperties &>/dev/null; then
+    source "$botLib/readprop.sh"
+  fi
+
+  readProperties "$botConfig/etc/webserver"
+
+  if [[ "${properties[port80]}" == "true" ]]; then
+    printf "http://%s/%s\n" "${properties[domain]}" "$1"
+  else
+    printf "http://%s:%d/%s\n" "${properties[domain]}" "${properties[port]}" "$1"
+  fi
+  
+}
+
+main "$@"
