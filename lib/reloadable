@@ -3,6 +3,7 @@
 declare -ri CHECK_INTERVAL=5
 declare childPid
 declare stop=false
+# TODO verify that the child doesn't do anything weird by inheriting this
 declare inFd
 
 handleInt() {
@@ -11,7 +12,7 @@ handleInt() {
 
 startCommand() {
   exec {inFd}<"$pipeFile.i"
-  stdbuf -oL "$@" <&$inFd  &
+  stdbuf -oL "$@" <&$inFd {inFd}<&- &
   childPid="$!" 
 }
 
