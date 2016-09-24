@@ -1,5 +1,0 @@
-#!/bin/bash
-
-trap '' SIGHUP
-
-sed -nuE 's/^PING .*/PONG/p'

@@ -72,12 +72,6 @@ printf "%s\n" "${properties[nick]}" > "$bufferDir/etc/nickname"
 
 trap "rm -rf $bufferDir; exit 1" SIGINT SIGTERM EXIT
 
-#####################
-# load dependencies #
-#####################
-
-source "$botLib/commandLoader.sh"
-
 ###################
 # Test Connection #
 ###################
@@ -112,7 +106,14 @@ fi
 #################
 
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
-managePipes "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
+#managePipes "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
+grep --line-buffered "^" "$bufferDir/fromNetcat" \
+  | reloadable irc2delim \
+  | reloadable logdelim \
+  | reloadable splitcommands "$botLib/listeners" \
+  | reloadable logdelim \
+  | reloadable delim2irc \
+  | tee "$bufferDir/toNetcat" >/dev/null &
 
 throttle() {
   local -r file="$1"
@@ -156,13 +157,10 @@ fi
 
 stdbuf -oL ncat "${additionalArgs[@]}" -4 "${properties[server]}" "${properties[port]}" < <(throttle "$bufferDir/toNetcat") \
   | sed -u 's/$//' \
-  | tee "$bufferDir/fromNetcat" \
-  | grep --line-buffered "^"  & 
+  | tee "$bufferDir/fromNetcat" >/dev/null & 
 declare -i pipelinePid=$!
 
 echo started ncat >&2
-
-trap reloadAllConfig SIGHUP
 
 {
   while ! ps -p $pipelinePid >/dev/null 2>&1; do
@@ -178,5 +176,6 @@ trap reloadAllConfig SIGHUP
   kill -USR1 $thisPid
 } &
 
-watchFiles "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
+#watchFiles "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
+while sleep 10; do :; done
 
