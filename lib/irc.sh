@@ -40,7 +40,7 @@ getMessageNoNick() {
 getIRCInfo() {
   local -r inputString="$1"
 
-  local -a infoArray=( $(sed -E 's/^:?([^![:space:]]+)(!([^@[:space:]]+)@(\S+))?\s+(\S+)\s+(\S+)(\s+.*)?/\1 \6 \5 \3 \4/' <<< "$inputString") )
+  local -a infoArray=( $(sed -E 's/^([^\r]+)\r([^!\r]+)(!([^@\r]+)@([^\r]+))?\r([^\r]+)(\r.*)?/\2 \6 \1 \4 \5/' <<< "$inputString") )
 
   if ((${#infoArray[@]} < 2)); then
     return 1
@@ -57,13 +57,14 @@ getIRCInfo() {
   return 0
 }
 
-# get fields from space separated data
+# get fields from \r separated data
 #
 # 1.line the line to split
 # @:1. the list of fields to print on separate lines 
 getFields() {
   local -r line="$1"
   shift 
+  IFS=$'\r'
   local -ra fields=( $line )
   for i in "$@"; do
     printf "%s\n" "${fields[$i]}" 

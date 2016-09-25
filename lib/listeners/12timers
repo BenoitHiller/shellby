@@ -51,7 +51,7 @@ thirtyLoop() {
       kill -USR1 $thisPid
     fi
 
-    printf "PING %s\n" "${properties[server]}"
+    printf "PING\r\r%s\n" "${properties[server]}"
 
     updateUptime
     updateUptimeStats
@@ -60,7 +60,7 @@ thirtyLoop() {
     if [[ -f "$bufferDir/etc/channels" ]]; then
       while read -r channel; do
         if [[ ! -d "$bufferDir/etc/users/$botName/channels/$channel" ]]; then
-          printf "JOIN %s\n" "$channel" &
+          printf "JOIN\r\r%s\n" "$channel" &
         fi
       done < "$bufferDir/etc/channels"
     fi
@@ -90,8 +90,6 @@ oneHourLoop() {
 }
 
 main() {
-  trap '' SIGHUP
-
   readProperties "$botConfig/etc/config"
 
   # consume the input to the command so that the pipe does not fill

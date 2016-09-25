@@ -2,7 +2,6 @@
 
 set -f
 
-source "$botLib/functionUtils.sh"
 source "$botLib/irc.sh"
 
 # remove a user from a channel
@@ -98,7 +97,7 @@ updateUserInfo() {
 bufferWho() {
   local -r userPipe="$1"
   while true; do
-    sed 's/.*/WHO & %nuhcaf/' < "$userPipe"
+    sed 's/.*/WHO\r\r&\r%nuhcaf/' < "$userPipe"
     sleep 1
   done
 }
@@ -182,4 +181,4 @@ monitorUsers() {
   done
 }
 
-startAndWatch monitorUsers
+monitorUsers

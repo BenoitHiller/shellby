@@ -58,6 +58,7 @@ assertEquals() {
   local -r expected="$1"
   local -r actual="$2"
   if [[ "$expected" != "$actual" ]]; then
+    printf "%q != %q\n" "$expected" "$actual" >>"$tmpOut"
     fail
   fi
 }

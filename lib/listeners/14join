@@ -3,22 +3,21 @@
 set -f
 
 source "$botLib/irc.sh"
-source "$botLib/functionUtils.sh"
 
 watchJoins() {
   local botName="$(< "$bufferDir/etc/nickname")" 
   local channel
 
-  grep --line-buffered -iE "^:$botName!\S+\s+JOIN\s+" \
+  grep --line-buffered -iE "^JOIN$botName!" \
     | while read -r line; do
         channel="$(getFields "$line" 2)"
         if [[ ! -f "$bufferDir/etc/channels" ]] \
           || ! grep -Fqx "$channel" "$bufferDir/etc/channels"; then
           printf "%s\n" "$channel" >> "$bufferDir/etc/channels" 
         fi
-        printf "WHO %s %%nuhacf\n" "$channel" &
+        printf "WHO\r\r%s\r%%nuhacf\n" "$channel" &
         privmsg chanserv "op $channel" &
       done
 }
 
-startAndWatch watchJoins
+watchJoins
