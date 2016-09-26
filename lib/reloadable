@@ -3,7 +3,6 @@
 declare -ri CHECK_INTERVAL=5
 declare childPid
 declare stop=false
-# TODO verify that the child doesn't do anything weird by inheriting this
 declare inFd
 
 handleInt() {
@@ -38,6 +37,8 @@ replaceCommand() {
 # If the child dies on its own before the grep does the behaviour of the
 # program is undefined. Right now it should just sit there and wait for you
 # to fix the command triggering a reload.
+#
+# TODO allow you to specify a pidfile so that the process can recieve signals
 main() {
   local file="$1"
   if [[ ! -f "$1" ]]; then
@@ -54,10 +55,13 @@ main() {
   local lastChecksum="$(md5sum "$file")"
   local newChecksum
   
-  # TODO change after testing
-  PIPE_DIR="${PIPE_DIR:-/tmp}" 
+  if [[ -n "$bufferDir" ]]; then
+    PIPE_DIR="$bufferDir"
+  else
+    PIPE_DIR="${PIPE_DIR:-/tmp}" 
+  fi
 
-  pipeFile="$(mktemp -u -p "$PIPE_DIR" pipe.XXXXXXXX)"
+  pipeFile="$(mktemp -u -p "$PIPE_DIR" reloadable.XXXXXXXX)"
 
   if mkfifo "$pipeFile.i"; then
     grep --line-buffered "^" <&0 | tee "$pipeFile.i" >/dev/null &
