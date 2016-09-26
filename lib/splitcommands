@@ -45,7 +45,7 @@ main() {
 
   while true; do
     newPipes=()
-    while read listener; do
+    while read -r listener; do
       if [[ -z "${pipeFiles[$listener]}" ]]; then
         pipename="$(mktemp -u "$pipeDir/listener.XXXXXXXX")"
         mkfifo "$pipename"
@@ -84,7 +84,7 @@ main() {
           # This has a lot of potential to fail.
           childFds=()
           while true; do
-            while read openfd; do
+            while read -r openfd; do
               openFile="$(readlink "$openfd")"
               # TODO canonicalize both filenames
               childFds["$openFile"]=true
