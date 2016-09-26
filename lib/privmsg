@@ -4,29 +4,13 @@ set -f
 
 declare -r channel="$1"
 declare -r message="$2"
-declare -ri headerLength="$(getheaderlength)"
 
 if [[ -z "$channel" ]]; then
   exit 1;
 fi
 
-declare shellbyHostname
-
-if [[ -f "$bufferDir/etc/username" && -f "$bufferDir/etc/hostname" ]]; then
-  shellbyHostname="$(< "$bufferDir/etc/nickname")!$(< "$bufferDir/etc/username")@$(< "$bufferDir/etc/hostname")"
-else
-  source "$botLib/readprop.sh"
-  readProperties "$botConfig/etc/config"
-  shellbyHostname="${properties[nick]}!${properties[user]}@${properties[hostname]}"
-fi
-
 if [[ -n "$message" ]]; then
-  printf "%s\n" "$message"
+  printf "PRIVMSG\r\r%s\r%s\n" "$channel" "$message"
 else
-  cat
-fi \
-  | wrap "PRIVMSG $channel :" "$headerLength" \
-  | tee >(logCommand "$shellbyHostname")
-
-exit $?
-
+  printf "PRIVMSG\r\r%s\r%s\n" "$channel" "$(cat)"
+fi

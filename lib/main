@@ -111,6 +111,7 @@ grep --line-buffered "^" "$bufferDir/fromNetcat" \
   | reloadable irc2delim \
   | reloadable logdelim \
   | reloadable splitcommands "$botLib/listeners" \
+  | reloadable wrap \
   | reloadable logdelim \
   | reloadable delim2irc \
   | tee "$bufferDir/toNetcat" >/dev/null &
