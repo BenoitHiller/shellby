@@ -111,7 +111,7 @@ main() {
     [[ ! -e "$hugFile" ]] && exit 2
 
     if ((${#vargs[@]} > 0)); then
-        searchHugs "${vargs[*]}" "$hugFile" | paste "$channel"
+        searchHugs "${vargs[*]}" "$hugFile" | pastebin "$channel"
     else
       shuf -n 1 "$hugFile" \
         | sed -E 's/^[0-9]+	//' \

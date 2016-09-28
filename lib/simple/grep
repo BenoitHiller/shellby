@@ -277,7 +277,7 @@ main() {
         ' skip="$skip" \
         | tac
     fi | ifEmpty "${emptyMessages[$selection]}" \
-      | privorpaste "$channel" 
+      | pastebin "$channel" 
   fi
 }
 

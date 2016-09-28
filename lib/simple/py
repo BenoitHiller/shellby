@@ -62,8 +62,6 @@ main() {
     local reply="$json (${url})"
     local length="$(wc -c <<< "$reply")"
 
-    # This is not a good way to do this.
-    # TODO Push down this code with fancier line breaking tools.
     if ((length > 400)); then
       reply="$(head -c 400 <<< "$json") ... ($url)"
     fi

@@ -70,10 +70,10 @@ thirtyLoop() {
 
 oneTwentyLoop() {
   while true; do
-    printf "WHOIS %s\n" "$(< "$bufferDir/etc/nickname")" &
+    printf "WHOIS\r\r%s\n" "$(< "$bufferDir/etc/nickname")" &
     if [[ -f "$bufferDir/etc/channels" ]]; then
       while read -r channel; do
-        printf "WHO %s %%nuhacf\n" "$channel" &
+        printf "WHO\r\r%s\r%%nuhacf\n" "$channel" &
       done < "$bufferDir/etc/channels"
     fi
     sleep 120
