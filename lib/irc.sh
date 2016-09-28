@@ -25,7 +25,7 @@ getMessageNoNick() {
     nickPattern="$nick\W?\s*"
   fi
 
-  sed -E "s/^(\S+\s+){3}:(.*)/\2/I;s/^$nickPattern//" <<< "$inputString"
+  sed -E "s/^([^\r]+\r){3}(.*)/\2/I;s/^$nickPattern//" <<< "$inputString"
 }
 
 

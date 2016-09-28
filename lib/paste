@@ -1,0 +1,98 @@
+#!/bin/bash
+
+source "$botLib/utility.sh"
+source "$botLib/readprop.sh"
+
+# Take the contents of stdin and get a pastebin link for them
+#
+# This caches paste links for 6 days.
+# Expired old pastes are not cleaned up automatically.
+pastebin() {
+  if [[ ! -d "$cacheDir" ]]; then
+    mkdir -p "$cacheDir"
+  fi
+
+  local -r tmpFile="$(mktemp -p "$cacheDir" tmp.XXXXXX)"
+  cat - > "$tmpFile"
+
+  local -r checksum="$(md5sum "$tmpFile" | cut -f1 -d" ")"
+  local -r cachedFile="$cacheDir/md5.$checksum"
+
+  if [[ -f "$cachedFile" ]]; then
+    cat $cachedFile
+  else
+    curl -si -F "content=<$tmpFile" "http://dpaste.com/api/v2/" \
+      | sed -E -n '
+        s/^Location: //
+        # if location line
+        T
+
+        # add wrapping parameter
+        s/\s+$/#wrap/
+
+        # print and quit
+        p
+        q' \
+      | tee "$cachedFile"
+
+    if [[ ! -s "$cachedFile" ]]; then
+      rm "$cachedFile"
+    fi
+  fi
+  
+  rm "$tmpFile"
+}
+
+# put a paste in the folder for the local paste provider
+localPaste() {
+  if [[ ! -d "$cacheDir" ]]; then
+    mkdir -p "$cacheDir"
+  fi
+
+  if [[ ! -d "$pasteDir" ]]; then
+    mkdir -p "$pasteDir"
+  fi
+
+  trimCache "$pasteDir" "$((5 * 1024 * 1024))"
+
+  local -r tmpFile="$(mktemp -p "$cacheDir" tmp.XXXXXX)"
+        
+  cat - \
+    | sed -E '
+      # escaping
+      s/&/\&amp;/g
+      s/>/\&gt;/g
+      s/</\&lt;/g
+      s/"/\&quot;/g
+      s/'"'"'/\&#39;/g
+      s% {2,}%<pre>&</pre>%g
+
+      #s (http://)?'"$HOSTPORT$ABS_PATH#?($PCHAR|[/?])*"' <a\ href="&">&</a> g
+      s/$/<br>/
+      ' > "$tmpFile"
+
+  local -r checksum="$(md5sum "$tmpFile" | head -c 10)"
+
+  mv "$tmpFile" "$pasteDir/$checksum"
+
+  printf "http://%s:%d/paste/%s\n" "${properties[domain]}" "${properties[port]}" "$checksum"
+}
+
+main() {
+  local -r channel="$1"
+
+  readProperties "$botConfig/etc/webserver"
+
+  local -r cacheDir="$bufferDir/cache/pastebin"
+  local -r pasteDir="$bufferDir/web/paste"
+
+  if [[ "${properties[enabled]}" == "true" ]]; then
+      localPaste | privmsg "$channel"
+  else
+    pastebin \
+      | ifEmpty "Error pastebinning. Please hold while I contact tech support." \
+      | privmsg "$channel"
+  fi
+}
+
+main "$@"

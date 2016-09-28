@@ -12,5 +12,5 @@ fi
 if [[ -n "$message" ]]; then
   printf "PRIVMSG\r\r%s\r%s\n" "$channel" "$message"
 else
-  printf "PRIVMSG\r\r%s\r%s\n" "$channel" "$(cat)"
+  xargs -d "\n" -L 1 printf "PRIVMSG\r\r%s\r%s\n" "$channel"
 fi

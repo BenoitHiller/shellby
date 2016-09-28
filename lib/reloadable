@@ -17,7 +17,7 @@ startCommand() {
 
 replaceCommand() {
   killtree "$childPid"
-  stdbuf -oL "$@" <&$inFd &
+  stdbuf -oL "$@" <&$inFd {inFd}<&- &
   childPid="$!"
 }
 
@@ -65,8 +65,8 @@ main() {
 
   if mkfifo "$pipeFile.i"; then
     grep --line-buffered "^" <&0 | tee "$pipeFile.i" >/dev/null &
-    startCommand "$@"
     inputGrepPid="$!"
+    startCommand "$@"
     while ! "$stop" && kill -0 "$inputGrepPid" &>/dev/null; do
       sleep "$CHECK_INTERVAL"
       newChecksum="$(md5sum "$file" 2>/dev/null)"

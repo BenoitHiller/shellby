@@ -1,5 +1,5 @@
 BEGIN {
-  FPAT="(\\s:.*$)|(\\S+)"
+  FS="\r"
   IGNORECASE = 1
 }
 
@@ -21,14 +21,8 @@ function logLine(user,action,message,channel,type) {
   fflush(file)
 }
 
-/^PRIVMSG/ {
-  message=substr($3,3)
-
-  logLine(shellbyHostname, "message", message, $2, "message") 
-}
-
-/^\S+\s+privmsg\s/ {
-  message=substr($4,3)
+/^privmsg\r/ {
+  message=$4
   if (message ~ /ACTION.*$/) {
     action = "action"
     sub(/^ACTION\s/,"",message)
@@ -37,44 +31,47 @@ function logLine(user,action,message,channel,type) {
   else {
     action = "message"
   }
+  if (length($2) == 0) {
+    prefix=shellbyHostname
+  } else {
+    prefix=$2
+  }
 
-  logLine($1,action,message,$3,"message")
+  logLine(prefix, action, message, $3, "message")
 }
 
-/^\S+\s+notice\s/ {
-  message=substr($4,3)
+/^notice\r/ {
   if (! $3 ~ /^[$*]+$/) {
-    logLine($1,"notice",message,$3,"message")
+    logLine($2, "notice", $4, $3, "message")
   }
 }
 
-/^\S+\s+(part|join)\s/ {
-  message=substr($4,3)
-  logLine($1,tolower($2),message,$3, "user")
+/^(part|join)\r/ {
+  logLine($2, tolower($1), $4, $3, "user")
 }
 
-/^\S+\s+kick\s/ {
-  message=substr($5,3)
+/^kick\r/ {
+  message=$5
   formattedMessage=$4 " reason: " message
-  logLine($1,"kick",formattedMessage,$3, "user")
+  logLine($2, "kick", formattedMessage, $3, "user")
 }
 
-/^\S+\s+quit\s/ {
-  message=substr($3,3)
-  logLine($1,"quit",message,"","all")
+/^quit\r/ {
+  logLine($2, "quit", $3, "", "all")
 }
 
-/^\S+\s+nick\s/ {
+/^nick\r/ {
   message=substr($3,3)
-  user=$1
+  user=$2
   sub(/^:/,"",user)
   nick=user
   sub(/!.*$/,"",nick)
-  logLine($1,"nick",message,"","all")
+  # huh?
+  logLine($2, "nick", $3, "", "all")
 }
 
-/^\S+\s+kill\s/ {
-  message=substr($4,3)
+/^kill\r/ {
+  message=$4
   formattedMessage=$3 "\r" message
-  logLine($1,$2,formattedMessage,"","all")
+  logLine($2, "kill", formattedMessage, "", "all")
 }

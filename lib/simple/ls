@@ -5,7 +5,7 @@ main() {
 
   {
     printf "Available Commands:\n"
-    find "$botLib/commands/simple" -type f -printf "%f\n" \
+    find "$botLib/simple" -type f -printf "%f\n" \
       | sort \
       | tr "\n" " "
   } | privmsg "$channel"
