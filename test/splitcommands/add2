@@ -1,4 +1,3 @@
 #!/bin/bash
-echo sadfdsfsadfasfaf >&2
 echo b
 sed 's/1/2/'

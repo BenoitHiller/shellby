@@ -40,10 +40,6 @@ main() {
   mkdir "$pipeDir"
   rm "$pipeDir/tee.pid" &>/dev/null
 
-  local -r outputPipe="$(mktemp -u "$pipeDir/out.XXXXXXXX")"
-  mkfifo "$outputPipe"
-  grep --line-buffered "^" "$outputPipe" >&1 &
-
   while true; do
     newPipes=()
 
@@ -52,14 +48,14 @@ main() {
         pipename="$(mktemp -u "$pipeDir/listener.XXXXXXXX")"
         mkfifo "$pipename"
         newPipes["$listener"]="$pipename"
-        reloadable "$listener" <"$pipename" >"$outputPipe" &
+        stdbuf -oL reloadable "$listener" <"$pipename" &
       fi
     done < <(find -L "$listenerDir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
 
     if [[ "${#newPipes[@]}" != 0 ]]; then
       if [[ ! -f "$pipeDir/tee.pid" ]]; then
         # TODO do I need to be careful not to close fd 0?
-        grep --line-buffered "^" <&0 | tee "${newPipes[@]}" >/dev/null &
+        tee "${newPipes[@]}" >/dev/null &
         teePid="$!"
         echo "$teePid" >"$pipeDir/tee.pid"
       else
@@ -69,11 +65,7 @@ main() {
           exec {fd}<"$pipe"
           fds+=( "$fd" )
         done
-
-        kill -TERM "$teePid"
-        while kill -0 "$teePid"; do
-          sleep 0.5
-        done
+        echo "adding new" >&2
 
         # Subshell to make it easy to close all those file descriptors
         # It is important to do so as leaving them open would halve
@@ -82,7 +74,7 @@ main() {
           for fd in "${fds[@]}"; do
             exec {fd}<&-
           done
-          grep --line-buffered "^" <&0 | tee "${pipeFiles[@]}" "${newPipes[@]}" >/dev/null &
+          tee "${pipeFiles[@]}" "${newPipes[@]}" <&0 >/dev/null &
           teePid="$!"
           echo "$teePid" >"$pipeDir/tee.pid"
 
@@ -111,6 +103,11 @@ main() {
             fi
           done
         )
+
+        kill -TERM "$teePid"
+        while kill -0 "$teePid"; do
+          sleep 0.1
+        done
 
         for fd in "${fds[@]}"; do
           exec {fd}<&-

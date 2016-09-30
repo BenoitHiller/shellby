@@ -10,7 +10,7 @@ testAdd() {
   exec 3>"$tmpDir/input"
   echo 3 >&3
   local -i count=0
-  while ! diff "$testDir/before1" "$tmpDir/output"; do
+  while ! diff -q "$testDir/before1" "$tmpDir/output"; do
     if ((count++ > 5)); then
       kill -TERM "$pid"
       fail
@@ -22,7 +22,7 @@ testAdd() {
   cp "$testDir/add2" "$tmpDir/listeners"
 
   count=0
-  while ! diff -u "$testDir/after1" "$tmpDir/output"; do
+  while ! diff -q "$testDir/after1" "$tmpDir/output"; do
     if ((count++ > 11)); then
       kill -TERM "$pid"
       fail
@@ -33,8 +33,20 @@ testAdd() {
   echo 1 >&3
 
   count=0
-  while ! diff "$testDir/after2" "$tmpDir/output"; do
+  while ! diff -q "$testDir/after2" "$tmpDir/output"; do
     if ((count++ > 5)); then
+      kill -TERM "$pid"
+      fail
+    else
+      sleep 0.5
+    fi
+  done
+
+  cp "$testDir/add3" "$tmpDir/listeners"
+
+  count=0
+  while ! diff -q "$testDir/after3" "$tmpDir/output"; do
+    if ((count++ > 11)); then
       kill -TERM "$pid"
       fail
     else

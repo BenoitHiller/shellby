@@ -1,0 +1,3 @@
+#!/bin/bash
+echo c
+grep --line-buffered "^" >/dev/null
