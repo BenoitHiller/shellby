@@ -9,7 +9,6 @@ source "$botLib/users.sh"
 recordKarma() {
   local nick="${1,,}"
 
-
   local target
   local targetNick
   local targetAction
@@ -63,17 +62,17 @@ observeKarma() {
   local message
   local -a data
 
-  grep --line-buffered -iE "^\S+\s+privmsg\s+#\S+\s+:((($IRC_NICK)[:,]\s*[+-]{2})|(.*\b($IRC_NICK)[+-]{2}))(\s|\$)" \
+  grep --line-buffered -iE "^privmsg[^]*#[^]+((($IRC_NICK)[:,]\s*[+-]{2})|(.*\b($IRC_NICK)[+-]{2}))(\s|\$)" \
     | while read -r line; do
       if [[ ! -f "$userDir-building" ]]; then
         printf -v now "%(%s)T"
         data=( $(getIRCInfo "$line") )
         nick="${data[0]}"
-        message="$(sed -E 's/^(\S+\s+){3}://' <<< "$line")"
+        message="$(sed -E 's/^.*\r//' <<< "$line")"
         
         recordKarma "$nick" <<< "$message"
       fi
     done
 }
 
-startAndWatch observeKarma
+observeKarma

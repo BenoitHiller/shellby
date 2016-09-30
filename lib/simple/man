@@ -20,6 +20,6 @@ else
   else
     MANWIDTH=100 man -M "$botShare/man/" "$message" 2>&1 \
       | col -b \
-      | privorpaste "$channel" 
+      | pastebin "$channel" 
   fi
 fi

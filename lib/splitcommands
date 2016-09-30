@@ -38,6 +38,7 @@ main() {
   local missing
 
   mkdir "$pipeDir"
+  rm "$pipeDir/tee.pid" &>/dev/null
 
   local -r outputPipe="$(mktemp -u "$pipeDir/out.XXXXXXXX")"
   mkfifo "$outputPipe"
@@ -45,6 +46,7 @@ main() {
 
   while true; do
     newPipes=()
+
     while read -r listener; do
       if [[ -z "${pipeFiles[$listener]}" ]]; then
         pipename="$(mktemp -u "$pipeDir/listener.XXXXXXXX")"
@@ -57,8 +59,9 @@ main() {
     if [[ "${#newPipes[@]}" != 0 ]]; then
       if [[ ! -f "$pipeDir/tee.pid" ]]; then
         # TODO do I need to be careful not to close fd 0?
-        tee "${newPipes[@]}" <&0 >/dev/null &
+        grep --line-buffered "^" <&0 | tee "${newPipes[@]}" >/dev/null &
         teePid="$!"
+        echo "$teePid" >"$pipeDir/tee.pid"
       else
         teePid="$(<"$pipeDir/tee.pid")"
         fds=()
@@ -68,6 +71,9 @@ main() {
         done
 
         kill -TERM "$teePid"
+        while kill -0 "$teePid"; do
+          sleep 0.5
+        done
 
         # Subshell to make it easy to close all those file descriptors
         # It is important to do so as leaving them open would halve
@@ -76,7 +82,7 @@ main() {
           for fd in "${fds[@]}"; do
             exec {fd}<&-
           done
-          tee "${pipeFiles[@]}" "${newPipes[@]}" <&0 >/dev/null &
+          grep --line-buffered "^" <&0 | tee "${pipeFiles[@]}" "${newPipes[@]}" >/dev/null &
           teePid="$!"
           echo "$teePid" >"$pipeDir/tee.pid"
 
@@ -88,7 +94,7 @@ main() {
               openFile="$(readlink "$openfd")"
               # TODO canonicalize both filenames
               childFds["$openFile"]=true
-            done < <(find "/proc/$teePid/fd")
+            done < <(find "/proc/$teePid/fd" -type l )
 
             missing=false
             for oldFile in "${pipeFiles[@]}"; do
@@ -98,7 +104,7 @@ main() {
               fi
             done
 
-            if ! missing; then
+            if ! "$missing"; then
               break
             else
               sleep 1
@@ -115,7 +121,7 @@ main() {
         pipeFiles["$newListener"]="${newPipes[$newListener]}"
       done
     fi
-    sleep 10
+    sleep 5
   done
   
 }

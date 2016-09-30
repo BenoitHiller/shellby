@@ -1,105 +1,21 @@
 #!/bin/bash
 
-source "$botLib/utility.sh"
-source "$botLib/readprop.sh"
-
-# Take the contents of stdin and get a pastebin link for them
+# Pastebins the input if it is more than one line
 #
-# This caches paste links for 6 days.
-# Expired old pastes are not cleaned up automatically.
-pastebin() {
-  if [[ ! -d "$cacheDir" ]]; then
-    mkdir -p "$cacheDir"
-  fi
-
-  local -r tmpFile="$(mktemp -p "$cacheDir" tmp.XXXXXX)"
-  cat - > "$tmpFile"
-
-  local -r checksum="$(md5sum "$tmpFile" | cut -f1 -d" ")"
-  local -r cachedFile="$cacheDir/md5.$checksum"
-
-  if [[ -f "$cachedFile" ]]; then
-    cat $cachedFile
-  else
-    curl -si -F "content=<$tmpFile" "http://dpaste.com/api/v2/" \
-      | sed -E -n '
-        s/^Location: //
-        # if location line
-        T
-
-        # add wrapping parameter
-        s/\s+$/#wrap/
-
-        # print and quit
-        p
-        q' \
-      | tee "$cachedFile"
-
-    if [[ ! -s "$cachedFile" ]]; then
-      rm "$cachedFile"
-    fi
-  fi
-  
-  rm "$tmpFile"
-}
-
-# put a paste in the folder for the local paste provider
-localPaste() {
-  if [[ ! -d "$cacheDir" ]]; then
-    mkdir -p "$cacheDir"
-  fi
-
-  if [[ ! -d "$pasteDir" ]]; then
-    mkdir -p "$pasteDir"
-  fi
-
-  trimCache "$pasteDir" "$((5 * 1024 * 1024))"
-
-  local -r tmpFile="$(mktemp -p "$cacheDir" tmp.XXXXXX)"
-        
-  cat - \
-    | sed -E '
-      # escaping
-      s/&/\&amp;/g
-      s/>/\&gt;/g
-      s/</\&lt;/g
-      s/"/\&quot;/g
-      s/'"'"'/\&#39;/g
-      s% {2,}%<pre>&</pre>%g
-
-      #s (http://)?'"$HOSTPORT$ABS_PATH#?($PCHAR|[/?])*"' <a\ href="&">&</a> g
-      s/$/<br>/
-      ' > "$tmpFile"
-
-  local -r checksum="$(md5sum "$tmpFile" | head -c 10)"
-
-  mv "$tmpFile" "$pasteDir/$checksum"
-
-  geturl "paste/$checksum"
-}
-
+# Warning: the line that this outputs can still be broken by wrap
+#
+# 1.channel the channel or user to send the output to
+# &0. the message to privmsg or paste
 main() {
   local -r channel="$1"
-
-  readProperties "$botConfig/etc/webserver"
-
-  local -r cacheDir="$bufferDir/cache/pastebin"
-  local -r pasteDir="$bufferDir/web/paste"
 
   read -r line1
   read -r line2
 
   if (($? != 0)); then
     privmsg "$channel" "$line1"
-  elif [[ "${properties[enabled]}" == "true" ]]; then
-    cat <(printf "%s\n" "$line1") <(printf "%s\n" "$line2") - \
-      | localPaste \
-      | privmsg "$channel"
   else
-    cat <(printf "%s\n" "$line1") <(printf "%s\n" "$line2") - \
-      | pastebin \
-      | ifEmpty "Error pastebinning. Please hold while I contact tech support." \
-      | privmsg "$channel"
+    cat <(printf "%s\n" "$line1") <(printf "%s\n" "$line2") - | pastebin "$channel"
   fi
 }
 
