@@ -2,12 +2,24 @@
 
 set -f
 
-source "$botLib/functionUtils.sh"
 source "$botLib/irc.sh"
 source "$botLib/users.sh"
+source "$botLib/utility.sh"
+
+# Send a complaint about being decremented
+#
+# 1.sender the person who decremented you
+# 2.channel the channel where it happened
+complain() {
+  local -r sender="$1"
+  local -r channel="$2"
+
+  getMessage decrementreply "$sender" | privmsg "$channel" 
+}
 
 recordKarma() {
   local nick="${1,,}"
+  local channel="$2"
 
   local target
   local targetNick
@@ -47,11 +59,16 @@ recordKarma() {
       touch "$targetDir/minus"
     fi
     printf "%s %s\n" "$now" "$nick" >> "$targetDir/minus"
+    if [[ "${targetNick,,}" ==  "$botName" ]]; then
+      complain "$nick" "$channel"
+    fi
   done
 }
 
 observeKarma() {
 
+  local botName="$(< "$bufferDir/etc/nickname")" 
+  botName="${botName,,}"
   local -r userDir="$botConfig/users"
   local -r KARMA_REGEX="($IRC_NICK)([;,]\s*)?(\+\+|--)"
 
@@ -68,9 +85,10 @@ observeKarma() {
         printf -v now "%(%s)T"
         data=( $(getIRCInfo "$line") )
         nick="${data[0]}"
+        channel="${data[1]}"
         message="$(sed -E 's/^.*\r//' <<< "$line")"
         
-        recordKarma "$nick" <<< "$message"
+        recordKarma "$nick" "$channel" <<< "$message"
       fi
     done
 }

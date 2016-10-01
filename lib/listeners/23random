@@ -2,8 +2,6 @@
 
 set -f
 
-source "$botLib/functionUtils.sh"
-
 # 32767 / 4
 declare -ri THRESHOLD=8192
 
@@ -59,4 +57,4 @@ checkSilence() {
   done
 }
 
-startAndWatch checkSilence
+checkSilence
