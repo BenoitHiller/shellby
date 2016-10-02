@@ -1,4 +1,4 @@
-#!/usr/bin/sed -Ef
+#!/bin/sed -Ef
 
 s/\r$//
 # clear substitution flag

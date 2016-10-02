@@ -1,4 +1,4 @@
-#!/usr/bin/sed -Ef
+#!/bin/sed -Ef
 
 # remove prefix parameter
 s/^([^\r]*)\r[^\r]*/\1/
