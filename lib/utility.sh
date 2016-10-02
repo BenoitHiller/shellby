@@ -30,7 +30,7 @@ killtree() {
     if [[ ${#children[@]} != 0 ]]; then
       killtree ${children[@]}
     fi
-    kill -TERM ${safePids[@]}
+    kill -TERM ${safePids[@]} &>/dev/null
   fi
 }
 

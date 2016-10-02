@@ -1,0 +1,239 @@
+#!/bin/bash
+
+set -f
+shopt -s extglob
+
+source "$botLib/utility.sh"
+source "$botLib/parseArgs.sh"
+source "$botLib/users.sh"
+
+# Converts codepoint lines to integer unicode ids
+#
+# Each input line contains up to 4 codepoints as ints.
+codepointToId() {
+  gawk '
+    BEGIN {
+      MASK_1 = lshift(1, 7) - 1
+    }
+
+    {
+      i = NF;
+      value = 0;
+      shift = 0;
+      for (; i > 1; i--) {
+        value += lshift(and(int($i), MASK_1), shift);
+        shift += 6;
+      }
+      value += lshift(and(int($1), lshift(1, 8 - NF) - 1), shift);
+
+      print value;
+
+    }'
+}
+
+# Join bytes into lines of codepoints
+#
+# Takes up to 4 bytes that belong to the same unicode character
+# and puts them on the same line.
+intToCodepoint() {
+  gawk '
+    BEGIN {
+      RS="[ \n]";
+    }
+    {
+      value = int($0);
+      text = $0;
+
+      // not a valid codepoint 0b11111000-0b11111111
+      if (value >= 248) {
+        print text;
+        next;
+      }
+
+      if (value >= 240) {
+        getline;
+        text = text " " $0;
+      }
+      if (value >= 224) {
+        getline;
+        text = text " " $0;
+      }
+      if (value >= 192) {
+        getline;
+        text = text " " $0;
+      }
+      print text
+    }
+  '
+}
+
+# Converts a text stream into a hex byte stream.
+#
+# Each byte appears on its own line.
+# A trailing newline byte is removed if it is found.
+textToHex() {
+  od -tx1 -An \
+    | sed -E '
+      s/^ //
+
+      # note the plus means that a lone newline
+      # will not be deleted.
+      s/ /\n/g
+      $s/\s+0a//'
+}
+
+hexToInt() {
+  gawk '{print strtonum("0x"$0)}'
+}
+
+intToHex() {
+  gawk '{printf("%x\n", $0)}'
+}
+
+textToUnicode() {
+  textToHex | hexToInt | intToCodepoint | codepointToId | intToHex
+}
+
+getData() {
+  if [[ ! -d "$UNICODE_DIR" ]]; then
+    mkdir -p "$UNICODE_DIR"
+  fi
+
+  wget -q "http://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt" -O "$UNICODE_DIR/data"
+}
+
+findChar() {
+  local -r query="$1"
+  shift
+
+  for field in "$@"; do
+    gawk -F ";" '
+    BEGIN {
+      IGNORECASE = 1
+    }
+
+    $field ~ query{
+      print $0;
+    }' query="$query" field="$field" "$UNICODE_DIR/data"
+  done
+}
+
+formatQuery() {
+  gawk -F ";" '
+  BEGIN {
+    MASK_2 = lshift(1, 6) - 1;
+  }
+
+  {
+    if ($11 == "") {
+      description = $2;
+    } else {
+      description = $11;
+    }
+    val = strtonum("0x"$1);
+    if (val >= lshift(1, 16)) {
+      // 240 == 0b11110000
+      point0 = or(rshift(val,18), 240);
+      point1 = or(and(rshift(val, 12), MASK_2), 128);
+      point2 = or(and(rshift(val, 6), MASK_2), 128);
+      point3 = or(and(val, MASK_2), 128);
+      codepoints = sprintf("0x%x, 0x%x, 0x%x, 0x%x", point0, point1, point2, point3);
+    } else if(val >= lshift(1, 11)) {
+      // 224 == 0b11100000
+      point0 = or(rshift(val, 12), 224);
+      point1 = or(and(rshift(val, 6), MASK_2), 128);
+      point2 = or(and(val, MASK_2), 128);
+      codepoints = sprintf("0x%x, 0x%x, 0x%x", point0, point1, point2);
+    } else if(val >= lshift(1, 7)) {
+      // 192 == 0b11000000
+      point0 = or(rshift(val, 6), 192);
+      point1 = or(and(val, MASK_2), 128);
+      codepoints = sprintf("0x%x, 0x%x", point0, point1);
+    } else {
+      codepoints = sprintf("0x%x", val);
+    }
+
+    printf("U+%s, [%s], %s, (%c)\n", $1, codepoints, description, val);
+  }'
+}
+
+main() {
+  declare -r UNICODE_DIR="$botConfig/unicode"
+
+  local -r nickname="$1"
+  local -r channel="$2"
+  local -r username="$4"
+  local -r hostname="$5"
+  local -r message="$6"
+
+  local query
+
+  resplitAndParse "$message"
+
+  local -i returnCount=1
+
+  if [[ -n "${argMap[a]+_}" ]]; then
+    returnCount=500
+  fi
+
+  if [[ -n "${argMap[v]+_}" ]]; then
+
+    if [[ -f "$UNICODE_DIR/data" ]]; then
+      privmsg "$channel" "Data last updated at: $(stat -c %y "$UNICODE_DIR/data")"
+    else
+      privmsg "$channel" "I don't have any unicode data yet."
+    fi
+  elif [[ -n "${argMap[u]+_}" ]]; then
+
+    if ! verify "$nickname" "$username" "$hostname"; then
+      privmsg "$channel" "I can't do that just because you ask me to."
+      exit 0
+    else
+      getData
+      privmsg "$channel" "Downloading latest unicode stuff."
+    fi
+  else
+    if [[ ! -f "$UNICODE_DIR/data" ]]; then
+      privmsg "$channel" "I don't have any unicode data yet."
+    fi
+
+    if (( ${#vargs[@]} == 1 )); then
+      local char="${vargs[0]}"
+
+      local unicodeRegex='^(0x|\\[uU]|[uU]\+?)[a-fA-F0-9]{,6}$'
+      local decimal='^([1-9][0-9]*|0)$'
+
+      local -a entities=( $(textToUnicode <<< "$char") )
+
+      if (( ${#entities[@]} == 1)); then
+        query="$( printf "%s" "${entities[0]}" | tr -d "\n")"
+      elif [[ "$char" =~ $unicodeRegex ]]; then
+        query="${char##@(0x|\\[uU]|[uU]?(+))}"
+      elif [[ "$char" =~ $decimal ]]; then
+        printf -v query "%x" "$char"
+      fi
+      
+      if [[ -n "$query" ]]; then
+        printf -v query "%4s" "$query"
+        query="${query// /0}"
+
+        findChar "$query" 1 \
+          | head -n "$returnCount" \
+          | formatQuery \
+          | ifEmpty "Unicode what?" \
+          | privorpaste "$channel"
+        exit 0
+      fi
+    fi
+
+    query="${vargs[@]}"
+
+    findChar "$query" 11 2 \
+      | head -n "$returnCount" \
+      | formatQuery \
+      | ifEmpty "Unicode what?" \
+      | privorpaste "$channel"
+  fi
+}
+
+main "$@"

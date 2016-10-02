@@ -1,0 +1,24 @@
+#!/bin/bash
+declare -r botConfig="$HOME/.shellby"
+
+declare -r parentDir="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" 
+declare botLib
+declare botShare
+declare botTest
+
+if [[ "$parentDir" == "/usr/bin" ]]; then
+  botLib="/usr/lib/shellby"
+  botShare="/user/share/shellby"
+else
+  botLib="$parentDir/lib"
+  botShare="$parentDir/share"
+  botTest="$parentDir/test"
+fi
+
+printf "export botConfig=%q\n" "$botConfig"
+printf "export botLib=%q\n" "$botLib"
+printf "export botShare=%q\n" "$botShare"
+printf "export botTest=%q\n" "$botTest"
+# TODO make this more like initial startup
+printf "export TMPDIR=/tmp\n"
+printf "export PATH=\"\$botLib:\$PATH\"\n"

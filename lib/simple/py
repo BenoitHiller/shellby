@@ -1,0 +1,72 @@
+#!/bin/bash
+
+set -f
+
+declare -A INTERPRETER
+INTERPRETER["py"]="import sys;from code import InteractiveInterpreter;InteractiveInterpreter().runsource(sys.stdin.read())"
+INTERPRETER["py3"]="import sys;from code import InteractiveInterpreter;InteractiveInterpreter().runsource(sys.stdin.read())"
+INTERPRETER["rb"]='begin
+  p eval(STDIN.read)
+rescue Exception => e
+  puts "#{$!.class}: #{$!}"
+end'
+
+declare -A LANGUAGE
+LANGUAGE["py"]="python/cpython-2.7.8"
+LANGUAGE["py3"]="python/cpython-3.4.1"
+LANGUAGE["rb"]="ruby/mri-2.3"
+
+getOutput() {
+  sed -E 's/"[:,]"/\n/g;s/^[[{]"/\n/g;s/"[]}$]/\n/g' | sed -n '9p' | jsondecode | tee /dev/stderr
+}
+
+sendCode() {
+  local -r executable="$1"
+  local -r language="${LANGUAGE[$executable]}"
+  local -r interpreter="${INTERPRETER[$executable]}"
+
+  curl -is "https://eval.in/" -F "code=$interpreter" -F "input=<-" -F "lang=$language" -F "utf8=%CE%BB" -F "execute=on" \
+    | tee /dev/stderr \
+    | sed -En '
+      s/^Location: //
+
+      # if location line print and quit
+      T
+      p;q'\
+    | tr -d "\n\r"
+}
+
+main() {
+  local -r channel="$2"
+  local -r message="$6"
+
+  local -r filename="$(basename "$0")"
+
+  source "$botLib/utility.sh"
+  source "$botLib/parseArgs.sh"
+
+  IFS=" "
+  local -a splitMessage=( $message )
+  unset IFS
+  parseArgs "${splitMessage[@]}"
+
+  local url="$(sendCode "$filename" <<< "${vargs[@]}")"
+  if [[ -n "$url" ]]; then 
+    local json="$(curl -s "$url.json" | getOutput)"
+
+    local lines="$(wc -l <<< "$json")"
+    if ((lines > 1)); then
+      json="$(head -n 1 <<< "$json") ..."
+    fi
+
+    local reply="$json (${url})"
+    local length="$(wc -c <<< "$reply")"
+
+    if ((length > 400)); then
+      reply="$(head -c 400 <<< "$json") ... ($url)"
+    fi
+    printf "=> %s\n" "$reply"| privmsg "$channel" 
+  fi
+}
+
+main "$@"

@@ -1,0 +1,65 @@
+#!/bin/bash
+set -f
+
+source "$botLib/utility.sh"
+source "$botLib/irc.sh"
+source "$botLib/functionUtils.sh"
+source "$botLib/users.sh"
+
+main() {
+  local -r MAX_TOKENS=8
+
+  local -A tokens=()
+  local -A lastTime=()
+  local botName="$(< "$bufferDir/etc/nickname")" 
+
+  local -a data
+  local nick
+  local channel
+  local key
+
+  local -i current
+  local -i previous
+  local -i elapsed
+  local -i currentTokens
+  local -i addTokens
+  local -i spentTokens
+
+  while read -r line; do
+    data=( $(getIRCInfo "$line") ) 
+    nick="${data[0]}"
+    channel="${data[1]}"
+    key="$nick $channel ${data[*]:3:2}"
+
+    if grep -i nethaera <<< "$nick"; then
+      continue
+    fi
+    
+    printf -v current "%(%s)T" 
+
+    previous="${lastTime[$key]}"
+    elapsed=$((current - previous))
+    lastTime["$key"]="$current"
+
+    spentTokens="$(( ${#line} / 200 + 1 ))"
+    
+    currentTokens="${tokens[$key]}"
+    addTokens=$(((elapsed * (MAX_TOKENS + 1)) / 60))
+    currentTokens=$((
+      addTokens + currentTokens > MAX_TOKENS
+        ? MAX_TOKENS
+        : addTokens + currentTokens - spentTokens
+    ))
+    tokens["$key"]="$currentTokens"
+
+    if ((currentTokens <= 0)) && [[ "$nick" != "$botName" ]]; then
+      if isOp "$botName" "${data[1]}"; then
+        senddelim KICK "$channel" "$nick" "$(getMessage kickreasons)"
+      else
+        printf "kick %s from %s\n" "$nick" "$channel" >&2
+      fi
+    fi
+  done < <(grep --line-buffered -iE "^(privmsg|notice)[^]*#")
+}
+
+main

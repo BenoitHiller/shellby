@@ -1,0 +1,24 @@
+#!/bin/bash
+set -f
+
+source "$botLib/readprop.sh"
+
+main() {
+  readProperties "$botConfig/etc/webserver"
+  while true; do
+    # Is the webserver enabled? If not wait.
+    if [[ "${properties[enabled]}" == "true" ]]; then
+      break
+    fi
+    sleep 10
+    updatePropertyCache "$botConfig/etc/webserver"
+  done
+
+  local -r webDir="$bufferDir/web"
+  mkdir -p "$bufferDir/web" &>/dev/null
+  # TODO push ncat down into an executable to make self contained
+  env -i thisPid=$thisPid DEBUG="${properties[debug]}" botConfig="$botConfig" botLib="$botLib" botShare="$botShare" bufferDir="$bufferDir" PATH="$PATH" ncat -lk -p "${properties[port]}" -e "$botLib/web/server"
+  
+}
+
+main

@@ -1,0 +1,25 @@
+#!/usr/bin/sed -Ef
+
+s/\r$//
+# clear substitution flag
+tclear
+:clear
+
+# set up first arg in case where we have multiple args
+s/^(:([^ ]+)( ))?([^: ]+) /\4\r\2\r/
+tloop
+
+# handle the case where we have no args
+s/^(:([^ ]+)( ))?([^: ]+)/\4\r\2/
+tend
+
+# main argument loop
+:loop
+# only the last argument can start with a :, in that case stop
+s/(\r):/\1/
+tend
+
+#otherwise process an argument and continue the loop
+s/(.*\r[^ ]+) /\1\r/
+tloop
+:end

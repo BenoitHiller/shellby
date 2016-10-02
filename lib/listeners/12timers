@@ -1,0 +1,105 @@
+#!/bin/bash
+
+source "$botLib/readprop.sh"
+
+updateUptime() {
+  local -ri started="$(stat -c %Z "$bufferDir")"
+  if (($? == 0)); then
+    local -i current
+    printf -v current "%(%s)T"
+
+    local -ri elapsed=$((current - started))
+    if [[ ! -f "$botLogs/uptime" ]]; then
+      printf "%s\n" "$elapsed" > "$botLogs/uptime"
+    else
+      local -ri previous=$(< "$botLogs/uptime")
+      if ((previous < elapsed)); then
+        printf "%s\n" "$elapsed" > "$botLogs/uptime"
+      fi
+    fi
+  fi
+}
+
+# update the info in the uptimeStats file
+updateUptimeStats() {
+  if [[ -f "$botLogs/uptimeStats" ]]; then
+    local -r newData="$(gawk '
+      {
+        current = strftime("%s")
+        previousValue = $1
+        first = $2
+        last = $3
+        newValue = (previousValue * (last - first) + (current - last)) / (current - first)
+        printf("%.12g %d %d", newValue, first, current)
+      }
+
+      ' < "$botLogs/uptimeStats")"
+
+    printf "%s\n" "$newData" > "$botLogs/uptimeStats"
+  else
+    printf "1 %(%s)T %(%s)T\n" > "$botLogs/uptimeStats"
+  fi
+}
+
+thirtyLoop() {
+  local botName
+
+  while true; do
+    if [[ -s "$bufferDir/etc/lastContact" ]] && (($(date +%s) - $(< "$bufferDir/etc/lastContact") > 300)); then
+      rm "$bufferDir/etc/lastContact"
+      printf "Restarted at: %(%s)T after no contact since %s\n" "$(< "$bufferDir/etc/lastContact")" >&2
+      kill -USR1 $thisPid
+    fi
+
+    printf "PING\r\r%s\n" "${properties[server]}"
+
+    updateUptime
+    updateUptimeStats
+
+    botName="$(< "$bufferDir/etc/nickname")" 
+    if [[ -f "$bufferDir/etc/channels" ]]; then
+      while read -r channel; do
+        if [[ ! -d "$bufferDir/etc/users/$botName/channels/$channel" ]]; then
+          printf "JOIN\r\r%s\n" "$channel" &
+        fi
+      done < "$bufferDir/etc/channels"
+    fi
+    sleep 30
+  done
+}
+
+oneTwentyLoop() {
+  while true; do
+    printf "WHOIS\r\r%s\n" "$(< "$bufferDir/etc/nickname")" &
+    if [[ -f "$bufferDir/etc/channels" ]]; then
+      while read -r channel; do
+        printf "WHO\r\r%s\r%%nuhacf\n" "$channel" &
+      done < "$bufferDir/etc/channels"
+    fi
+    sleep 120
+  done
+}
+
+oneHourLoop() {
+  while true; do
+    if [[ -d "$bufferDir/cache/pastebin/" ]]; then
+      find "$bufferDir/cache/pastebin/" -name "md5.*" -mtime +6 -exec rm {} \;
+    fi
+    sleep $((60 * 60))
+  done
+}
+
+main() {
+  readProperties "$botConfig/etc/config"
+
+  # consume the input to the command so that the pipe does not fill
+  grep --line-buffered "^" <&0 > /dev/null &
+
+  thirtyLoop &
+  oneTwentyLoop &
+  oneHourLoop &
+
+  wait
+}
+
+main "$@"

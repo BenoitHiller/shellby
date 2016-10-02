@@ -1,0 +1,95 @@
+#!/bin/bash
+
+declare -ri CHECK_INTERVAL=5
+declare childPid
+declare stop=false
+declare inFd
+
+handleInt() {
+  stop=true
+}
+
+startCommand() {
+  exec {inFd}<"$pipeFile.i"
+  stdbuf -oL "$@" <&$inFd {inFd}<&- &
+  childPid="$!" 
+}
+
+replaceCommand() {
+  killtree "$childPid"
+  stdbuf -oL "$@" <&$inFd {inFd}<&- &
+  childPid="$!"
+}
+
+# Run the specified command, restarting it if the file changes.
+#
+# The command creates a pipe so that it can swap out the running process
+# without closing stdin.
+#
+# It checks the file on a timer loop every CHECK_INTERVAL.
+# 
+# Commands are killed using TERM on reload. It is up to the command to handle
+# this message appropriately(default handlers typically print to stderr).
+#
+# Note that a command must consume all of the input from the parent then exit 
+# on recieving EOF.
+#
+# If the child dies on its own before the grep does the behaviour of the
+# program is undefined. Right now it should just sit there and wait for you
+# to fix the command triggering a reload.
+#
+# TODO allow you to specify a pidfile so that the process can recieve signals
+main() {
+  local file="$1"
+  if [[ ! -f "$1" ]]; then
+    file="$(which "$file")"
+    if (($? != 0)); then
+      printf "File not found: %s\n" "$1" >&2
+      exit 1
+    fi
+  fi
+
+  local pipeFile
+  local inputGrepPid
+
+  local lastChecksum="$(md5sum "$file")"
+  local newChecksum
+  
+  if [[ -n "$bufferDir" ]]; then
+    PIPE_DIR="$bufferDir"
+  else
+    PIPE_DIR="${PIPE_DIR:-/tmp}" 
+  fi
+
+  pipeFile="$(mktemp -u -p "$PIPE_DIR" reloadable.XXXXXXXX)"
+
+  if mkfifo "$pipeFile.i"; then
+    grep --line-buffered "^" <&0 | tee "$pipeFile.i" >/dev/null &
+    inputGrepPid="$!"
+    startCommand "$@"
+    while ! "$stop" && kill -0 "$inputGrepPid" &>/dev/null; do
+      sleep "$CHECK_INTERVAL"
+      newChecksum="$(md5sum "$file" 2>/dev/null)"
+      # TODO handle file removed
+      if [[ "$lastChecksum" != "$newChecksum" ]]; then 
+        printf "reloading %s\n" "$1" >&2
+        lastChecksum="$newChecksum"
+        replaceCommand "$@"
+      fi
+    done
+    if "$stop"; then
+      killtree "$inputGrepPid"
+    fi
+
+    wait "$childPid"
+    exec {inFd}<&-
+    rm "$pipeFile.i"
+  else
+    printf "Failed to create reloader pipe\n" >&2
+    exit 1
+  fi
+}
+
+trap handleInt INT TERM
+
+main "$@"

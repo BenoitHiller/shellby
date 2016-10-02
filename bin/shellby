@@ -99,6 +99,7 @@ trap "replace" SIGUSR2
 
 startBot &
 
+# why? Am I assuming if it dies one of the replace thingies is running?
 while true; do
   wait
   sleep 1

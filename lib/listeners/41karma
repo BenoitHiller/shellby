@@ -1,0 +1,96 @@
+#!/bin/bash
+
+set -f
+
+source "$botLib/irc.sh"
+source "$botLib/users.sh"
+source "$botLib/utility.sh"
+
+# Send a complaint about being decremented
+#
+# 1.sender the person who decremented you
+# 2.channel the channel where it happened
+complain() {
+  local -r sender="$1"
+  local -r channel="$2"
+
+  getMessage decrementreply "$sender" | privmsg "$channel" 
+}
+
+recordKarma() {
+  local nick="${1,,}"
+  local channel="$2"
+
+  local target
+  local targetNick
+  local targetAction
+  local targetDir
+  local -A plusNicks
+  local -A minusNicks
+  while read -r target; do
+    if [[ "$target" =~ $KARMA_REGEX ]]; then
+      targetNick="${BASH_REMATCH[1]}"
+      targetAction="${BASH_REMATCH[3]}"
+
+      if [[ "${targetNick,,}" != "$nick" ]]; then
+        if [[ "$targetAction" == "++" ]]; then
+          plusNicks["$targetNick"]=true
+        elif [[ "$targetAction" == "--" ]]; then
+          minusNicks["$targetNick"]=true
+        fi
+      fi
+    fi
+  done < <( grep -Po "((^($IRC_NICK)([:,]\s*)?[+-]{2})|((?<=\s)($IRC_NICK)[+-]{2}))(?=\s|\$)" <&0 )
+
+  for targetNick in "${!plusNicks[@]}"; do
+    targetDir="$userDir/$targetNick/karma"
+    if [[ ! -d "$targetDir" ]]; then
+      mkdir -p "$targetDir" &>/dev/null
+      touch "$targetDir/plus"
+      touch "$targetDir/minus"
+    fi
+    printf "%s %s\n" "$now" "$nick" >> "$targetDir/plus"
+  done
+  for targetNick in "${!minusNicks[@]}"; do
+    targetDir="$userDir/$targetNick/karma"
+    if [[ ! -d "$targetDir" ]]; then
+      mkdir -p "$targetDir" &>/dev/null
+      touch "$targetDir/plus"
+      touch "$targetDir/minus"
+    fi
+    printf "%s %s\n" "$now" "$nick" >> "$targetDir/minus"
+    if [[ "${targetNick,,}" ==  "$botName" ]]; then
+      complain "$nick" "$channel"
+    fi
+  done
+}
+
+observeKarma() {
+
+  local botName="$(< "$bufferDir/etc/nickname")" 
+  botName="${botName,,}"
+  local -r userDir="$botConfig/users"
+  local -r KARMA_REGEX="($IRC_NICK)([;,]\s*)?(\+\+|--)"
+
+  local nick
+  local target
+  local targetNick
+  local now
+  local message
+  local -a data
+
+  grep --line-buffered -iE "^privmsg[^]*#[^]+((($IRC_NICK)[:,]\s*[+-]{2})|(.*\b($IRC_NICK)[+-]{2}))(\s|\$)" \
+    | while read -r line; do
+      if [[ ! -f "$userDir-building" ]]; then
+        printf -v now "%(%s)T"
+        data=( $(getIRCInfo "$line") )
+        nick="${data[0]}"
+        channel="${data[1]}"
+        message="$(sed -E 's/^.*\r//' <<< "$line")"
+        
+        recordKarma "$nick" "$channel" <<< "$message"
+      fi
+    done
+}
+
+observeKarma

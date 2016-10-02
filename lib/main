@@ -72,12 +72,6 @@ printf "%s\n" "${properties[nick]}" > "$bufferDir/etc/nickname"
 
 trap "rm -rf $bufferDir; exit 1" SIGINT SIGTERM EXIT
 
-#####################
-# load dependencies #
-#####################
-
-source "$botLib/commandLoader.sh"
-
 ###################
 # Test Connection #
 ###################
@@ -107,12 +101,25 @@ if [[ -f "$botLogs/uptimeStats" ]]; then
   printf "%s\n" "$uptimeStats" > "$botLogs/uptimeStats"
 fi
 
+#######################
+# start the webserver #
+#######################
+
+# TODO This should definitely be handled differently.
+reloadable "$botLib/webserver" &
+
 #################
 # start the bot #
 #################
 
 mkfifo "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
-managePipes "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
+grep --line-buffered "^" "$bufferDir/fromNetcat" \
+  | reloadable irc2delim \
+  | reloadable logdelim \
+  | reloadable splitcommands "$botLib/listeners" \
+  | reloadable wrap \
+  | reloadable logdelim \
+  | reloadable delim2irc >"$bufferDir/toNetcat" &
 
 throttle() {
   local -r file="$1"
@@ -154,15 +161,10 @@ if [[ "${properties[ssl]}" == "true" ]]; then
   additionalArgs+="--ssl"
 fi
 
-stdbuf -oL ncat "${additionalArgs[@]}" -4 "${properties[server]}" "${properties[port]}" < <(throttle "$bufferDir/toNetcat") \
-  | sed -u 's/$//' \
-  | tee "$bufferDir/fromNetcat" \
-  | grep --line-buffered "^"  & 
+stdbuf -oL ncat "${additionalArgs[@]}" -4 "${properties[server]}" "${properties[port]}" < <(throttle "$bufferDir/toNetcat") >"$bufferDir/fromNetcat" & 
 declare -i pipelinePid=$!
 
 echo started ncat >&2
-
-trap reloadAllConfig SIGHUP
 
 {
   while ! ps -p $pipelinePid >/dev/null 2>&1; do
@@ -178,5 +180,4 @@ trap reloadAllConfig SIGHUP
   kill -USR1 $thisPid
 } &
 
-watchFiles "$botLib/commands/" "$bufferDir/toNetcat" "$bufferDir/fromNetcat"
-
+wait

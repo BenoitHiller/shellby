@@ -1,7 +1,0 @@
-#!/bin/bash
-
-trap '' SIGHUP
-
-while read -r line; do
-  printf "%(%s)T\n" > "$bufferDir/etc/lastContact"
-done

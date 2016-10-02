@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -f
+
+source "$botLib/irc.sh"
+
+declare -r subRegex='^privmsg[^]*#[^]+([^:[:space:]+]*)(\+([1-9][0-9]*))?:s.*$'
+
+substitute() {
+  local -ri maxLength="$((510 - $(getheaderlength) - 50))"
+  local targetUser
+  local targetLine
+  local expression
+
+  local nick channel cmd username hostname
+
+  grep --line-buffered -iE "$subRegex" \
+    | while read -r line; do
+      expression="$(sed 's/^.*\r//' <<< "$line" | regex.awk)"
+      if [[ -n "$expression" ]]; then
+
+        read -r nick channel cmd username hostname <<<"$(getIRCInfo "$line")"
+        targetUser="$(sed -E "s/$subRegex/\\1/i" <<< "$line")"
+        targetLine="$(sed -E "s/$subRegex/\\3/i" <<< "$line")"
+
+        sub "$nick" "$botLogs/$channel" "$expression" "$targetUser" "$targetLine" \
+          | sed -E 's/^/=> /' \
+          | cut -c-"$maxLength" \
+          | tr -d "\a\r\v\n" \
+          | privmsg "$channel"
+      fi
+    done
+}
+
+substitute

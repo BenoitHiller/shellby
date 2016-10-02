@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sed -nuE 's/^PING\r.*/PONG\r/p' <&0

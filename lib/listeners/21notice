@@ -1,0 +1,26 @@
+#!/bin/bash
+
+source "readprop.sh"
+readProperties "$botConfig/etc/config"
+declare password
+if [[ -f "$botConfig/etc/password" ]]; then
+  password="$(< "$botConfig/etc/password")"
+fi
+export password
+
+gawk -F "\r" '
+
+$1 ~ /NOTICE/ && $3 == "*" && $4 ~ /\*\*\* Looking up your hostname/ {
+  print "NICK\r\r" nick
+  printf("USER\r\r%s\r%s\r%s\r%s\n", user, hostname, servername, realname)
+}
+
+$1 ~ /NOTICE/ && $2 ~ /^NickServ!NickServ@services$/ && $4 ~/^This nickname is registered./{
+  if (ENVIRON["password"] != "") {
+    if (account != "") {
+      print "NS\ridentify\r" account "\r" ENVIRON["password"]
+    } else {
+      print "NS\ridentify\r" ENVIRON["password"]
+    }
+  }
+}' user="${properties[user]}" nick="${properties[nick]}" realname="${properties[realname]}" hostname="${properties[hostname]}" servername="${properties[server]}" account="${properties[account]}" IGNORECASE=1 <&0

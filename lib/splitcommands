@@ -1,0 +1,126 @@
+#!/bin/bash
+
+## Design for tee replacer
+#
+# The simple trick to not closing pipes is that they have to always
+# have an open descriptor at each end.
+#
+# Therefore if we have a background process with the form:
+#
+#     tee p1 p2 p3 p4 ... pn >/dev/null <input
+#
+# Then what we need to do is for each pi:
+#
+#     exec {fd}>pi
+#
+# Then after replacing the tee we have to go back through and close
+# all of the descriptors by doing:
+#
+#     exec {fd}>&-
+#
+# The gotcha with all of this is that we can't close the descriptors
+# before tee has opened them. So we are going to need to verify that
+# the tee process has opened them. This should be doable by checking
+# the /proc/PID/fd directory for tee.
+
+main() {
+  local -r listenerDir="$1"
+  local -r pipeDir="$bufferDir/split"
+
+  local -A newPipes=()
+  local -A pipeFiles=()
+  local -a fds
+  local pipename
+  local teePid
+
+  local -A childFds=()
+  local openFile
+  local missing
+
+  mkdir "$pipeDir"
+  rm "$pipeDir/tee.pid" &>/dev/null
+
+  while true; do
+    newPipes=()
+
+    while read -r listener; do
+      if [[ -z "${pipeFiles[$listener]}" ]]; then
+        pipename="$(mktemp -u "$pipeDir/listener.XXXXXXXX")"
+        mkfifo "$pipename"
+        newPipes["$listener"]="$pipename"
+        stdbuf -oL reloadable "$listener" <"$pipename" &
+      fi
+    done < <(find -L "$listenerDir" -mindepth 1 -maxdepth 1 -type f -executable | sort)
+
+    if [[ "${#newPipes[@]}" != 0 ]]; then
+      if [[ ! -f "$pipeDir/tee.pid" ]]; then
+        # TODO do I need to be careful not to close fd 0?
+        tee "${newPipes[@]}" >/dev/null &
+        teePid="$!"
+        echo "$teePid" >"$pipeDir/tee.pid"
+      else
+        teePid="$(<"$pipeDir/tee.pid")"
+        fds=()
+        for pipe in "${pipeFiles[@]}"; do
+          exec {fd}<"$pipe"
+          fds+=( "$fd" )
+        done
+        echo "adding new" >&2
+
+        # Subshell to make it easy to close all those file descriptors
+        # It is important to do so as leaving them open would halve
+        # how many listeners we could have.
+        (
+          for fd in "${fds[@]}"; do
+            exec {fd}<&-
+          done
+          tee "${pipeFiles[@]}" "${newPipes[@]}" <&0 >/dev/null &
+          teePid="$!"
+          echo "$teePid" >"$pipeDir/tee.pid"
+
+          # We loop forever waiting for all the files to have been opened
+          # This has a lot of potential to fail.
+          childFds=()
+          while true; do
+            while read -r openfd; do
+              openFile="$(readlink "$openfd")"
+              # TODO canonicalize both filenames
+              childFds["$openFile"]=true
+            done < <(find "/proc/$teePid/fd" -type l )
+
+            missing=false
+            for oldFile in "${pipeFiles[@]}"; do
+              if [[ -z "${childFds[$oldFile]}" ]]; then
+                missing=true
+                break  
+              fi
+            done
+
+            if ! "$missing"; then
+              break
+            else
+              sleep 1
+            fi
+          done
+        )
+
+        kill -TERM "$teePid"
+        while kill -0 "$teePid"; do
+          sleep 0.1
+        done
+
+        for fd in "${fds[@]}"; do
+          exec {fd}<&-
+        done
+
+      fi
+      for newListener in "${!newPipes[@]}"; do
+        pipeFiles["$newListener"]="${newPipes[$newListener]}"
+      done
+    fi
+    sleep 5
+  done
+  
+}
+
+main "$@"

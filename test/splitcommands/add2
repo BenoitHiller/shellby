@@ -1,0 +1,3 @@
+#!/bin/bash
+echo b
+sed 's/1/2/'
