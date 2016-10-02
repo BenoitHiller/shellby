@@ -1,10 +1,9 @@
 #!/bin/bash
 
+
 declare -r nickname="$(< "$bufferDir/etc/nickname")"
-declare -r username="$(< "$bufferDir/etc/username")"
-declare -r hostname="$(< "$bufferDir/etc/hostname")"
 
 declare shellbyHostname
-printf -v shellbyHostname "%s!%s@%s " "$nickname" "$username" "$hostname"
+printf -v shellbyHostname "%s!shellby@localhost" "$nickname"
 
 tee >( showm >/dev/stderr ) >( gawk -f "$botLib/logCommand.awk" logDir="$botLogs" shellbyHostname="$shellbyHostname" )

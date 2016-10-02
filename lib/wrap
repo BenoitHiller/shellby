@@ -6,10 +6,10 @@ declare -r COMMAND_REGEX="^PRIVMSG"
 
 main() {
   # TODO add restarting for when these files are actually updated
-  local -r nickname="$(< "$bufferDir/etc/nickname")"
-  local -r username="$(< "$bufferDir/etc/username")"
-  local -r hostname="$(< "$bufferDir/etc/hostname")"
-  local -ri prefixLength="$(printf ":%s!%s@%s " "$nickname" "$username" "$hostname" | wc -c)"
+  local nickname
+  local username
+  local hostname
+  local -i prefixLength
 
   local withoutSuffix
   local -i metaLength
@@ -17,6 +17,11 @@ main() {
   local line
   while read -r line; do
     if [[ "$line" =~ $COMMAND_REGEX ]]; then
+      nickname="$(< "$bufferDir/etc/nickname")"
+      username="$(< "$bufferDir/etc/username")"
+      hostname="$(< "$bufferDir/etc/hostname")"
+      prefixLength="$(printf ":%s!%s@%s " "$nickname" "$username" "$hostname" | wc -c)"
+
       withoutSuffix="$(sed -E 's/[^\r]*$//' <<<"$line")"
       ((length = 510 - prefixLength - ${#withoutSuffix}))
       sed -E 's/^.*\r//' <<<"$line" | fold -s -w "$length" | xargs -d "\n" printf "$withoutSuffix%s\n"
