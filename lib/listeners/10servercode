@@ -6,10 +6,10 @@ grep -E --line-buffered "^[0-9]{3}" <&0 | while IFS=$'\r' read -r -a parts; do
   case "${parts[0]}" in
     001)
       # TODO the events folder needs to be deprecated
-      "$botLib/commands/events/connected"
+      "$botLib/events/connected"
       ;;
     311)
-      "$botLib/commands/events/whois" "${parts[@]:3:3}"
+      "$botLib/events/whois" "${parts[@]:3:3}"
       ;;
   esac
 done
