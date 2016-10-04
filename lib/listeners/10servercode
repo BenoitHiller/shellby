@@ -1,15 +1,44 @@
 #!/bin/bash
 
-declare -a parts
+source "$botLib/readprop.sh"
 
-grep -E --line-buffered "^[0-9]{3}" <&0 | while IFS=$'\r' read -r -a parts; do
-  case "${parts[0]}" in
-    001)
-      # TODO the events folder needs to be deprecated
-      "$botLib/events/connected"
-      ;;
-    311)
-      "$botLib/events/whois" "${parts[@]:3:3}"
-      ;;
-  esac
-done
+connected() {
+  local -A properties=()
+  readProperties "$botConfig/etc/config"
+
+  if [[ "${properties[channels]}" ]]; then 
+    xargs -n 1 printf "JOIN\r\r%s\n" <<< "${properties[channels]}"
+  fi
+
+  printf "WHOIS\r\r%s\n" $(< "$bufferDir/etc/nickname") &
+}
+
+updateWhois() {
+  local -r nick="$1"
+  local -r username="$2"
+  local -r host="$3"
+
+  local -r currentNick="$(< "$bufferDir/etc/nickname")"
+
+  if [[ "$nick" == "$currentNick" ]]; then
+    printf "%s\n" "$username" > "$bufferDir/etc/username"
+    printf "%s\n" "$host" > "$bufferDir/etc/hostname"
+  fi
+}
+
+main() {
+  local -a parts
+
+  grep -E --line-buffered "^[0-9]{3}" <&0 | while IFS=$'\r' read -r -a parts; do
+    case "${parts[0]}" in
+      001)
+        connected
+        ;;
+      311)
+        updateWhois "${parts[@]:3:3}"
+        ;;
+    esac
+  done
+}
+
+main
