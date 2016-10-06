@@ -70,7 +70,7 @@ observeKarma() {
   local botName="$(< "$bufferDir/etc/nickname")" 
   botName="${botName,,}"
   local -r userDir="$botConfig/users"
-  local -r KARMA_REGEX="($IRC_NICK)([;,]\s*)?(\+\+|--)"
+  local -r KARMA_REGEX="($IRC_NICK)([:,]\s*)?(\+\+|--)"
 
   local nick
   local target
