@@ -15,7 +15,7 @@ getLastUrl() {
   local -r searchChannel="$1"
 
   local logFile
-  printf -v logFile "%s/logs/%s/%(%Y/%m/%d)T_message" "$botConfig" "$searchChannel"
+  printf -v logFile "%s/logs/%s/%s_message" "$botConfig" "$searchChannel" "$(date -u +%Y/%m/%d)"
 
   tac "$logFile" | awk -F "\r" '{print $6}' | grep -i -o -m 1 -P "$urlRegex"
 }

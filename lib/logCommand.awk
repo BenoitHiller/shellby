@@ -9,15 +9,15 @@ function logLine(user,action,message,channel,type) {
   split(user, userParts, "[!@]")
 
   if (length(channel) == 0) {
-    dir=logDir "/" strftime("%Y/%m")
+    dir=logDir "/" strftime("%Y/%m", systime(), 1)
   }
   else {
-    dir=logDir "/" channel strftime("/%Y/%m")
+    dir=logDir "/" channel strftime("/%Y/%m", systime(), 1)
   }
 
   system("mkdir -p '" dir "'")
-  file=dir "/" strftime("%d") "_" type
-  printf("%d\r%s\r%s\r%s\r%s\r%s\n", systime(),userParts[1],userParts[2],userParts[3],action,message) >> file
+  file=dir "/" strftime("%d", systime(), 1) "_" type
+  printf("%d\r%s\r%s\r%s\r%s\r%s\n", systime(), userParts[1], userParts[2], userParts[3], action, message) >> file
   fflush(file)
 }
 

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 declare -r nickname="$(< "$bufferDir/etc/nickname")"
 
 declare shellbyHostname

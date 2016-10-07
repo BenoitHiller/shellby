@@ -21,7 +21,7 @@ addQuote() {
   local -r quote="$4"
 
   local logFile
-  printf -v logFile "%s/logs/%s/%(%Y/%m/%d)T_message" "$botConfig" "$channel"
+  printf -v logFile "%s/logs/%s/%s_message" "$botConfig" "$channel" "$(date -u +%Y/%m/%d)"
 
   local verbatim="$(tail -n 50 "$logFile" \
     | tac \
