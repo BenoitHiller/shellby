@@ -53,7 +53,6 @@ main() {
 
   resplitAndParse "$message"
 
-  set -x
   local nick
   if [[ -n "${argMap[a]+_}" ]]; then
     if [[ "${#vargs[@]}" -gt 0 ]]; then
