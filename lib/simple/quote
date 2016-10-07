@@ -1,0 +1,109 @@
+#!/bin/bash
+
+set -f
+
+source "$botLib/parseArgs.sh"
+source "$botLib/irc.sh"
+
+declare -r QUOTE_NICK="^(($IRC_NICK)|<($IRC_NICK).?>)( *)"
+declare -r NICK_FULL="^$IRC_NICK\$"
+
+# Tries to add a given quote
+#
+# 1.channel the channel to quote from
+# 2.quoter the person adding the quote
+# 3.nick the person to quote
+# 4.quote the text to quote
+addQuote() {
+  local -r channel="$1"
+  local -r quoter="$2"
+  local -r nick="$3"
+  local -r quote="$4"
+
+  local logFile
+  printf -v logFile "%s/logs/%s/%(%Y/%m/%d)T_message" "$botConfig" "$channel"
+
+  local verbatim="$(tail -n 50 "$logFile" \
+    | tac \
+    | awk -F "\r" -v nick="$nick" -v quote="$quote" -v IGNORECASE=1 '
+      $2 == nick && $6 == quote {
+        print $6
+        exit
+      }')"
+  
+  if [[ -n "$verbatim" ]]; then
+    if [[ ! -f "$botLogs/quotes.log" ]] || awk -F "\r" -v nick="$nick" -v quote="$quote" -v IGNORECASE=1 '$3 == nick && $4 == quote { exit 1 }' "$botLogs/quotes.log"; then
+      {
+        printf "%(%s)T"
+        printf "\r%s\r%s\r%s\n" "$quoter" "$nick" "$verbatim"
+      } >> "$botLogs/quotes.log"
+      privmsg "$channel" "Remembered forever."
+    else
+      privmsg "$channel" "Already got that one."
+    fi
+  else
+    privmsg "$channel" "Now they never said anything like that. What are you trying to pull?"
+  fi
+}
+
+main() {
+  local -r quoter="$1"
+  local -r channel="$2"
+  local -r message="$6"
+
+  resplitAndParse "$message"
+
+  set -x
+  local nick
+  if [[ -n "${argMap[a]+_}" ]]; then
+    if [[ "${#vargs[@]}" -gt 0 ]]; then
+      if [[ "${vargs[0]}" =~ $NICK_FULL ]]; then
+        awk -F "\r" -v nick="${vargs[0]}"'$3 == nick { printf("%s: %s\n", $3, $4) }' "$botLogs/quotes.log" \
+          | pastebin "$channel"
+      else
+        privmsg "$channel" "That isn't a name."
+      fi
+    else
+      awk -F "\r" '{ printf("%s: %s\n", $3, $4) }' "$botLogs/quotes.log" \
+        | pastebin "$channel"
+    fi
+  else
+    if [[ "${#vargs[@]}" -gt 1 ]]; then
+      if [[ "$channel" =~ $CHANNEL_REGEX ]]; then
+        if [[ "$message" =~ $QUOTE_NICK ]]; then
+          local quote="${message#$BASH_REMATCH}"
+          local nick="${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+          addQuote "$channel" "$quoter" "$nick" "$quote"
+        else
+          privmsg "$channel" "That doesn't look like a quote. Is that a quote?"
+        fi
+      else
+        privmsg "$channel" "I think of what we have here as special and would rather you didn't quote it."
+      fi
+    elif [[ "${#vargs[@]}" -gt 0 ]]; then 
+      if [[ ! -f "$botLogs/quotes.log" ]]; then
+        privmsg "$channel" "No one has ever said anything notable."
+      else
+        if [[ "${vargs[0]}" =~ $NICK_FULL ]]; then
+          awk -F "\r" -v nick="${vargs[0]}" -v IGNORECASE=1 '$3 == nick { printf("%s: %s\n", $3, $4) }' "$botLogs/quotes.log" \
+            | shuf -n 1 \
+            | ifEmpty "Turns out they have never said anything funny." \
+            | privmsg "$channel"
+        else
+          privmsg "$channel" "That isn't a name."
+        fi
+      fi
+    else
+      if [[ ! -f "$botLogs/quotes.log" ]]; then
+        privmsg "$channel" "No one has ever said anything notable."
+      else
+        shuf -n 1 "$botLogs/quotes.log" \
+          | awk -F "\r" '{ printf("%s: %s\n", $3, $4) }' \
+          | privmsg "$channel"
+      fi
+    fi
+  fi
+
+}
+
+main "$@"

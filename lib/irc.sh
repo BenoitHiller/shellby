@@ -4,6 +4,7 @@
 # functions to help parsing the IRC protocol.
 
 declare -r IRC_NICK="[[:alpha:]][][[:alnum:]\\\`^{}]{0,15}"
+declare -r CHANNEL_REGEX="^#"
 
 # lowercase nicks
 normalizeNicks() {
@@ -46,9 +47,8 @@ getIRCInfo() {
     return 1
   fi
 
-  local -r channelRegex="^#"
 
-  if [[ ! ${infoArray[1]} =~ $channelRegex ]] ; then
+  if [[ ! ${infoArray[1]} =~ $CHANNEL_REGEX ]] ; then
     infoArray[1]="${infoArray[0]}"
   fi
   local infoText="${infoArray[@]}"

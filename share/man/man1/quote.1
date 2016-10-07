@@ -1,0 +1,46 @@
+.TH QUOTE 1
+.SH NAME
+quote \- quote people and retrieve quotes
+.SH SYNOPSIS
+.B quote
+[-a] [nick]
+.TP
+.B quote nick quote_text...
+.SH DESCRIPTION
+Saves and retrieves quotes.
+.SH OPTIONS
+.TP
+.BR -a
+Outputs all matching quotes to the pastebin
+.SH EXAMPLES
+Use the first form to retrieve a quote:
+.PP
+.nf
+.RS
+\&./quote
+.RE
+.fi
+.PP
+To retrieve all quotes
+.PP
+.nf
+.RS
+\&./quote -a
+.RE
+.fi
+.PP
+Use the second form to add a quote by a user.
+.PP
+.nf
+.RS
+\&./quote User something really funny
+.RE
+.fi
+.PP
+or
+.PP
+.nf
+.RS
+\&./quote <User> something really funny
+.RE
+.fi
