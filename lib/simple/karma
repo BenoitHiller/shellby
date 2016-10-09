@@ -28,11 +28,12 @@ main() {
 
     while read -r nick; do
       if [[ -n "$nick" ]]; then
-        validNick["${nick,,}"]=1
+        validNick["$nick"]=1
       fi
     done < <(find "$botLogs" -type f -path '*/#*_message' -print0 \
       | xargs -0 awk -F "" '{print $2}' \
-      | sort -u)
+      | sort -u
+      | normalizeNicks)
 
     local line
     local stamp
@@ -44,13 +45,14 @@ main() {
     while read -r line; do
       stamp="$(awk -F "\r" '{ print $1, $2 }' <<< "$line")"
       nick="${stamp#* }"
+      nick="$(normalizeNicks <<<"$nick")"
       plusNicks=()
       minusNicks=()
       while read -r karma; do
         if [[ "$karma" =~ $KARMA_REGEX ]]; then
-          targetNick="${BASH_REMATCH[1],,}"
+          targetNick="$(normalizeNicks <<<"${BASH_REMATCH[1]}")"
           targetAction="${BASH_REMATCH[3]}"
-          if [[ "${validNick[$targetNick]+_}" && "${targetNick}" != "${nick,,}" ]]; then
+          if [[ "${validNick[$targetNick]+_}" && "$targetNick" != "$nick" ]]; then
             if [[ "$targetAction" == "++" ]]; then
               plusNicks["$targetNick"]=true
             else
@@ -87,7 +89,7 @@ main() {
     rm "$userDir-building"
     privmsg "$channel" "building karma completed"
   elif (( "${#vargs[@]}" > 0 )); then
-    local user="${vargs[0],,}"
+    local user="$(normalizeNicks <<< "${vargs[0]}")"
     if [[ "$user" =~ ^($IRC_NICK)$ ]]; then
       if [[ -d "$userDir/$user/karma" ]]; then
         karma="$(( $(wc -l "$userDir/$user/karma/plus" | awk '{print $1}') - $(wc -l "$userDir/$user/karma/minus" | awk '{print $1}') ))"

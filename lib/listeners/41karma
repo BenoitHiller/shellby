@@ -18,7 +18,7 @@ complain() {
 }
 
 recordKarma() {
-  local nick="${1,,}"
+  local nick="$(normalizeNicks <<<"$1")"
   local channel="$2"
 
   local target
@@ -29,10 +29,10 @@ recordKarma() {
   local -A minusNicks
   while read -r target; do
     if [[ "$target" =~ $KARMA_REGEX ]]; then
-      targetNick="${BASH_REMATCH[1]}"
+      targetNick="$(normalizeNicks <<<"${BASH_REMATCH[1]}")"
       targetAction="${BASH_REMATCH[3]}"
 
-      if [[ "${targetNick,,}" != "$nick" ]]; then
+      if [[ "$targetNick" != "$nick" ]]; then
         if [[ "$targetAction" == "++" ]]; then
           plusNicks["$targetNick"]=true
         elif [[ "$targetAction" == "--" ]]; then
@@ -59,7 +59,7 @@ recordKarma() {
       touch "$targetDir/minus"
     fi
     printf "%s %s\n" "$now" "$nick" >> "$targetDir/minus"
-    if [[ "${targetNick,,}" ==  "$botName" ]]; then
+    if [[ "$targetNick" ==  "$botName" ]]; then
       complain "$nick" "$channel"
     fi
   done
@@ -67,8 +67,7 @@ recordKarma() {
 
 observeKarma() {
 
-  local botName="$(< "$bufferDir/etc/nickname")" 
-  botName="${botName,,}"
+  local botName="$(normalizeNicks <"$bufferDir/etc/nickname")" 
   local -r userDir="$botConfig/users"
   local -r KARMA_REGEX="($IRC_NICK)([:,]\s*)?(\+\+|--)"
 
