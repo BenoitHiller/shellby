@@ -56,20 +56,39 @@ filterDateRange() {
 # Consumes lines of shellby log format from stdin.
 # Outputs formatted lines to stdout.
 formatLogLines() {
-  gawk -F "\r" '
-    /^[0-9]+/{
-      if ($5 ~ /message/) {
-        print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", $2 ":", $6
-      } else if ( $5 ~ /notice/) {
-        print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "] (notice)", $2 ":", $6
-      } else if ( $5 ~ /action/) {
-        print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", "*", $2, $6
-      } else {
-        print $0
+  local -r showHost="$1"
+  if "$showHost"; then
+    gawk -F "\r" '
+      /^[0-9]+/{
+        if ($5 ~ /message/) {
+          printf("[%s] %s (%s@%s): %s\n", strftime("%Y-%m-%d %H:%M:%S",$1), $2, $3, $4, $6);
+        } else if ( $5 ~ /notice/) {
+          printf( "[%s] (notice) %s (%s@%s): %s\n", strftime("%Y-%m-%d %H:%M:%S",$1), $2, $3, $4, $6);
+        } else if ( $5 ~ /action/) {
+          print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", "*", $2, $6
+        } else {
+          print $0
+        }
       }
-    }
-    /^[^0-9]/{print $0}
-  '
+      /^[^0-9]/{print $0}
+    '
+
+  else
+    gawk -F "\r" '
+      /^[0-9]+/{
+        if ($5 ~ /message/) {
+          print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", $2 ":", $6
+        } else if ( $5 ~ /notice/) {
+          print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "] (notice)", $2 ":", $6
+        } else if ( $5 ~ /action/) {
+          print "[" strftime("%Y-%m-%d %H:%M:%S",$1) "]", "*", $2, $6
+        } else {
+          print $0
+        }
+      }
+      /^[^0-9]/{print $0}
+    '
+  fi
 }
 
 # Parses the -t and -T time parameters
@@ -217,6 +236,11 @@ main() {
       gflags+=( -m "$limit" )
     fi
 
+    local showHost=false
+    if [[ "${argMap[h]+_}" ]]; then
+      showHost=true
+    fi
+
     local -r channelRegex="^#[^/]+$"
 
     if [[ "${argMap[f]+_}" && "${argMap[f]}" =~ $channelRegex ]]; then
@@ -258,7 +282,7 @@ main() {
         | xargs -0 cat \
         | filterCommand "$channel" "$targetChannel" \
         | grep "${gflags[@]}" -- "$gargs" \
-        | formatLogLines \
+        | formatLogLines "$showHost" \
         | awk '
           NR > skip + 499 { exit 0 }
           NR >= skip { print $0 }
@@ -270,7 +294,7 @@ main() {
         | xargs -0 tac \
         | filterCommand "$channel" "$targetChannel" \
         | grep "${gflags[@]}" -- "$gargs" \
-        | formatLogLines \
+        | formatLogLines "$showHost" \
         | awk '
           NR > skip + 499 { exit 0 }
           NR >= skip { print $0 }

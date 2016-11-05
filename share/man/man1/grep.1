@@ -3,7 +3,7 @@
 grep \- search the channel logs
 .SH SYNOPSIS
 .B grep
-.RB [ -cir ]
+.RB [ -cihr ]
 .RB [ -E | -P | -F ]
 .RB [ --dontcare ]
 .RB [ -s
@@ -49,6 +49,9 @@ Search results from oldest to newest instead of newest to oldest.
 .TP
 .BR -i
 Makes the search case-insensitive
+.TP
+.BR -h
+Show the hostname and username for each message.
 .TP
 .BR -E
 Extended regex mode. Makes special characters behave as you are used to. See the real grep man page for more details.
