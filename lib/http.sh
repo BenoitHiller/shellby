@@ -1,14 +1,13 @@
-shopt -s extglob
-
 set -f
 
 ###################
 # RFC BNF Regexes #
 ###################
 
-declare -r REQUEST_LINE_REGEX='^\S+ \S+ \S+$'
+declare -r REQUEST_LINE_REGEX='^(\S+) (\S+) (\S+)$'
 declare -r REQUEST_VERSION_REGEX='^\S+ \S+ HTTP\/1\.[10]$'
 declare -r LWS='^[\t ]+'
+declare -r CONTINUATION="$LWS(.*)"
 declare -r TOKEN='[^()<>@,;:\"\/[.[.][.].]?={} \t]+'
 declare -r TEXT='[[:print:]\t]'
 declare -r VALID_HEADER="($TOKEN):[[:space:]]*($TEXT*)"
@@ -391,10 +390,8 @@ matchRoutes() {
 # 2.method the request method (HEAD or GET)
 getRequest() {
   local -r requestLine="$1"
-  local -r method="$2"
-
-  local requestUri="${requestLine% *}"
-  requestUri="${requestUri#* }"
+  local -r requestUri="$2"
+  local -r method="$3"
 
   local -A headers=()
   local lastHeader
@@ -437,8 +434,8 @@ getRequest() {
     
     # If this line starts with a continuation fold it into the previous line
     # and parse them both. This will replace any stored value for this header.
-    if [[ "$line" =~ $LWS ]]; then
-      line="$lastHeader ${line##*([\t ])}"
+    if [[ "$line" =~ $CONTINUATION ]]; then
+      line="$lastHeader ${BASH_REMATCH[1]}"
     fi
 
     if [[ "$line" =~ $VALID_HEADER ]]; then
@@ -484,6 +481,7 @@ getRequest() {
 # start the server using all the specified matchers
 runServer() {
   local requestLine
+  local requestUri
   local method
 
   # loop to wrap everything so that we keepalive
@@ -493,12 +491,15 @@ runServer() {
       # we never got anything from the server
       exit 1
     fi
-    
+
     if [[ ! "$requestLine" =~ $REQUEST_LINE_REGEX ]]; then
       sendResponseShort 400
       exit $?
     fi 
 
+    method="${BASH_REMATCH[1]}"
+    requestUri="${BASH_REMATCH[2]}"
+    
     if [[ ! "$requestLine" =~ $REQUEST_VERSION_REGEX ]]; then
       sendResponseShort 505
       exit $?
@@ -507,14 +508,12 @@ runServer() {
     # reset the count
     sentBytes=0
 
-    method="${requestLine%% *}"
-
     case "$method" in
       GET)
-        getRequest "$requestLine" GET
+        getRequest "$requestLine" "$requestUri" GET
       ;;
       HEAD)
-        getRequest "$requestLine" GET \
+        getRequest "$requestLine" "$requestUri" GET \
           | sed -E '/^\r?$/q'
       ;;
       *)
