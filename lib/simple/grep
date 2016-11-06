@@ -4,6 +4,7 @@ set -f
 
 source "$botLib/utility.sh"
 source "$botLib/parseArgs.sh"
+source "$botLib/readprop.sh"
 
 
 ####################
@@ -133,6 +134,20 @@ filterCommand() {
   else
     cat -
   fi
+}
+
+makeLogPaste() {
+  local -r tmpFile="$1"
+
+  local -r pasteDir="$bufferDir/web/logpaste"
+  if [[ ! -d "$pasteDir" ]]; then
+    mkdir -p "$pasteDir"
+  fi
+  trimCache "$pasteDir" "$((5 * 1024 * 1024))"
+  local -r checksum="$(md5sum "$tmpFile" | head -c 10)"
+  
+  mv "$tmpFile" "$pasteDir/$checksum"
+  geturl "log/paste/${checksum}.html"
 }
 
 main() {
@@ -275,6 +290,12 @@ main() {
 
     local -ri selection="$((RANDOM % ${#emptyMessages[@]}))"
 
+    local -r cacheDir="$bufferDir/cache/pastebin"
+    if [[ ! -d "$cacheDir" ]]; then
+      mkdir -p "$cacheDir"
+    fi
+    local -r tmpFile="$(mktemp -p "$cacheDir" tmp.XXXXXX)"
+
     if "$reverseOrder"; then
       find "$botLogs/$targetChannel" -type f -name '*_message' -print0 \
         | filterDateRange "${startTime[@]}" "${endTime[@]}" \
@@ -282,7 +303,6 @@ main() {
         | xargs -0 cat \
         | filterCommand "$channel" "$targetChannel" \
         | grep "${gflags[@]}" -- "$gargs" \
-        | formatLogLines "$showHost" \
         | awk '
           NR > skip + 499 { exit 0 }
           NR >= skip { print $0 }
@@ -294,14 +314,23 @@ main() {
         | xargs -0 tac \
         | filterCommand "$channel" "$targetChannel" \
         | grep "${gflags[@]}" -- "$gargs" \
-        | formatLogLines "$showHost" \
         | awk '
           NR > skip + 499 { exit 0 }
           NR >= skip { print $0 }
         ' skip="$skip" \
         | tac
-    fi | ifEmpty "${emptyMessages[$selection]}" \
-      | pastebin "$channel" 
+    fi > "$tmpFile"
+
+    if [[ -s "$tmpFile" ]]; then
+      readProperties "$botConfig/etc/webserver"
+      if [[ "${properties[enabled]}" == "true" ]]; then
+        makeLogPaste "$tmpFile" | privmsg "$channel"
+      else
+        formatLogLines "$showHost" <"$tmpFile" | pastebin "$channel"
+      fi
+    else
+      privmsg "$channel" "${emptyMessages[$selection]}"
+    fi
   fi
 }
 
