@@ -11,7 +11,7 @@ declare -r REQUEST_VERSION_REGEX='^\S+ \S+ HTTP\/1\.[10]$'
 declare -r LWS='^[\t ]+'
 declare -r TOKEN='[^()<>@,;:\"\/[.[.][.].]?={} \t]+'
 declare -r TEXT='[[:print:]\t]'
-declare -r VALID_HEADER="$TOKEN:$TEXT*"
+declare -r VALID_HEADER="($TOKEN):[[:space:]]*($TEXT*)"
 
 # This does not validate IPs or match IPv6
 declare -r IP='(([[:digit:]]*\.){3}[[:digit:]])'
@@ -255,7 +255,6 @@ sendResponsePipe() {
 
   # use a tmpfile for pipes of unknown length
   if [[ -z "$contentLength" ]]; then
-    set -x
     local -r tmpFile="$(mktemp -p "$TMPDIR" webCache.XXXXXX)"
     stdbuf -o1000 cat >"$tmpFile"
     sendResponse "$statusCode" "$tmpFile"
@@ -443,12 +442,9 @@ getRequest() {
     fi
 
     if [[ "$line" =~ $VALID_HEADER ]]; then
-      fieldName="${line%%:*}"
-      fieldValue="${line#*:}"
-    
       # It would be nice to preserve the case, but headers are supposedly
       # case-insensitive.
-      headers["${fieldName,,}"]="${fieldValue##*([[:space:]])}"
+      headers["${BASH_REMATCH[1],,}"]="${BASH_REMATCH[2]}"
     fi
     
     lastHeader="$line"

@@ -9,7 +9,6 @@ declare -ri MAX_CACHE_SIZE="$((10*1024*1024))"
 declare -r MAN_REGEX='^[a-zA-Z0-9_-]+$'
 declare -r MAN_SECTION_REGEX='^[0-9]/[a-zA-Z0-9_-]+$'
 
-
 serveMan() {
   local file="${3#/man/}"
 
@@ -153,12 +152,14 @@ serveLogPaste() {
           responseHeaders["Content-Type"]="text/plain"
           formatLogLines "$showHost" <"$target" \
             | sendResponsePipe 200
+          return 0
           ;;
         html)
           escapeHtml <"$target" \
             | formatHtmlLogLines \
             | cat "$botLib/web/logheader.html" - "$botLib/web/logfooter.html"\
             | sendResponsePipe 200
+          return 0
           ;;
       esac
     fi
