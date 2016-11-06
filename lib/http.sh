@@ -248,6 +248,26 @@ sendResponse() {
   return 0
 }
 
+# function to serve a file if it exists
+#
+# 1.dir the directory the file has to be in
+# 2.file the path to the file relative to dir
+#
+# returns:
+# 0 if the file exists and was sent
+# 1 if the file was not found
+serveFile() {
+  local -r dir="$(readlink -m "$1")"
+  local -r file="$2"
+  local -r target="$(find "$dir" -type f -print0 | grep -Fxz -m 1 "$dir/$file")"
+
+  if [[ -n "$target" && -f "$target" ]]; then
+    sendResponse 200 "$target"
+    return 0
+  fi
+  return 1
+}
+
 sendResponsePipe() {
   local -ri statusCode="$1"
   local -r contentLength="$2"
@@ -288,7 +308,7 @@ sendResponsePipe() {
 
 }
 
-# do not use, broken
+# do not use, not supported by http/1.0
 sendResponseChunked() {
   local -ri statusCode="$1"
   local -r reason="${REASONS[$statusCode]}"
@@ -300,7 +320,7 @@ sendResponseChunked() {
   fi
 
   responseHeaders["Transfer-Encoding"]="chunked"
-  echorn "HTTP/1.0 $statusCode $reason"
+  echorn "HTTP/1.1 $statusCode $reason"
   for header in "${!responseHeaders[@]}"; do
     echorn "$header: ${responseHeaders[$header]}"
   done
@@ -527,24 +547,4 @@ runServer() {
     fi
 
   done < <(stdbuf -oL dos2unix)
-}
-
-# function to serve a file if it exists
-#
-# 1.dir the directory the file has to be in
-# 2.file the path to the file relative to dir
-#
-# returns:
-# 0 if the file exists and was sent
-# 1 if the file was not found
-serveFile() {
-  local -r dir="$(readlink -m "$1")"
-  local -r file="$2"
-  local -r target="$(find "$dir" -type f -print0 | grep -Fxz -m 1 "$dir/$file")"
-
-  if [[ -n "$target" && -f "$target" ]]; then
-    sendResponse 200 "$target"
-    return 0
-  fi
-  return 1
 }
