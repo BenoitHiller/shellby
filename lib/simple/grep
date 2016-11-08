@@ -322,12 +322,7 @@ main() {
     fi > "$tmpFile"
 
     if [[ -s "$tmpFile" ]]; then
-      readProperties "$botConfig/etc/webserver"
-      if [[ "${properties[enabled]}" == "true" ]]; then
-        makeLogPaste "$tmpFile" | privmsg "$channel"
-      else
-        formatLogLines "$showHost" <"$tmpFile" | pastebin "$channel"
-      fi
+      makeLogPaste "$tmpFile" | privmsg "$channel"
     else
       privmsg "$channel" "${emptyMessages[$selection]}"
     fi

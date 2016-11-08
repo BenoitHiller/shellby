@@ -26,6 +26,10 @@ if [[ ! "${properties[nick]+_}" ]]; then
   exit 1
 fi
 
+if [[ -z "${properties[serverDomain]}" ]]; then
+  printf "\033[0;33m%s\033[0m\n" "Warning: You didin't specify the serverDomain in $botConfig/etc/config. The functions that depend on the webserver running may not work." >&2
+fi
+
 if [[ ! -s "$botConfig/etc/admins" ]]; then
   printf "\033[0;33m%s\033[0m\n" "Warning: You don't have any admins configured in $botConfig/etc/admins" >&2
 fi

@@ -1,25 +1,16 @@
 #!/bin/bash
 
 source "$botLib/utility.sh"
-source "$botLib/readprop.sh"
 
 declare -r channel="$2"
 declare -r message="$6"
 
-readProperties "$botConfig/etc/webserver"
-
 if [[ -z "$message" ]]; then
   privmsg "$channel" "What did you expect that to do?"
 else
-  if [[ "${properties[enabled]}" == "true" ]]; then
-    if man -w -M "$botShare/man/" "$message" &>/dev/null; then
-      geturl "man/$message" | privmsg "$channel"
-    else
-      printf "No manual entry for %s" "$message" | privmsg "$channel"
-    fi
+  if man -w -M "$botShare/man/" "$message" &>/dev/null; then
+    geturl "man/$message" | privmsg "$channel"
   else
-    MANWIDTH=100 man -M "$botShare/man/" "$message" 2>&1 \
-      | col -b \
-      | pastebin "$channel" 
+    printf "No manual entry for %s" "$message" | privmsg "$channel"
   fi
 fi

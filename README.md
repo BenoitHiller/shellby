@@ -17,12 +17,9 @@ If you register the account for the bot you can add a `~/.shellby/etc/password` 
 ## Dependencies
 
 * ncat (provided by nmap)
+* dos2unix
 * gawk 
 * bash >=4
-
-### Optional
-
-* dos2unix (only needed if you enable the webserver)
 
 ## Data
 

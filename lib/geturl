@@ -5,12 +5,20 @@ main() {
     source "$botLib/readprop.sh"
   fi
 
-  readProperties "$botConfig/etc/webserver"
+  readProperties "$botConfig/etc/config"
+
+  local -r port="${properties[serverPort]-40156}"
+  local domain
+  if [[ -z "${properties[serverDomain]}" ]]; then
+    domain="$(< "$bufferDir/etc/hostname")"
+  else
+    domain="${properties[serverDomain]}"
+  fi
 
   if [[ "${properties[port80]}" == "true" ]]; then
-    printf "http://%s/%s\n" "${properties[domain]}" "$1"
+    printf "http://%s/%s\n" "$domain" "$1"
   else
-    printf "http://%s:%d/%s\n" "${properties[domain]}" "${properties[port]}" "$1"
+    printf "http://%s:%d/%s\n" "$domain" "$port" "$1"
   fi
   
 }
