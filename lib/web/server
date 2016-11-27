@@ -24,6 +24,7 @@ main() {
   addRoute GET '^/man/' serveMan
   addRoute GET '^/paste/' servePastes
   addRoute GET '^/badfile$' serveBadFile
+  addRoute GET '^/log/[^./]+/[0-9]{4}/[0-9]{2}/[0-9]{2}\.(txt|html|json)' serveLog
   addRoute GET '^/log/paste/' serveLogPaste
 
   runServer

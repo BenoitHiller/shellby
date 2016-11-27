@@ -11,7 +11,7 @@ main() {
   local -r webDir="$bufferDir/web"
   mkdir -p "$webDir" &>/dev/null
   # TODO push ncat down into an executable to make self contained
-  env -i thisPid=$thisPid DEBUG="${properties[debug]}" botConfig="$botConfig" botLib="$botLib" botShare="$botShare" bufferDir="$bufferDir" PATH="$PATH" ncat -lk -p "$port" -e "$botLib/web/server"
+  env -i thisPid=$thisPid DEBUG="${properties[debug]}" botConfig="$botConfig" botLib="$botLib" botShare="$botShare" bufferDir="$bufferDir" botLogs="$botLogs" PATH="$PATH" ncat -lk -p "$port" -e "$botLib/web/server"
   
 }
 
