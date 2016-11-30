@@ -50,7 +50,22 @@ evaluate() {
     else
       raw=true
       if [[ -n "$line" ]]; then
-        eval "$line"
+        eval "$line" <&3
+      fi
+    fi
+  done
+}
+
+compile() {
+  local raw=true
+  while read -r -d $'\0' line; do
+    if $raw; then
+      raw=false
+      printf 'printf "%%s" %q\n' "$line"
+    else
+      raw=true
+      if [[ -n "$line" ]]; then
+        printf '%s\n' "$line"
       fi
     fi
   done
@@ -62,5 +77,5 @@ evaluate() {
 render() {
   local -r file="$1"
 
-  split "$file" | evaluate
+  source <(split "$file" | compile)
 }

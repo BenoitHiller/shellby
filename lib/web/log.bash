@@ -146,7 +146,7 @@ serveLogPaste() {
         html)
           escapeHtml <"$target" \
             | log_formatHtmlLines \
-            | cat "$botLib/web/logheader.html" - "$botLib/web/logfooter.html"\
+            | render "$botLib/web/logpaste.html" \
             | sendResponsePipe 200
           return 0
           ;;
@@ -189,7 +189,7 @@ serveLog() {
         html)
           escapeHtml <"$target" \
             | log_formatHtmlLines \
-            | cat "$botLib/web/logheader.html" - "$botLib/web/logfooter.html"\
+            | render "$botLib/web/logpaste.html" \
             | sendResponsePipe 200
           return 0
           ;;

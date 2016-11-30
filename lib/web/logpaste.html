@@ -3,13 +3,28 @@
 <title>Shellby Paste</title>
 <style>
   body {
+    margin: 0;
+    padding: 0;
     word-wrap: break-word;
-    max-width: 800px;
+    width: 100%;
     font-size: 14px;
     font-family: monospace;
     line-height: 18px;
   }
-  pre {
-    display: inline;
+
+  .log-line {
+    clear: both;
+  }
+
+  .log-group {
+    padding: 1em 1em;
+    border-bottom: 1px solid black;
+  }
+
+  .log-group:last-child {
+    border-bottom: none;
   }
 </style>
+<div class="log-group">
+  {{ cat }}
+</div>
