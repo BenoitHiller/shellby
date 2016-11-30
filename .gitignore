@@ -1,5 +1,5 @@
 rawlog
-logs
+/logs
 dump.rdb
 etc/password
 etc/wolframKey

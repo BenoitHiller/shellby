@@ -1,0 +1,12 @@
+#!/bin/bash
+
+declare -r CHANNEL_REGEX="^#[^/]+$"
+declare -r nickname="$1"
+declare -r channel="$2"
+
+if [[ "$channel" =~ $CHANNEL_REGEX ]]; then
+  geturl "log/${channel#[#]}/$(date -u +%Y/%m/%d).html" \
+    | privmsg "$channel"
+else
+  privmsg "$channel" "I'm sorry $nickname, I'm afraid I can't do that."
+fi
