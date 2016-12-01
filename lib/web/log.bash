@@ -43,9 +43,9 @@ log_formatHtmlLines() {
 gawk -F "\r" '
   /^[0-9]+/{
     if ($5 ~ /action/) {
-      printf("<div class=\"log-line log-%s\" data-username=\"%s\" data-hostname=\"%s\">[<span class=\"log-timestamp\">%s</span>] * <span class=\"log-nick\">%s</span> <span class=\"log-content\">%s</span></div>\n", $5, $3, $4,  strftime("%Y-%m-%d %H:%M:%S",$1), $2, $6);
+      printf("<div class=\"log-line log-%s\" data-timestamp=\"%s\" data-username=\"%s\" data-hostname=\"%s\"><span class=\"log-timestamp\">[%s]</span> * <span class=\"log-nick\" title=\"%s\">%s</span> <span class=\"log-content\">%s</span></div>\n", $5, $1, $3, $4,  strftime("%Y-%m-%d %H:%M:%S",$1), $3 "@" $4, $2, $6);
     } else {
-      printf("<div class=\"log-line log-%s\" data-username=\"%s\" data-hostname=\"%s\">[<span class=\"log-timestamp\">%s</span>] <span class=\"log-nick\">%s</span>: <span class=\"log-content\">%s</span></div>\n", $5, $3, $4,  strftime("%Y-%m-%d %H:%M:%S",$1), $2, $6);
+      printf("<div class=\"log-line log-%s\" data-timestamp=\"%s\" data-username=\"%s\" data-hostname=\"%s\"><span class=\"log-timestamp\">[%s]</span> <span class=\"log-nick\" title=\"%s\">%s</span>: <span class=\"log-content\">%s</span></div>\n", $5, $1, $3, $4,  strftime("%Y-%m-%d %H:%M:%S",$1), $3 "@" $4, $2, $6);
     }
   }
 

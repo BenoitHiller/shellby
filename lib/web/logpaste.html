@@ -17,14 +17,42 @@
   }
 
   .log-group {
-    padding: 1em 1em;
+    padding: 1em 0;
     border-bottom: 1px solid black;
   }
 
-  .log-group:last-child {
+  .log-group:last-of-type {
     border-bottom: none;
   }
+
+  .log-line {
+    padding: 0.1em 1em;
+  }
+
+  .log-nick {
+    cursor: pointer;
+  }
+
+  .log-timestamp {
+    color: #484848;
+  }
+
 </style>
 <div class="log-group">
   {{ cat }}
 </div>
+<script>
+  var contents = document.querySelectorAll(".log-content");
+  var i;
+  var span;
+  for (i = 0; i < contents.length; i++) {
+    span = contents[i];
+    span.innerHTML = span.innerHTML.replace(/(https?:\/\/)?(www\.)?([-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}|localhost)(:\d+)?\b((&amp;|[-a-zA-Z0-9@:%_\+.~#?&//=])*)/gi, function(match) {
+      var url = match;
+      if (!match.match(/^https?:\/\//)) {
+        url = "http://" + match;
+      }
+      return "<a href=\"" + url + "\">" + match + "</a>";
+    } );   
+  }
+</script>
