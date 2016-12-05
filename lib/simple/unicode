@@ -125,10 +125,10 @@ formatQuery() {
   }
 
   {
-    if ($11 == "") {
-      description = $2;
-    } else {
+    if ($2 ~ /<.*>/ && $11 != "") {
       description = $11;
+    } else {
+      description = $2;
     }
     val = strtonum("0x"$1);
     if (val >= lshift(1, 16)) {
