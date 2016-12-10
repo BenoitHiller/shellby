@@ -163,7 +163,6 @@ serveLogPaste() {
 }
 
 serveLog() {
-  set -x
   local file="${3#/log/}"
   if [[ "$file" =~ $LOG_FILE_REGEX ]]; then
     local format="${BASH_REMATCH[3]}"
