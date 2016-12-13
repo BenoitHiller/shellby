@@ -322,7 +322,11 @@ main() {
     fi > "$tmpFile"
 
     if [[ -s "$tmpFile" ]]; then
-      makeLogPaste "$tmpFile" | privmsg "$channel"
+      if [[ "$(grep -c "^" "$tmpFile")" -gt 1 ]]; then
+        makeLogPaste "$tmpFile" | privmsg "$channel"
+      else
+        formatLogLines <"$tmpFile" | privmsg "$channel"
+      fi
     else
       privmsg "$channel" "${emptyMessages[$selection]}"
     fi
