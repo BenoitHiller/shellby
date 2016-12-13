@@ -5,4 +5,4 @@ declare -r nickname="$(< "$bufferDir/etc/nickname")"
 declare shellbyHostname
 printf -v shellbyHostname "%s!shellby@localhost" "$nickname"
 
-tee >( showm >/dev/stderr ) >( gawk -f "$botLib/logCommand.awk" logDir="$botLogs" shellbyHostname="$shellbyHostname" )
+tee /dev/stderr >( gawk -f "$botLib/logCommand.awk" logDir="$botLogs" shellbyHostname="$shellbyHostname" )
